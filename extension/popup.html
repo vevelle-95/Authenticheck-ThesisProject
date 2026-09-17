@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>AuthentiCheck</title>
+    <link rel="stylesheet" href="popup.css" />
+  </head>
+  <body>
+    <header>
+      <span class="logo">
+        <svg viewBox="0 0 24 24"><path d="m12 2 8 3v6c0 5.1-3.4 9.6-8 11-4.6-1.4-8-5.9-8-11V5l8-3Z"/><path d="m8.5 12 2.2 2.2 4.8-5"/></svg>
+      </span>
+      <div><strong>AuthentiCheck</strong><small>Review intelligence</small></div>
+      <span class="version">v0.1</span>
+    </header>
+
+    <main>
+      <div class="support" id="supportState"><i></i><span>Checking this page…</span></div>
+
+      <label class="setting">
+        <span><strong>Show on product pages</strong><small>Display the floating trust badge</small></span>
+        <input type="checkbox" id="enabled" checked />
+        <i class="toggle"></i>
+      </label>
+
+      <label class="setting">
+        <span><strong>Analyze automatically</strong><small>Refresh when reviews change</small></span>
+        <input type="checkbox" id="autoAnalyze" checked />
+        <i class="toggle"></i>
+      </label>
+
+      <div class="api-card">
+        <label class="setting api-switch">
+          <span><strong>Use model API</strong><small>Otherwise uses a local estimate</small></span>
+          <input type="checkbox" id="useApi" />
+          <i class="toggle"></i>
+        </label>
+        <label class="endpoint" id="endpointWrap">
+          <span>Local API endpoint</span>
+          <input id="apiEndpoint" type="url" value="http://127.0.0.1:8000/analyze" />
+        </label>
+      </div>
+
+      <div class="actions">
+        <button class="secondary" id="rescan">Rescan page</button>
+        <button class="primary" id="save">Save settings</button>
+      </div>
+      <p class="notice" id="notice">Settings saved</p>
+    </main>
+
+    <footer>Designed for Shopee Philippines and Lazada Philippines</footer>
+    <script src="popup.js"></script>
+  </body>
+</html>

@@ -1,0 +1,91 @@
+# Generated extension packages and build output
+/output/
+/dist/
+/build/
+*.zip
+*.crx
+
+# Browser extension signing keys
+*.pem
+
+# Environment variables and secrets
+.env
+.env.*
+!.env.example
+*.key
+*.secret
+/secrets/
+
+# Python caches and environments
+__pycache__/
+*.py[cod]
+*.pyo
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+.venv/
+venv/
+env/
+
+# JavaScript dependencies and logs
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+pnpm-debug.log*
+
+# Model weights and checkpoints
+*.pt
+*.pth
+*.ckpt
+*.bin
+*.safetensors
+*.onnx
+*.joblib
+*.pkl
+*.xgb
+/checkpoints/
+/runs/
+/wandb/
+
+# Track model documentation and small configuration files only
+/models/*
+!/models/README.md
+!/models/config/
+!/models/config/**
+
+# Private and generated datasets
+/data/*
+!/data/samples/
+!/data/samples/**
+/datasets/
+/scraped/
+/review_images/
+/private-data/
+/private-documents/
+
+# Generated research and test output
+/results/
+/reports/generated/
+/logs/
+*.log
+coverage/
+.nyc_output/
+playwright-report/
+test-results/
+
+# Editors and operating systems
+.vscode/
+.idea/
+*.code-workspace
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Temporary and backup files
+*.tmp
+*.temp
+*.bak
+*.swp
+~$*
