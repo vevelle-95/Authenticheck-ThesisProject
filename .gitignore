@@ -89,3 +89,12 @@ desktop.ini
 *.bak
 *.swp
 ~$*
+
+# Ignore Stage 1 generated models and temporary training results
+stage1/models/
+stage1/temp_results/
+
+# Ignore Python cache and virtual environment globally
+.venv/
+__pycache__/
+*.pyc
