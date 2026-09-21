@@ -28,14 +28,36 @@ Enable **Use model API** in the popup and provide a local endpoint such as `http
   "platform": "Shopee",
   "url": "https://shopee.ph/...",
   "productTitle": "Product name",
+  "productDescription": "Visible product description",
   "marketplaceRating": 4.8,
   "reviews": [
-    { "id": "shopee-1", "text": "...", "rating": 5, "hasImage": true }
+    {
+      "id": "shopee-1",
+      "text": "...",
+      "rating": 5,
+      "hasImage": true,
+      "imageUrls": ["https://example-cdn.test/buyer-photo.jpg"]
+    }
   ]
 }
 ```
 
-The API may return `authenticShare`, `verifiedRating`, `counts`, `sentimentCounts`, `aspects`, and classified `reviews`. For backward compatibility, `confidence` is also accepted as an alias for `authenticShare`. Missing fields fall back to the local estimate. Version 0.1 permits local API hosts only (`127.0.0.1` or `localhost`).
+The API may return `authenticShare`, `verifiedRating`, `counts`, `sentimentCounts`, `aspects`, and classified `reviews`. For backward compatibility, `confidence` is also accepted as an alias for `authenticShare`, while `low-value`, `low_value`, and `lowValue` are normalized to the interface's internal `liv` key. Missing fields fall back to the local estimate. Version 0.2 permits local API hosts only (`127.0.0.1` or `localhost`).
+
+The request also includes `productDescription` and an `imageUrls` array for each review when buyer media is visible. This keeps the frontend contract ready for product-description similarity and M-CLIP visual-grounding features without claiming that those models are already running.
+
+When API mode is enabled, connection and response errors are shown explicitly. The extension does not silently replace a failed model response with heuristic output; the user may deliberately select **Use local preview**, which remains labeled as a preliminary estimate.
+
+## Mock-defense readiness
+
+- Complete loading, empty, model-error, recovery, and result states.
+- Review evidence search and classification filters.
+- Input-coverage counts for reviews, ratings, and buyer media.
+- JSON export containing the exact analysis input and displayed result.
+- Responsive and keyboard-friendly panel behavior.
+- Stable local API boundary with a 20-second timeout and basic JSON validation.
+
+The standalone prototype and local estimate are appropriate for demonstrating the proposed workflow and interface during the mock defense. They are not empirical model results and should not be used as thesis performance evidence. Replace the local preview with the trained API for the tool defense.
 
 ## Privacy and scope
 

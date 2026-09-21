@@ -20,10 +20,16 @@
 __pycache__/
 *.py[cod]
 *.pyo
+.ipynb_checkpoints/
 .pytest_cache/
+.hypothesis/
 .mypy_cache/
 .ruff_cache/
+.tox/
+.nox/
+*.egg-info/
 .coverage
+.coverage.*
 htmlcov/
 .venv/
 venv/
@@ -84,6 +90,7 @@ Thumbs.db
 desktop.ini
 
 # Temporary and backup files
+/tmp/
 *.tmp
 *.temp
 *.bak
