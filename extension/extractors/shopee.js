@@ -25,6 +25,13 @@
         "[class*='product-name']"
       ]);
     },
+    getProductDescription() {
+      return common.descriptionFrom([
+        ".shopee-product-detail__description",
+        "[class*='product-detail'][class*='description']",
+        "[class*='product-description']"
+      ]);
+    },
     getMarketplaceRating() {
       return common.ratingFromPage([
         ".product-rating-overview__briefing",
