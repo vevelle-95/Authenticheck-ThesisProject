@@ -81,6 +81,8 @@ Open `prototype/index.html` directly, or serve the repository with a static file
 
 ## Prototype interactions
 
+- Start a staged mock analysis with progress updates and rotating review-literacy tips.
+- Replay the presentation sequence with **Run demo again**.
 - Open and close the floating AuthentiCheck panel.
 - Explore Overview, Insights, and Reviews tabs.
 - Select any review-quality category to jump to its evidence view.
