@@ -1,0 +1,9 @@
+torch
+transformers
+datasets
+accelerate
+pandas
+requests
+pillow
+xgboost
+scikit-learn
