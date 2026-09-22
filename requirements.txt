@@ -7,3 +7,4 @@ requests
 pillow
 xgboost
 scikit-learn
+sentence-transformers #for m-clip

@@ -96,6 +96,11 @@ All product and analysis values in the standalone prototype are illustrative pla
 ```text
 extension/   Browser extension source that should be committed
 prototype/   Standalone interface demonstration that should be committed
+data/        Centralized input data and generated 6D features
+models/      Centralized trained models
+stage1/      RoBERTa training and 6D feature extraction scripts
+stage2/      XGBoost meta-classifier training script
+requirements.txt  Shared Python dependencies
 output/      Generated ZIP packages; ignored by Git
 ```
 

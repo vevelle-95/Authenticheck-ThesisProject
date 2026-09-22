@@ -75,7 +75,7 @@ def main():
 
     # 5. Save the Features
     features_df = pd.DataFrame(features_list)
-    output_path = "data/6d_features.csv"
+    output_path = config.FEATURES_PATH
     features_df.to_csv(output_path, index=False, encoding="utf-8-sig")
     print(f"\nSuccess! 6D features extracted and saved to {output_path}")
 
