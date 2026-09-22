@@ -14,10 +14,18 @@
     Delivery: DELIVERY,
     Appearance: ["color","kulay","design","look","size","laki","maliit"]
   };
+  const LOADING_TIPS = [
+    "Hindi lahat ng reviews ay dapat paniwalaan.",
+    "Mas kapaki-pakinabang ang reviews na may tiyak na detalye.",
+    "Tinitingnan din kung tugma ang rating at review text.",
+    "Buyer photos can provide useful product context.",
+    "Delivery comments may not describe the product itself."
+  ];
 
   let settings = { ...DEFAULTS };
   let currentUrl = location.href;
   let refreshTimer;
+  let loadingTipTimer;
   let analysisRun = 0;
   let host;
   let root;
@@ -73,7 +81,7 @@
           <div class="ac-head-actions"><button class="ac-icon-btn ac-info" aria-label="About this analysis">${infoIcon}</button><button class="ac-icon-btn ac-close" aria-label="Close AuthentiCheck">${closeIcon}</button></div>
         </header>
         <div class="ac-scroll">
-          <section class="ac-state ac-loading"><span class="ac-spinner"></span><h2>Analyzing visible reviews</h2><p>Preparing review text, ratings, and available buyer media.</p></section>
+          <section class="ac-state ac-loading" role="status" aria-live="polite"><span class="ac-spinner" aria-hidden="true"></span><h2>Analyzing reviews…</h2><p>Preparing review text, ratings, and available buyer media.</p><div class="ac-loading-tip"><strong>Review tip</strong><span></span></div></section>
           <section class="ac-state ac-empty"><span class="ac-empty-icon">${shield}</span><h2>Reviews aren't loaded yet</h2><p>Scroll to the product reviews so the marketplace loads them, then run the scan again.</p><button class="ac-rescan">Scan visible reviews</button></section>
           <section class="ac-state ac-error"><span class="ac-empty-icon ac-error-icon">!</span><h2>Model connection failed</h2><p class="ac-error-message">The local inference service could not be reached.</p><div class="ac-error-actions"><button class="ac-retry">Try model again</button><button class="ac-local-preview">Use local preview</button></div><small>Local preview is heuristic-only and is never presented as model output.</small></section>
           <div class="ac-results hidden">
@@ -110,6 +118,7 @@
 
   function destroyShell() {
     analysisRun += 1;
+    stopLoadingTips();
     if (host?.isConnected) host.remove();
     host = null;
     root = null;
@@ -200,6 +209,7 @@
     if (!root || !settings.enabled || !adapter?.isProductPage()) return;
     const runId = ++analysisRun;
     renderLoading();
+    const minimumLoadingTime = new Promise(resolve => setTimeout(resolve, 1200));
     const reviews = adapter.extractReviews();
     const payload = {
       platform: adapter.name,
@@ -212,6 +222,8 @@
     lastPayload = payload;
 
     if (!reviews.length) {
+      await minimumLoadingTime;
+      if (runId !== analysisRun) return;
       renderEmpty();
       return;
     }
@@ -222,11 +234,15 @@
       if (runId !== analysisRun) return;
       if (response?.ok && response.result) result = normalizeApiResult(response.result, payload);
       else {
+        await minimumLoadingTime;
+        if (runId !== analysisRun) return;
         renderError(response?.error || "The model API did not respond. Check that the local service is running.");
         return;
       }
     }
     if (!result) result = analyzeLocally(payload);
+    await minimumLoadingTime;
+    if (runId !== analysisRun) return;
     renderResult(result, payload);
   }
 
@@ -275,6 +291,7 @@
 
   function renderEmpty() {
     hideStates();
+    setTriggerLoading(false);
     root.querySelector(".ac-empty").classList.add("show");
     root.querySelector(".ac-results").classList.add("hidden");
     root.querySelector(".ac-trigger-copy strong").textContent = "Open product reviews to analyze";
@@ -283,6 +300,7 @@
   }
 
   function hideStates() {
+    stopLoadingTips();
     root.querySelectorAll(".ac-state").forEach(state => state.classList.remove("show"));
   }
 
@@ -291,11 +309,13 @@
     root.querySelector(".ac-results").classList.add("hidden");
     root.querySelector(".ac-loading").classList.add("show");
     root.querySelector(".ac-trigger-copy strong").textContent = settings.useApi ? "Waiting for model analysis…" : "Checking visible reviews…";
-    root.querySelector(".ac-trigger-score").textContent = "…";
+    setTriggerLoading(true);
+    startLoadingTips();
   }
 
   function renderError(message) {
     hideStates();
+    setTriggerLoading(false);
     root.querySelector(".ac-results").classList.add("hidden");
     root.querySelector(".ac-error").classList.add("show");
     root.querySelector(".ac-error-message").textContent = message;
@@ -303,6 +323,29 @@
     root.querySelector(".ac-trigger-copy small").textContent = "Open for recovery options";
     root.querySelector(".ac-trigger-score").textContent = "!";
     openPanel();
+  }
+
+  function setTriggerLoading(isLoading) {
+    const score = root.querySelector(".ac-trigger-score");
+    score.classList.toggle("loading", isLoading);
+    if (isLoading) score.textContent = "";
+  }
+
+  function startLoadingTips() {
+    stopLoadingTips();
+    let tipIndex = 0;
+    const tip = root.querySelector(".ac-loading-tip span");
+    const showNextTip = () => {
+      tip.textContent = LOADING_TIPS[tipIndex % LOADING_TIPS.length];
+      tipIndex += 1;
+    };
+    showNextTip();
+    loadingTipTimer = setInterval(showNextTip, 1000);
+  }
+
+  function stopLoadingTips() {
+    clearInterval(loadingTipTimer);
+    loadingTipTimer = null;
   }
 
   function percent(value, total) { return total ? Math.round(value / total * 100) : 0; }
@@ -320,6 +363,7 @@
 
     lastResult = result;
     hideStates();
+    setTriggerLoading(false);
     root.querySelector(".ac-results").classList.remove("hidden");
     root.querySelector(".ac-export").disabled = false;
     root.querySelector(".ac-status-text").textContent = `${total} visible review${total === 1 ? "" : "s"} analyzed`;
