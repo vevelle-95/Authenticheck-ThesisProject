@@ -4,7 +4,7 @@
 - `data/` — Central folder for input CSVs and `6d_features.csv`
 - `models/` — Central folder for saved model weights (`xgboost_meta_classifier.json`, etc.)
 - `stage1/` — Feature extraction scripts (`extract_6d_features.py`, `train_roberta.py`, `config.py`)
-- `stage2/` — Meta-classifier script (`train_xgboost.py`)
+- `stage2/` — Meta-classifier and ABSA scripts (`train_xgboost.py`, `fine_tune_absa.py`, `predict_absa.py`)
 
 ---
 
@@ -27,20 +27,22 @@ powershell:
 
     PA-ADD NALANG DITO @JRMAPS
 
-### 4. Run ABSA (Aspect-Based Sentiment Analysis — Section 3.4, item 8)
+### 4. Run ABSA (Open-Ended Aspect Extraction + Sentiment — Section 3.4, item 8)
     cd stage2
-    python fine_tune_absa.py                   # fine-tune aspect-detection + aspect-conditioned sentiment heads
-    python predict_absa.py --authentic-only   # per-aspect sentiment profiles for authentic reviews
+    python fine_tune_absa.py --data ../data/samples/absa_reviews.csv --output ../models/absa_model --authentic-only
+    python predict_absa.py --data ../data/samples/absa_reviews.csv --model-dir ../models/absa_model --authentic-only
     # expected CSV (data/absa_reviews.csv):
-    #   text, aspect_quality, aspect_price, aspect_delivery, aspect_other (0/1),
-    #   sentiment_quality, sentiment_price, sentiment_delivery, sentiment_other
-    #   sentiment values: 0=Negative, 1=Neutral, 2=Positive; NaN when aspect absent
+    #   text, label_stage1, aspect_spans
+    #   aspect_spans is JSON, for example:
+    #   [{"text":"build quality","sentiment":2},{"text":"finish","sentiment":2}]
+    #   sentiment values: 0=Negative, 1=Neutral, 2=Positive
+    # existing fixed-aspect ABSA checkpoints must be retrained for the span format
 
 ### 5. Run Online Inference (Section 3.4, items 3-9; no dashboards/graphs yet)
     cd stage2
     python online_inference.py --data <new_reviews.csv>
     # input CSV: text, image_url, star_rating (optional product_id for per-product aggregates)
-    # outputs JSON: classification verdicts (item 9.1), aspect sentiment (9.2), adjusted rating (9.3)
+    # outputs JSON: classification verdicts (item 9.1), generated aspect phrases with sentiment (9.2), adjusted rating (9.3)
     # requires artifacts: models/dost_roberta, models/xgboost_meta_classifier.json, models/absa_model
 
 ### Quick-Test a Prediction via Terminal

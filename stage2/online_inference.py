@@ -5,7 +5,7 @@ Loads the saved artifacts and runs, in order:
   5. Deterministic (parameter-free) concatenation into the 6D vector X.
   6. XGBoost classification into the four quality classes.
   7. Filtering: only Authentic reviews propagate onward.
-  8. ABSA aspect detection and aspect-conditioned sentiment on authentic reviews.
+  8. ABSA generated aspect extraction and per-aspect sentiment on authentic reviews.
   9. Structured output (classification results, aspect sentiment, adjusted
      rating). Dashboard/graph visualization is intentionally excluded for now.
 """
@@ -70,7 +70,7 @@ class OnlineInference:
             missing.append(f"Stage 1 RoBERTa classifier not found at {self.roberta_model}")
         if not self.xgb_path.exists():
             missing.append(f"XGBoost classifier not found at {self.xgb_path}")
-        if not (self.absa_dir / "absa_config.json").exists():
+        if not (self.absa_dir / "absa_config.json").exists() or not (self.absa_dir / "model.pt").exists():
             missing.append(f"ABSA model not found at {self.absa_dir}")
         if missing:
             raise FileNotFoundError(" | ".join(missing))
@@ -100,7 +100,7 @@ class OnlineInference:
         if self._absa is None:
             self._absa = absa_model.ABSAHeadModel.from_pretrained(self.absa_dir).to(self.device)
             self._absa.eval()
-            self._absa_tokenizer = AutoTokenizer.from_pretrained(self._absa.encoder_name)
+            self._absa_tokenizer = AutoTokenizer.from_pretrained(self._absa.encoder_name, use_fast=True)
         return self._absa, self._absa_tokenizer
 
     def extract_features(self, text, img_url, star_rating):
@@ -132,8 +132,16 @@ class OnlineInference:
             padding="max_length",
             truncation=True,
             max_length=absa_model.ABSA_MAX_LENGTH,
+            return_offsets_mapping=True,
         ).to(self.device)
-        return absa.predict(enc["input_ids"], enc["attention_mask"], threshold=self.threshold)[0]
+        return absa.predict(
+            enc["input_ids"],
+            enc["attention_mask"],
+            offset_mapping=enc["offset_mapping"],
+            tokenizer=tokenizer,
+            texts=[text],
+            threshold=self.threshold,
+        )[0]
 
     def run(self, df):
         self.check_artifacts()
@@ -231,6 +239,9 @@ def main():
         pipe.check_artifacts()
     except FileNotFoundError as e:
         print(f"ERROR: {e}")
+        print("Required artifacts are missing. Train Stage 1 (train_roberta.py), Stage 2 (train_xgboost.py),")
+        print("and ABSA (fine_tune_absa.py) first, or point --roberta-model/--xgb-path/--absa-dir at existing artifacts.")
+        return
 
     print("3. Running classification -> filtering -> ABSA...")
     output = pipe.run(df)

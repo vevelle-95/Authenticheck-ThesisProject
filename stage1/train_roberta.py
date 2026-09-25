@@ -9,7 +9,6 @@ import config # config for the model
 # Define paths
 DATA_PATH = config.DATA_PATH # to be changed depending sa dataset natin
 MODEL_DIR = config.MODEL_DIR
-os.makedirs(MODEL_DIR, exist_ok=True)
 
     # Numerical Labels:
     # 0 - Authentic
@@ -18,6 +17,10 @@ os.makedirs(MODEL_DIR, exist_ok=True)
     # 3 - Irrelevant
 
 def main():
+    if not config.DATA_PATH.exists():
+        print(f"ERROR: Dataset not found at {config.DATA_PATH}.")
+        print("Create data/test_reviews.csv with 'review_text' and 'label_stage1' (0-3) columns first.")
+        return
     print("1. Loading dataset...")
     df = pd.read_csv(DATA_PATH, encoding="utf-8-sig", skipinitialspace=True)
     print(f"   Loaded {len(df)} reviews.")
@@ -53,6 +56,7 @@ def main():
     val_data = split_ds["test"]
 
     print("4. Starting Training Loop...")
+    os.makedirs(MODEL_DIR, exist_ok=True)
     training_args = TrainingArguments(
         output_dir=str(config.MODEL_DIR),
         eval_strategy="epoch",

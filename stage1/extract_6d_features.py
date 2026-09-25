@@ -20,6 +20,11 @@ def load_image(url):
         return Image.new('RGB', (224, 224), color='white')
 
 def main():
+    if not config.DATA_PATH.exists():
+        print(f"ERROR: Dataset not found at {config.DATA_PATH}.")
+        print("Run train_roberta.py first, then create data/test_reviews.csv with")
+        print("'review_text', 'label_stage1', 'image_url', and 'star_rating' columns.")
+        return
     print("1. Loading Data...")
     df = pd.read_csv(config.DATA_PATH, encoding="utf-8-sig")
     
@@ -76,6 +81,7 @@ def main():
     # 5. Save the Features
     features_df = pd.DataFrame(features_list)
     output_path = config.FEATURES_PATH
+    output_path.parent.mkdir(parents=True, exist_ok=True)
     features_df.to_csv(output_path, index=False, encoding="utf-8-sig")
     print(f"\nSuccess! 6D features extracted and saved to {output_path}")
 

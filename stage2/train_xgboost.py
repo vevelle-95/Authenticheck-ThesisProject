@@ -24,7 +24,8 @@ def main():
     ]
     
     X = df[feature_cols]
-    y = df["label_stage1"] # 0 for Authentic, 1 for Deceptive
+    # 0 Authentic, 1 Deceptive, 2 Low Informational Value, 3 Irrelevant
+    y = df["label_stage1"]
 
     print("2. Splitting Data...")
     # 80% for training, 20% for testing
@@ -49,12 +50,17 @@ def main():
     
     # Calculate metrics
     accuracy = accuracy_score(y_test, y_pred)
-    conf_matrix = confusion_matrix(y_test, y_pred, labels=[0, 1])
+    conf_matrix = confusion_matrix(y_test, y_pred, labels=[0, 1, 2, 3])
     class_report = classification_report(
         y_test,
         y_pred,
-        labels=[0, 1],
-        target_names=["Authentic (0)", "Deceptive (1)"],
+        labels=[0, 1, 2, 3],
+        target_names=[
+            "Authentic (0)",
+            "Deceptive (1)",
+            "Low Info Value (2)",
+            "Irrelevant (3)",
+        ],
         zero_division=0,
     )
 
@@ -66,6 +72,7 @@ def main():
     print(class_report)
 
     # 5. Save the trained model for future use
+    MODEL_PATH.parent.mkdir(parents=True, exist_ok=True)
     model.save_model(MODEL_PATH)
     print("\nSuccess! Model saved to models/xgboost_meta_classifier.json")
 

@@ -1,8 +1,7 @@
-"""Stage 2 - ABSA inference for authenticated reviews.
+"""Stage 2 - open-ended ABSA inference for authenticated reviews.
 
-Reads a CSV of review texts (must include an `authentic` or `label_stage1`
-column for filtering to verified authentic reviews only) and writes a
-structured per-aspect sentiment profile for each authentic review.
+Reads review text, extracts aspect phrases learned by the ABSA model, and
+writes one sentiment result for every generated aspect span.
 """
 
 import argparse
@@ -19,7 +18,7 @@ DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Run ABSA inference on authenticated reviews")
+    parser = argparse.ArgumentParser(description="Run open-ended ABSA inference on authenticated reviews")
     parser.add_argument("--data", default=str(absa_model.DEFAULT_DATA_PATH), help="CSV of reviews to analyze")
     parser.add_argument("--model-dir", default=str(absa_model.DEFAULT_ABSA_MODEL_DIR), help="Trained ABSA model directory")
     parser.add_argument("--output", default=str(absa_model.DEFAULT_RESULTS_PATH), help="JSON output path")
@@ -32,38 +31,55 @@ def main():
     if not data_path.exists():
         print(f"ERROR: Data file not found at {data_path}.")
         return
-    if not (Path(args.model_dir) / "absa_config.json").exists():
+    if not (Path(args.model_dir) / "absa_config.json").exists() or not (Path(args.model_dir) / "model.pt").exists():
         print(f"ERROR: Trained ABSA model not found at {args.model_dir}. Run fine_tune_absa.py first.")
         return
 
     print(f"1. Loading reviews from {data_path}...")
     df = pd.read_csv(data_path, encoding="utf-8-sig", skipinitialspace=True)
     text_col = "text" if "text" in df.columns else "review_text"
+    if text_col not in df.columns:
+        print("ERROR: ABSA data requires a text or review_text column.")
+        return
 
     if args.authentic_only:
-        if "authentic" in df.columns:
-            df = df[df["authentic"].astype(str).str.lower().isin(["1", "true", "yes", "authentic"])]
-        elif "label_stage1" in df.columns:
-            df = df[df["label_stage1"] == 0]
-        else:
-            print("Warning: no authenticity column found; analyzing all reviews.")
+        try:
+            df = absa_model.filter_authentic_reviews(df)
+        except ValueError as error:
+            print(f"ERROR: {error}")
+            return
         print(f"   Restricting to authentic reviews: {len(df)} remaining.")
 
-    print(f"2. Loading ABSA model from {args.model_dir}...")
-    model = absa_model.ABSAHeadModel.from_pretrained(args.model_dir).to(DEVICE)
-    tokenizer = AutoTokenizer.from_pretrained(model.encoder_name)
+    if df.empty:
+        print("ERROR: No reviews remain for ABSA inference.")
+        return
+    if df[text_col].isna().any():
+        print("ERROR: ABSA data contains an empty review.")
+        return
 
-    print("3. Generating aspect-level sentiment profiles...")
+    print(f"2. Loading ABSA model from {args.model_dir}...")
+    try:
+        model = absa_model.ABSAHeadModel.from_pretrained(args.model_dir).to(DEVICE)
+        tokenizer = AutoTokenizer.from_pretrained(model.encoder_name, use_fast=True)
+    except Exception as error:
+        print(f"ERROR: Could not load ABSA artifacts: {error}")
+        return
+
+    print("3. Generating aspect phrases and sentiment profiles...")
     encodings = tokenizer(
         list(df[text_col]),
         padding="max_length",
         truncation=True,
         max_length=args.max_length,
+        return_offsets_mapping=True,
         return_tensors="pt",
     )
     results = model.predict(
         encodings["input_ids"].to(DEVICE),
         encodings["attention_mask"].to(DEVICE),
+        offset_mapping=encodings["offset_mapping"].to(DEVICE),
+        tokenizer=tokenizer,
+        texts=list(df[text_col]),
         threshold=args.threshold,
     )
 
@@ -76,7 +92,7 @@ def main():
     out_path.parent.mkdir(parents=True, exist_ok=True)
     with open(out_path, "w", encoding="utf-8") as f:
         json.dump(output, f, ensure_ascii=False, indent=2)
-    print(f"Success! Per-aspect sentiment profiles saved to {out_path}")
+    print(f"Success! Generated aspect sentiment profiles saved to {out_path}")
 
 
 if __name__ == "__main__":
