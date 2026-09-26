@@ -6,7 +6,6 @@ DATA_DIR = PROJECT_ROOT / "data"
 MODEL_DIR = PROJECT_ROOT / "models" / "dost_roberta"
 DATA_PATH = DATA_DIR / "test_reviews.csv"
 FEATURES_PATH = DATA_DIR / "6d_features.csv"
-STAGE1_OUTPUT_DIR = PROJECT_ROOT / "stage1" / "temp_results"
 BASE_MODEL = "dost-asti/RoBERTa-tl-cased"
 
 # --- Data Processing ---
