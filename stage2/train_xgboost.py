@@ -22,10 +22,42 @@ def main():
         "dim5_clip_sim", 
         "dim6_star_rating"
     ]
-    
+
+    missing_features = [
+    column for column in feature_cols
+    if column not in df.columns
+]
+
+    if missing_features:
+        raise ValueError(
+            f"Missing required features: {missing_features}"
+        )
+
+    if not df[feature_cols].apply(
+        lambda column: pd.to_numeric(column, errors="coerce").notna().all()
+    ).all():
+        raise ValueError("All six features must be numeric.")
+
+    if not df["dim6_star_rating"].between(0.0, 1.0).all():
+        raise ValueError(
+            "dim6_star_rating must be normalized between 0 and 1."
+        )
+
     X = df[feature_cols]
     # 0 Authentic, 1 Deceptive, 2 Low Informational Value, 3 Irrelevant
-    y = df["label_stage1"]
+    #y = df["ground_truth"]
+
+    y = df["ground_truth"].astype(int)
+
+    available_classes = sorted(y.unique())
+    temporary_class_map = {
+        original_label: new_label
+        for new_label, original_label in enumerate(available_classes)
+    }
+
+    print(f"Temporary class mapping: {temporary_class_map}")
+
+    y = y.map(temporary_class_map).astype(int)
 
     print("2. Splitting Data...")
     # 80% for training, 20% for testing
