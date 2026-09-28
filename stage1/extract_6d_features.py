@@ -9,6 +9,12 @@ from sentence_transformers import SentenceTransformer, util
 
 import config
 
+def normalize_rating(rating):
+    if pd.isna(rating):
+        rating = 3.0
+
+    return max(0.0, min(1.0, (float(rating) - 1.0) / 4.0))
+
 def load_image(url):
     """Helper function to download an image from a URL on the fly."""
     try:
@@ -45,7 +51,7 @@ def main():
     for index, row in df.iterrows():
         text = row["review_text"]
         img_url = row["image_url"]
-        star_rating = row["star_rating"]
+        star_rating = normalize_rating(row["star_rating"])
         
         # --- A. Text Probabilities (Dims 1-4 from DOST-RoBERTa) ---
         inputs = text_tokenizer(text, return_tensors="pt", truncation=True, max_length=config.MAX_LENGTH)
