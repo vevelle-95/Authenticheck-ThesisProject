@@ -1,86 +1,140 @@
 import os
+
 import pandas as pd
 import torch
-from transformers import AutoTokenizer, AutoModelForSequenceClassification, Trainer, TrainingArguments
 from datasets import Dataset
+from transformers import (
+    AutoModelForSequenceClassification,
+    AutoTokenizer,
+    Trainer,
+    TrainingArguments,
+)
 
-import config # config for the model
-    
-# Define paths
-DATA_PATH = config.DATA_PATH # to be changed depending sa dataset natin
+import config
+
+
+DATA_PATH = config.DATA_PATH
 MODEL_DIR = config.MODEL_DIR
 
-    # Numerical Labels:
-    # 0 - Authentic
-    # 1 - Deceptive
-    # 2 - Low Informational Value
-    # 3 - Irrelevant
 
 def main():
-    if not config.DATA_PATH.exists():
-        print(f"ERROR: Dataset not found at {config.DATA_PATH}.")
-        print("Create data/test_reviews.csv with 'review_text' and 'label_stage1' (0-3) columns first.")
+    if not DATA_PATH.exists():
+        print(f"ERROR: Dataset not found at {DATA_PATH}.")
         return
-    print("1. Loading dataset...")
-    df = pd.read_csv(DATA_PATH, encoding="utf-8-sig", skipinitialspace=True)
-    print(f"   Loaded {len(df)} reviews.")
 
-    print("2. Downloading & Loading DOST-ASTI RoBERTa base model...")
-    # Using the official DOST-ASTI RoBERTa Tagalog base model from config
-    tokenizer = AutoTokenizer.from_pretrained(config.BASE_MODEL)
-    
-    # We have 4 classes: Authentic(0), Deceptive(1), LIV(2), Irrelevant(3)
-    model = AutoModelForSequenceClassification.from_pretrained(
-        config.BASE_MODEL, 
-        num_labels=4,
-        ignore_mismatched_sizes=True
+    print("1. Loading dataset...")
+    df = pd.read_csv(
+        DATA_PATH,
+        encoding="utf-8-sig",
+        skipinitialspace=True,
     )
 
-    # Convert Pandas dataframe to Hugging Face Dataset format
-    hf_dataset = Dataset.from_pandas(df[['review_text', 'label_stage1']])
-    
-    # Tokenization function using config max_length
+    required_columns = {
+        "review_text",
+        "product_description",
+        "text_label",
+    }
+    missing_columns = required_columns.difference(df.columns)
+
+    if missing_columns:
+        raise ValueError(
+            f"Missing required columns: {sorted(missing_columns)}"
+        )
+
+    df["review_text"] = df["review_text"].fillna("").astype(str)
+    df["product_description"] = (
+        df["product_description"]
+        .fillna("")
+        .astype(str)
+    )
+
+    # Stage 1 is trained exclusively against text_label.
+    df["labels"] = df["text_label"].map(config.map_label)
+
+    if df["labels"].isna().any():
+        raise ValueError("One or more text_label values could not be mapped.")
+
+    df["labels"] = df["labels"].astype("int64")
+
+    print(f"   Loaded {len(df)} reviews.")
+    print(f"   Stage 1 label counts:\n{df['labels'].value_counts().sort_index()}")
+
+    print("2. Loading DOST-ASTI RoBERTa...")
+    tokenizer = AutoTokenizer.from_pretrained(config.BASE_MODEL)
+
+    model = AutoModelForSequenceClassification.from_pretrained(
+        config.BASE_MODEL,
+        num_labels=4,
+        ignore_mismatched_sizes=True,
+    )
+
+    dataset = Dataset.from_pandas(
+        df[
+            [
+                "product_description",
+                "review_text",
+                "labels",
+            ]
+        ],
+        preserve_index=False,
+    )
+
     def tokenize_function(examples):
-        return tokenizer(examples["review_text"], padding="max_length", truncation=True, max_length=config.MAX_LENGTH)
-        
-    print("3. Tokenizing dataset...")
-    tokenized_datasets = hf_dataset.map(tokenize_function, batched=True)
-    
-    # Rename 'label_stage1' to 'labels' because HF Trainer expects a 'labels' column
-    tokenized_datasets = tokenized_datasets.rename_column("label_stage1", "labels")
-    tokenized_datasets.set_format("torch")
+        # Product description is the first sequence and review is the second.
+        # The tokenizer inserts the model's separator tokens automatically.
+        return tokenizer(
+            examples["product_description"],
+            examples["review_text"],
+            padding="max_length",
+            truncation=True,
+            max_length=config.MAX_LENGTH,
+        )
 
-    # Split into train/val using config test_split
-    split_ds = tokenized_datasets.train_test_split(test_size=config.TEST_SPLIT, seed=42)
-    train_data = split_ds["train"]
-    val_data = split_ds["test"]
+    print("3. Tokenizing product descriptions and reviews...")
+    tokenized_dataset = dataset.map(
+        tokenize_function,
+        batched=True,
+        remove_columns=[
+            "product_description",
+            "review_text",
+        ],
+    )
+    tokenized_dataset.set_format("torch")
 
-    print("4. Starting Training Loop...")
+    split_dataset = tokenized_dataset.train_test_split(
+        test_size=config.TEST_SPLIT,
+        seed=42,
+    )
+
+    print("4. Starting training...")
     os.makedirs(MODEL_DIR, exist_ok=True)
+
     training_args = TrainingArguments(
-        output_dir=str(config.MODEL_DIR),
+        output_dir=str(MODEL_DIR),
         eval_strategy="epoch",
         learning_rate=config.LEARNING_RATE,
-        per_device_train_batch_size=config.BATCH_SIZE, 
+        per_device_train_batch_size=config.BATCH_SIZE,
         num_train_epochs=config.EPOCHS,
         save_strategy="no",
-        use_cpu=not torch.cuda.is_available() # Failsafe to use CPU if no GPU
+        use_cpu=not torch.cuda.is_available(),
     )
 
     trainer = Trainer(
         model=model,
         args=training_args,
-        train_dataset=train_data,
-        eval_dataset=val_data,
+        train_dataset=split_dataset["train"],
+        eval_dataset=split_dataset["test"],
         processing_class=tokenizer,
     )
 
     trainer.train()
 
-    print(f"5. Saving fine-tuned model to {MODEL_DIR}...")
+    print(f"5. Saving Stage 1 model to {MODEL_DIR}...")
     model.save_pretrained(MODEL_DIR)
     tokenizer.save_pretrained(MODEL_DIR)
-    print("Pipeline Complete! Model is ready for extraction.")
+
+    print("Stage 1 training complete.")
+
 
 if __name__ == "__main__":
     main()
