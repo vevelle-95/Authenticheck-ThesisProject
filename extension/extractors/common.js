@@ -23,36 +23,21 @@
     return document.title.split(/[|–—]/)[0].trim();
   }
 
-  const DEFAULT_EXCLUSIONS = [
-    "[class*='seller-response']",
-    "[class*='seller-reply']",
-    "[class*='shop-response']",
-    "[class*='shop-reply']",
-    "[data-testid*='seller-response']",
-    "[data-testid*='seller-reply']"
-  ];
-
-  const SELLER_REPLY_PATTERN = /^(seller(?:'s)?\s+(?:response|reply)|response\s+from\s+(?:the\s+)?seller|reply\s+from\s+(?:the\s+)?seller|tugon\s+ng\s+seller|sagot\s+ng\s+seller)\b/i;
-
-  function cleanText(value = "") {
-    return value.replace(/\s+/g, " ").trim();
+  function descriptionFrom(selectors = []) {
+    const structured = metaContent("meta[property='og:description']")
+      || metaContent("meta[name='description']")
+      || document.querySelector("[itemprop='description']")?.textContent?.trim();
+    if (structured) return structured.replace(/\s+/g, " ").slice(0, 2000);
+    for (const selector of selectors) {
+      const value = document.querySelector(selector)?.textContent?.trim();
+      if (value) return value.replace(/\s+/g, " ").slice(0, 2000);
+    }
+    return "";
   }
 
-  function isInsideExcluded(element, root, selectors) {
-    return selectors.some(selector => {
-      const excluded = element.closest(selector);
-      return excluded && root.contains(excluded);
-    });
-  }
-
-  function parseRatingFromNode(node, ratingSelectors = []) {
-    const scopedNodes = ratingSelectors.flatMap(selector => [...node.querySelectorAll(selector)]);
-    const ratingRoot = scopedNodes[0] || node;
-    const aria = ratingRoot.getAttribute?.("aria-label")
-      || ratingRoot.querySelector?.("[aria-label*='star' i]")?.getAttribute("aria-label")
-      || "";
-    const dataRating = ratingRoot.getAttribute?.("data-rating") || ratingRoot.getAttribute?.("data-rate") || "";
-    const text = `${aria} ${dataRating} ${ratingRoot.textContent || ""}`;
+  function parseRatingFromNode(node) {
+    const aria = node.querySelector("[aria-label*='star' i]")?.getAttribute("aria-label") || "";
+    const text = `${aria} ${node.textContent || ""}`;
     const match = text.match(/([1-5](?:\.\d)?)\s*(?:out of 5|stars?|\/\s*5)/i);
     if (match) return Number(match[1]);
 
@@ -174,24 +159,27 @@
     const ratingSelectors = config.ratingSelectors || [];
     const reviewNodes = topLevelUniqueNodes(nodes);
     const seen = new Set();
-    let duplicateReviews = 0;
-    let sellerResponsesExcluded = 0;
-    const reviews = reviewNodes.map((node, index) => {
-      sellerResponsesExcluded += findSellerResponseElements(node, exclusionSelectors).length;
-      const text = extractReviewText(node, contentSelectors, exclusionSelectors);
-      if (!text) return null;
-      if (seen.has(text)) {
-        duplicateReviews++;
-        return null;
-      }
-      seen.add(text);
-      const imageUrls = extractImageUrls(node, imageSelectors, exclusionSelectors);
+    return nodes.map((node, index) => {
+      const preferred = node.querySelector("[class*='comment'], [class*='content'], [class*='review-text'], p");
+      const candidates = [preferred, ...node.querySelectorAll("p, span, div")]
+        .filter(Boolean)
+        .map(element => (element.innerText || "").trim())
+        .filter(text => text.length >= 5 && text.length <= 800 && !/^\d{1,2}[\s/:.-]/.test(text));
+      const text = candidates.sort((a, b) => b.length - a.length)[0] || (node.innerText || "").trim();
+      const clean = text.replace(/\s+/g, " ").slice(0, 700);
+      if (!clean || clean.length < 5 || seen.has(clean)) return null;
+      seen.add(clean);
+      const imageUrls = [...node.querySelectorAll("img")]
+        .map(img => img.currentSrc || img.src || img.getAttribute("data-src") || "")
+        .filter(url => /^https?:/i.test(url) && !/avatar|profile|icon|emoji/i.test(url))
+        .filter((url, imageIndex, urls) => urls.indexOf(url) === imageIndex)
+        .slice(0, 5);
       return {
         id: `${platform.toLowerCase()}-${index + 1}`,
-        text,
-        rating: parseRatingFromNode(node, ratingSelectors),
-        imageUrls,
-        hasImage: imageUrls.length > 0
+        text: clean,
+        rating: parseRatingFromNode(node),
+        hasImage: imageUrls.length > 0,
+        imageUrls
       };
     }).filter(Boolean).slice(0, 100);
 
@@ -208,7 +196,7 @@
     };
   }
 
-  registry.common = { metaContent, schemaProductPresent, titleFrom, ratingFromPage, extractReviews };
+  registry.common = { metaContent, schemaProductPresent, titleFrom, descriptionFrom, ratingFromPage, extractReviews };
   registry.register = adapter => registry.adapters.push(adapter);
   registry.getActive = () => registry.adapters.find(adapter => adapter.matches(location));
 })();

@@ -1,0 +1,44 @@
+{
+  "platform": "Shopee",
+  "url": "https://shopee.ph/example-product/123456789",
+  "productTitle": "Synthetic Wireless Headphones",
+  "productDescription": "Illustrative product description for interface testing only.",
+  "marketplaceRating": 4.6,
+  "reviews": [
+    {
+      "id": "shopee-1",
+      "text": "Matibay ang headphones at malinaw ang bass kahit mahabang gamitin.",
+      "rating": 5,
+      "hasImage": true,
+      "imageUrls": ["https://example.invalid/buyer-photo-1.jpg"]
+    },
+    {
+      "id": "shopee-2",
+      "text": "May minor lag sa Bluetooth pero okay lang para sa daily use.",
+      "rating": 3,
+      "hasImage": false,
+      "imageUrls": []
+    },
+    {
+      "id": "shopee-3",
+      "text": "Five stars but the left earcup stopped working after one use.",
+      "rating": 5,
+      "hasImage": false,
+      "imageUrls": []
+    },
+    {
+      "id": "shopee-4",
+      "text": "Good product",
+      "rating": 5,
+      "hasImage": false,
+      "imageUrls": []
+    },
+    {
+      "id": "shopee-5",
+      "text": "Dumating mabilis at secure ang packaging.",
+      "rating": 5,
+      "hasImage": false,
+      "imageUrls": []
+    }
+  ]
+}

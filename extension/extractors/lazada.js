@@ -52,6 +52,13 @@
         "h1"
       ]);
     },
+    getProductDescription() {
+      return common.descriptionFrom([
+        ".pdp-product-desc",
+        ".html-content",
+        "[class*='product-desc']"
+      ]);
+    },
     getMarketplaceRating() {
       return common.ratingFromPage([
         ".score-average",

@@ -1,0 +1,10 @@
+torch
+transformers
+datasets
+accelerate
+pandas
+requests
+pillow
+xgboost
+scikit-learn
+sentence-transformers #for m-clip

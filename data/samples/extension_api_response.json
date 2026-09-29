@@ -1,0 +1,26 @@
+{
+  "authenticShare": 40,
+  "verifiedRating": 4.0,
+  "counts": {
+    "authentic": 2,
+    "low-value": 1,
+    "irrelevant": 1,
+    "deceptive": 1
+  },
+  "sentimentCounts": {
+    "positive": 1,
+    "neutral": 1,
+    "negative": 0
+  },
+  "aspects": [
+    { "name": "Quality", "mentions": 2, "positivePercent": 100 },
+    { "name": "Performance", "mentions": 1, "positivePercent": 50 }
+  ],
+  "reviews": [
+    { "id": "shopee-1", "label": "authentic", "text": "Matibay ang headphones at malinaw ang bass kahit mahabang gamitin." },
+    { "id": "shopee-2", "label": "authentic", "text": "May minor lag sa Bluetooth pero okay lang para sa daily use." },
+    { "id": "shopee-3", "label": "deceptive", "text": "Five stars but the left earcup stopped working after one use." },
+    { "id": "shopee-4", "label": "low-value", "text": "Good product" },
+    { "id": "shopee-5", "label": "irrelevant", "text": "Dumating mabilis at secure ang packaging." }
+  ]
+}

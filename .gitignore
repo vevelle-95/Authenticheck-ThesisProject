@@ -20,10 +20,16 @@
 __pycache__/
 *.py[cod]
 *.pyo
+.ipynb_checkpoints/
 .pytest_cache/
+.hypothesis/
 .mypy_cache/
 .ruff_cache/
+.tox/
+.nox/
+*.egg-info/
 .coverage
+.coverage.*
 htmlcov/
 .venv/
 venv/
@@ -35,7 +41,7 @@ npm-debug.log*
 yarn-debug.log*
 pnpm-debug.log*
 
-# Model weights and checkpoints
+# Model weights and checkpoints (Includes HuggingFace bins & XGBoost json models)
 *.pt
 *.pth
 *.ckpt
@@ -45,6 +51,7 @@ pnpm-debug.log*
 *.joblib
 *.pkl
 *.xgb
+*.json
 /checkpoints/
 /runs/
 /wandb/
@@ -55,10 +62,11 @@ pnpm-debug.log*
 !/models/config/
 !/models/config/**
 
-# Private and generated datasets
+# Private and generated datasets (Protects your root /data folder)
 /data/*
 !/data/samples/
 !/data/samples/**
+!/data/test_reviews.csv
 /datasets/
 /scraped/
 /review_images/

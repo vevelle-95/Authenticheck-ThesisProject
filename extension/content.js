@@ -15,13 +15,23 @@
     Delivery: DELIVERY,
     Appearance: ["color","kulay","design","look","size","laki","maliit"]
   };
+  const LOADING_TIPS = [
+    "Hindi lahat ng reviews ay dapat paniwalaan.",
+    "Mas kapaki-pakinabang ang reviews na may tiyak na detalye.",
+    "Tinitingnan din kung tugma ang rating at review text.",
+    "Buyer photos can provide useful product context.",
+    "Delivery comments may not describe the product itself."
+  ];
 
   let settings = { ...DEFAULTS };
   let currentUrl = location.href;
   let refreshTimer;
+  let loadingTipTimer;
+  let analysisRun = 0;
   let host;
   let root;
   let lastPayload;
+  let lastResult;
   let adapter;
   let activeReviewFilter = "all";
 
@@ -73,7 +83,9 @@
           <div class="ac-head-actions"><button class="ac-icon-btn ac-info" aria-label="About this analysis">${infoIcon}</button><button class="ac-icon-btn ac-close" aria-label="Close AuthentiCheck">${closeIcon}</button></div>
         </header>
         <div class="ac-scroll">
-          <section class="ac-empty"><span class="ac-empty-icon">${shield}</span><h2>Reviews aren't loaded yet</h2><p>Scroll to the product reviews so the marketplace loads them, then run the scan again.</p><button class="ac-rescan">Scan visible reviews</button></section>
+          <section class="ac-state ac-loading" role="status" aria-live="polite"><span class="ac-spinner" aria-hidden="true"></span><h2>Analyzing reviews…</h2><p>Preparing review text, ratings, and available buyer media.</p><div class="ac-loading-tip"><strong>Review tip</strong><span></span></div></section>
+          <section class="ac-state ac-empty"><span class="ac-empty-icon">${shield}</span><h2>Reviews aren't loaded yet</h2><p>Scroll to the product reviews so the marketplace loads them, then run the scan again.</p><button class="ac-rescan">Scan visible reviews</button></section>
+          <section class="ac-state ac-error"><span class="ac-empty-icon ac-error-icon">!</span><h2>Model connection failed</h2><p class="ac-error-message">The local inference service could not be reached.</p><div class="ac-error-actions"><button class="ac-retry">Try model again</button><button class="ac-local-preview">Use local preview</button></div><small>Local preview is heuristic-only and is never presented as model output.</small></section>
           <div class="ac-results hidden">
             <section class="ac-hero">
               <div class="ac-status"><i></i><span class="ac-status-text">Analysis complete</span><span class="ac-mode">Local estimate</span></div>
@@ -86,7 +98,7 @@
             <section class="ac-page" data-page="reviews"></section>
           </div>
         </div>
-        <footer class="ac-footer"><span><i></i><b>Analyzes visible public reviews only</b></span><button class="ac-rescan">Rescan</button></footer>
+        <footer class="ac-footer"><span><i></i><b>Analyzes visible public reviews only</b></span><div><button class="ac-export" disabled>Export JSON</button><button class="ac-rescan">Rescan</button></div></footer>
       </aside>`;
     root.append(wrapper);
     document.documentElement.append(host);
@@ -95,6 +107,11 @@
     root.querySelector(".ac-close").addEventListener("click", closePanel);
     root.querySelector(".ac-dim").addEventListener("click", closePanel);
     root.querySelectorAll(".ac-rescan").forEach(button => button.addEventListener("click", analyzePage));
+    root.querySelector(".ac-retry").addEventListener("click", analyzePage);
+    root.querySelector(".ac-local-preview").addEventListener("click", () => {
+      if (lastPayload) renderResult(analyzeLocally(lastPayload), lastPayload);
+    });
+    root.querySelector(".ac-export").addEventListener("click", exportAnalysis);
     root.querySelector(".ac-info").addEventListener("click", () => {
       root.querySelector(".ac-mode").textContent = settings.useApi ? "Model API" : "Local estimate · not a model verdict";
     });
@@ -102,10 +119,13 @@
   }
 
   function destroyShell() {
+    analysisRun += 1;
+    stopLoadingTips();
     if (host?.isConnected) host.remove();
     host = null;
     root = null;
     lastPayload = null;
+    lastResult = null;
   }
 
   function openPanel() {
@@ -192,12 +212,15 @@
 
   async function analyzePage() {
     if (!root || !settings.enabled || !adapter?.isProductPage()) return;
-    const extraction = adapter.extractReviews();
-    const reviews = extraction.reviews;
+    const runId = ++analysisRun;
+    renderLoading();
+    const minimumLoadingTime = new Promise(resolve => setTimeout(resolve, 1200));
+    const reviews = adapter.extractReviews();
     const payload = {
       platform: adapter.name,
       url: location.href,
       productTitle: adapter.getProductTitle(),
+      productDescription: adapter.getProductDescription?.() || "",
       marketplaceRating: adapter.getMarketplaceRating(),
       extraction: extraction.stats,
       reviews
@@ -205,6 +228,8 @@
     lastPayload = payload;
 
     if (!reviews.length) {
+      await minimumLoadingTime;
+      if (runId !== analysisRun) return;
       renderEmpty();
       return;
     }
@@ -212,31 +237,67 @@
     let result = null;
     if (settings.useApi) {
       const response = await chrome.runtime.sendMessage({ type: "AUTHENTICHECK_ANALYZE", payload }).catch(() => null);
+      if (runId !== analysisRun) return;
       if (response?.ok && response.result) result = normalizeApiResult(response.result, payload);
+      else {
+        await minimumLoadingTime;
+        if (runId !== analysisRun) return;
+        renderError(response?.error || "The model API did not respond. Check that the local service is running.");
+        return;
+      }
     }
     if (!result) result = analyzeLocally(payload);
+    await minimumLoadingTime;
+    if (runId !== analysisRun) return;
     renderResult(result, payload);
   }
 
   function normalizeApiResult(api, payload) {
     const local = analyzeLocally(payload);
-    const sourceById = new Map(payload.reviews.map(review => [review.id, review]));
-    const apiReviews = Array.isArray(api.reviews)
-      ? api.reviews.map(review => ({ ...sourceById.get(review.id), ...review }))
-      : local.reviews;
+    const numberOr = (value, fallback, min = 0, max = Number.MAX_SAFE_INTEGER) => {
+      const numeric = Number(value);
+      return Number.isFinite(numeric) ? Math.max(min, Math.min(max, numeric)) : fallback;
+    };
+    const labelMap = { authentic:"authentic", deceptive:"deceptive", irrelevant:"irrelevant", liv:"liv", "low-value":"liv", low_value:"liv", lowValue:"liv" };
+    const apiReviews = Array.isArray(api.reviews) ? api.reviews.map((review, index) => {
+      const fallback = local.reviews.find(item => item.id === review?.id) || local.reviews[index] || {};
+      return {
+        ...fallback,
+        ...review,
+        text: String(review?.text ?? fallback.text ?? ""),
+        label: labelMap[review?.label] || fallback.label || "liv",
+        signals: Array.isArray(review?.signals) ? review.signals.map(String).slice(0, 8) : (fallback.signals || [])
+      };
+    }) : local.reviews;
+    const apiCounts = api.counts || {};
     return {
       ...local,
-      ...api,
       mode: "api",
-      authenticShare: api.authenticShare ?? api.confidence ?? local.authenticShare,
-      counts: { ...local.counts, ...(api.counts || {}) },
-      sentimentCounts: { ...local.sentimentCounts, ...(api.sentimentCounts || {}) },
+      authenticShare: numberOr(api.authenticShare ?? api.confidence, local.authenticShare, 0, 100),
+      verifiedRating: numberOr(api.verifiedRating, local.verifiedRating, 0, 5),
+      counts: {
+        authentic: numberOr(apiCounts.authentic, local.counts.authentic),
+        liv: numberOr(apiCounts.liv ?? apiCounts.lowValue ?? apiCounts["low-value"], local.counts.liv),
+        irrelevant: numberOr(apiCounts.irrelevant, local.counts.irrelevant),
+        deceptive: numberOr(apiCounts.deceptive, local.counts.deceptive)
+      },
+      sentimentCounts: {
+        positive: numberOr(api.sentimentCounts?.positive, local.sentimentCounts.positive),
+        neutral: numberOr(api.sentimentCounts?.neutral, local.sentimentCounts.neutral),
+        negative: numberOr(api.sentimentCounts?.negative, local.sentimentCounts.negative)
+      },
       reviews: apiReviews,
-      aspects: Array.isArray(api.aspects) ? api.aspects : local.aspects
+      aspects: Array.isArray(api.aspects) ? api.aspects.slice(0, 12).map(aspect => ({
+        name: String(aspect?.name || "Unnamed aspect"),
+        mentions: numberOr(aspect?.mentions, 0),
+        positivePercent: numberOr(aspect?.positivePercent, 0, 0, 100)
+      })) : local.aspects
     };
   }
 
   function renderEmpty() {
+    hideStates();
+    setTriggerLoading(false);
     root.querySelector(".ac-empty").classList.add("show");
     root.querySelector(".ac-results").classList.add("hidden");
     root.querySelector(".ac-trigger-copy strong").textContent = "Open product reviews to analyze";
@@ -244,10 +305,59 @@
     root.querySelector(".ac-trigger-score").textContent = "—";
   }
 
+  function hideStates() {
+    stopLoadingTips();
+    root.querySelectorAll(".ac-state").forEach(state => state.classList.remove("show"));
+  }
+
+  function renderLoading() {
+    hideStates();
+    root.querySelector(".ac-results").classList.add("hidden");
+    root.querySelector(".ac-loading").classList.add("show");
+    root.querySelector(".ac-trigger-copy strong").textContent = settings.useApi ? "Waiting for model analysis…" : "Checking visible reviews…";
+    setTriggerLoading(true);
+    startLoadingTips();
+  }
+
+  function renderError(message) {
+    hideStates();
+    setTriggerLoading(false);
+    root.querySelector(".ac-results").classList.add("hidden");
+    root.querySelector(".ac-error").classList.add("show");
+    root.querySelector(".ac-error-message").textContent = message;
+    root.querySelector(".ac-trigger-copy strong").textContent = "Model connection failed";
+    root.querySelector(".ac-trigger-copy small").textContent = "Open for recovery options";
+    root.querySelector(".ac-trigger-score").textContent = "!";
+    openPanel();
+  }
+
+  function setTriggerLoading(isLoading) {
+    const score = root.querySelector(".ac-trigger-score");
+    score.classList.toggle("loading", isLoading);
+    if (isLoading) score.textContent = "";
+  }
+
+  function startLoadingTips() {
+    stopLoadingTips();
+    let tipIndex = 0;
+    const tip = root.querySelector(".ac-loading-tip span");
+    const showNextTip = () => {
+      tip.textContent = LOADING_TIPS[tipIndex % LOADING_TIPS.length];
+      tipIndex += 1;
+    };
+    showNextTip();
+    loadingTipTimer = setInterval(showNextTip, 1000);
+  }
+
+  function stopLoadingTips() {
+    clearInterval(loadingTipTimer);
+    loadingTipTimer = null;
+  }
+
   function percent(value, total) { return total ? Math.round(value / total * 100) : 0; }
   function escapeHtml(value = "") { const div = document.createElement("div"); div.textContent = String(value); return div.innerHTML; }
   function sentimentPercent(result, key) { const total = Object.values(result.sentimentCounts).reduce((a,b) => a+b, 0); return percent(result.sentimentCounts[key] || 0, total); }
-  function verdictTitle(label) { return ({ authentic:"Authentic", liv:"Low information", irrelevant:"Irrelevant", deceptive:"Potential mismatch" })[label] || label; }
+  function verdictTitle(label) { return ({ authentic:"Authentic", liv:"Low-value", irrelevant:"Irrelevant", deceptive:"Potential mismatch" })[label] || label; }
 
   function renderResult(result, payload) {
     const total = Object.values(result.counts).reduce((a,b) => a+b, 0);
@@ -257,10 +367,12 @@
     const delta = Number.isFinite(marketplace) && Number.isFinite(verified) ? verified - marketplace : null;
     const status = confidence >= 75 ? "Highly trustworthy" : confidence >= 50 ? "Mixed review quality" : "Use extra caution";
 
-    root.querySelector(".ac-empty").classList.remove("show");
+    lastResult = result;
+    hideStates();
+    setTriggerLoading(false);
     root.querySelector(".ac-results").classList.remove("hidden");
-    const excludedReplies = payload.extraction?.sellerResponsesExcluded || 0;
-    root.querySelector(".ac-status-text").textContent = `${total} buyer review${total === 1 ? "" : "s"} · ${excludedReplies} seller repl${excludedReplies === 1 ? "y" : "ies"} excluded`;
+    root.querySelector(".ac-export").disabled = false;
+    root.querySelector(".ac-status-text").textContent = `${total} visible review${total === 1 ? "" : "s"} analyzed`;
     root.querySelector(".ac-mode").textContent = result.mode === "api" ? "Model API" : "Local estimate";
     root.querySelector(".ac-ring").style.setProperty("--score", confidence);
     root.querySelector(".ac-ring strong").textContent = confidence;
@@ -275,12 +387,12 @@
     root.querySelector(".ac-trigger-copy strong").textContent = `${confidence}% look authentic`;
     root.querySelector(".ac-trigger-copy small").textContent = `${total} visible review${total === 1 ? "" : "s"} analyzed`;
 
-    renderOverview(result, total, payload.extraction || {});
+    renderOverview(result, total, payload);
     renderInsights(result);
     renderReviews(result);
   }
 
-  function renderOverview(result, total, extraction) {
+  function renderOverview(result, total, payload) {
     const p = key => percent(result.counts[key] || 0, total);
     const positive = sentimentPercent(result, "positive");
     const neutral = sentimentPercent(result, "neutral");
@@ -291,7 +403,7 @@
         <div class="ac-stack"><i class="ac-q-auth" style="width:${p("authentic")}%"></i><i class="ac-q-liv" style="width:${p("liv")}%"></i><i class="ac-q-irrel" style="width:${p("irrelevant")}%"></i><i class="ac-q-decep" style="width:${p("deceptive")}%"></i></div>
         <div class="ac-quality-grid">
           ${qualityRow("ac-q-auth","Authentic",result.counts.authentic,p("authentic"))}
-          ${qualityRow("ac-q-liv","Low information",result.counts.liv,p("liv"))}
+          ${qualityRow("ac-q-liv","Low-value",result.counts.liv,p("liv"))}
           ${qualityRow("ac-q-irrel","Irrelevant",result.counts.irrelevant,p("irrelevant"))}
           ${qualityRow("ac-q-decep","Potential mismatch",result.counts.deceptive,p("deceptive"))}
         </div>
@@ -305,7 +417,9 @@
       </div>
       <div class="ac-title" style="margin-top:16px"><div><h3>Authentic sentiment</h3><p>Based on reviews classified as authentic</p></div></div>
       <div class="ac-card ac-sentiment"><div class="ac-donut" style="--positive:${positive};--neutral:${neutral}"><div><strong>${positive}%</strong><span>positive</span></div></div><div class="ac-legend"><div><i class="positive"></i><strong>Positive</strong><b>${positive}%</b></div><div><i class="neutral"></i><strong>Neutral</strong><b>${neutral}%</b></div><div><i class="negative"></i><strong>Negative</strong><b>${negative}%</b></div></div></div>
-      <div class="ac-note">${shield}<p><strong>${result.mode === "api" ? "Model-connected analysis." : "Preliminary local estimate."}</strong> Only buyer review text, buyer photos, and review star ratings are extracted. Seller responses, usernames, account data, and checkout information are excluded.</p></div>`;
+      <div class="ac-title" style="margin-top:16px"><div><h3>Input coverage</h3><p>Data prepared for the analysis pipeline</p></div></div>
+      <div class="ac-card ac-coverage"><div><strong>${payload.reviews.length}</strong><span>Visible reviews</span></div><div><strong>${payload.reviews.filter(review => review.rating).length}</strong><span>With ratings</span></div><div><strong>${payload.reviews.filter(review => review.imageUrls?.length).length}</strong><span>With buyer media</span></div></div>
+      <div class="ac-note">${shield}<p><strong>${result.mode === "api" ? "Model-connected analysis." : "Preliminary local estimate."}</strong> Only content already visible in your browser is read. No account or checkout information is collected.</p></div>`;
   }
 
   function qualityRow(colorClass, title, count = 0, pct = 0) {
@@ -322,45 +436,37 @@
 
   function renderReviews(result) {
     root.querySelector('[data-page="reviews"]').innerHTML = `
-      <div class="ac-title"><div><h3>Review evidence</h3><p>Buyer content only · seller responses excluded</p></div></div>
-      <div class="ac-review-filters">
-        ${[["all","All"],["authentic","Authentic"],["liv","Low info"],["irrelevant","Irrelevant"],["deceptive","Check"]].map(([value,label]) => `<button class="ac-filter ${activeReviewFilter === value ? "active" : ""}" data-filter="${value}">${label}</button>`).join("")}
-      </div>
-      <div class="ac-review-list"></div>`;
-    root.querySelectorAll(".ac-filter").forEach(button => button.addEventListener("click", () => {
-      activeReviewFilter = button.dataset.filter;
-      root.querySelectorAll(".ac-filter").forEach(filter => filter.classList.toggle("active", filter === button));
-      renderReviewCards(result.reviews);
-    }));
-    renderReviewCards(result.reviews);
+      <div class="ac-title"><div><h3>Review evidence</h3><p>Signals behind each visible classification</p></div></div>
+      <div class="ac-review-tools"><input class="ac-review-search" type="search" placeholder="Search visible review text" aria-label="Search visible review text"><select class="ac-review-filter" aria-label="Filter review classification"><option value="all">All classifications</option><option value="authentic">Authentic</option><option value="liv">Low-value</option><option value="irrelevant">Irrelevant</option><option value="deceptive">Potential mismatch</option></select></div>
+      <p class="ac-review-count"></p><div class="ac-review-list"></div>`;
+    const search = root.querySelector(".ac-review-search");
+    const filter = root.querySelector(".ac-review-filter");
+    const update = () => {
+      const query = search.value.trim().toLowerCase();
+      const selected = filter.value;
+      const visible = result.reviews.filter(review => (selected === "all" || review.label === selected) && (!query || review.text.toLowerCase().includes(query))).slice(0, 50);
+      root.querySelector(".ac-review-count").textContent = `${visible.length} of ${result.reviews.length} reviews shown`;
+      root.querySelector(".ac-review-list").innerHTML = visible.length ? visible.map((review,index) => reviewCard(review,index)).join("") : `<div class="ac-no-match">No reviews match this filter.</div>`;
+    };
+    search.addEventListener("input", update);
+    filter.addEventListener("change", update);
+    update();
   }
 
-  function safeImageUrl(value) {
-    try {
-      const url = new URL(value);
-      return ["http:", "https:"].includes(url.protocol) ? url.href : "";
-    } catch {
-      return "";
-    }
+  function reviewCard(review, index) {
+    const media = review.imageUrls?.length ? `<span>▣ ${review.imageUrls.length} media</span>` : "";
+    return `<article class="ac-review"><header><div class="ac-review-user"><span class="ac-avatar">${String(index+1).padStart(2,"0")}</span><div><strong>Visible review</strong><span class="ac-stars">${"★".repeat(Math.max(0,Math.min(5,review.rating || 0)))}</span></div></div><span class="ac-verdict ${escapeHtml(review.label)}">${escapeHtml(verdictTitle(review.label))}</span></header><p>${escapeHtml(review.text)}</p><div class="ac-signals">${(review.signals || []).map(signal => `<span class="${review.label === "authentic" ? "" : "warn"}">${review.label === "authentic" ? "✓" : "!"} ${escapeHtml(signal)}</span>`).join("")}${media}</div></article>`;
   }
 
-  function renderReviewCards(reviews) {
-    const list = root.querySelector(".ac-review-list");
-    const filtered = reviews.filter(review => activeReviewFilter === "all" || review.label === activeReviewFilter).slice(0, 20);
-    if (!filtered.length) {
-      list.innerHTML = `<div class="ac-no-reviews">No loaded buyer reviews match this filter.</div>`;
-      return;
-    }
-    list.innerHTML = filtered.map((review,index) => {
-      const images = (review.imageUrls || []).map(safeImageUrl).filter(Boolean).slice(0, 4);
-      const rating = Number.isFinite(review.rating)
-        ? `<span class="ac-stars">${"★".repeat(Math.max(0,Math.min(5,Math.round(review.rating))))}<small>${review.rating}/5</small></span>`
-        : `<span class="ac-stars missing">Rating not detected</span>`;
-      const media = images.length
-        ? `<div class="ac-review-media">${images.map((url, imageIndex) => `<img src="${escapeHtml(url)}" alt="Buyer review photo ${imageIndex + 1}" loading="lazy" referrerpolicy="no-referrer" />`).join("")}</div>`
-        : "";
-      return `<article class="ac-review"><header><div class="ac-review-user"><span class="ac-avatar">${String(index+1).padStart(2,"0")}</span><div><strong>Buyer review</strong>${rating}</div></div><span class="ac-verdict ${escapeHtml(review.label)}">${escapeHtml(verdictTitle(review.label))}</span></header><p>${escapeHtml(review.text)}</p>${media}<div class="ac-signals">${(review.signals || []).map(signal => `<span class="${review.label === "authentic" ? "" : "warn"}">${review.label === "authentic" ? "✓" : "!"} ${escapeHtml(signal)}</span>`).join("")}</div></article>`;
-    }).join("");
+  function exportAnalysis() {
+    if (!lastPayload || !lastResult) return;
+    const exportData = { schemaVersion: "0.2", exportedAt: new Date().toISOString(), input: lastPayload, analysis: lastResult };
+    const url = URL.createObjectURL(new Blob([JSON.stringify(exportData, null, 2)], { type: "application/json" }));
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `authenticheck-${adapter?.id || "analysis"}-${Date.now()}.json`;
+    link.click();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
   }
 
   function observePage() {
