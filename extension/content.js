@@ -32,6 +32,7 @@
   let root;
   let lastPayload;
   let lastResult;
+  let lastExtractionSignature = "";
   let adapter;
   let activeReviewFilter = "all";
 
@@ -126,6 +127,7 @@
     root = null;
     lastPayload = null;
     lastResult = null;
+    lastExtractionSignature = "";
   }
 
   function openPanel() {
@@ -222,6 +224,15 @@
     return { mode: analyzed.length ? "local" : "coverage", reviews, counts, sentimentCounts, authenticShare: confidence, verifiedRating, aspects };
   }
 
+  function extractionSignature(reviews = []) {
+    return reviews.map(review => [
+      review.id,
+      String(review.text || "").trim(),
+      Number.isFinite(review.rating) ? review.rating : "",
+      ...(review.imageUrls || [])
+    ].join("\u001f")).join("\u001e");
+  }
+
   async function analyzePage() {
     if (!root || !settings.enabled || !adapter?.isProductPage()) return;
     const runId = ++analysisRun;
@@ -241,6 +252,7 @@
       reviews
     };
     lastPayload = payload;
+    lastExtractionSignature = extractionSignature(reviews);
 
     if (!reviews.length) {
       await minimumLoadingTime;
@@ -542,8 +554,8 @@
       } else if (settings.autoAnalyze && root && adapter?.isProductPage()) {
         clearTimeout(refreshTimer);
         refreshTimer = setTimeout(() => {
-          const count = adapter.extractReviews().reviews.length;
-          if (count !== lastPayload?.reviews?.length) analyzePage();
+          const reviews = adapter.extractReviews().reviews;
+          if (extractionSignature(reviews) !== lastExtractionSignature) analyzePage();
         }, 2200);
       }
     });
