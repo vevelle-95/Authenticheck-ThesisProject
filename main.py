@@ -102,6 +102,19 @@ def ready():
     }
 
 
+@app.get("/analyze")
+def analyze_usage():
+    return {
+        "status": "ready" if app.state.model_ready else "not_ready",
+        "message": "This endpoint analyzes reviews through an HTTP POST request. The browser extension sends that request automatically.",
+        "method": "POST",
+        "schemaVersion": SCHEMA_VERSION,
+        "modelVersion": MODEL_VERSION,
+        "documentation": "/docs",
+        "readiness": "/ready",
+    }
+
+
 @app.post("/analyze")
 def analyze(request: AnalyzeRequest):
     if not app.state.model_ready:
