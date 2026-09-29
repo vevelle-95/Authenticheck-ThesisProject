@@ -33,6 +33,7 @@
   let lastPayload;
   let lastResult;
   let lastExtractionSignature = "";
+  let extensionContextInvalidated = false;
   let adapter;
   let activeReviewFilter = "all";
 
@@ -233,8 +234,28 @@
     ].join("\u001f")).join("\u001e");
   }
 
+  async function sendRuntimeMessage(message) {
+    try {
+      return await chrome.runtime.sendMessage(message);
+    } catch (error) {
+      const invalidated = /extension context invalidated/i.test(String(error?.message || error));
+      if (invalidated) extensionContextInvalidated = true;
+      return {
+        ok: false,
+        contextInvalidated: invalidated,
+        error: invalidated
+          ? "AuthentiCheck was reloaded or updated. Refresh this Shopee/Lazada tab, then run the scan again."
+          : "The extension could not contact its background service. Try rescanning the page."
+      };
+    }
+  }
+
   async function analyzePage() {
     if (!root || !settings.enabled || !adapter?.isProductPage()) return;
+    if (extensionContextInvalidated) {
+      renderError("AuthentiCheck was reloaded or updated. Refresh this Shopee/Lazada tab, then run the scan again.");
+      return;
+    }
     const runId = ++analysisRun;
     renderLoading();
     const minimumLoadingTime = new Promise(resolve => setTimeout(resolve, 1200));
@@ -273,7 +294,7 @@
           imageUrls
         }))
       };
-      const response = await chrome.runtime.sendMessage({ type: "AUTHENTICHECK_ANALYZE", payload: apiPayload }).catch(() => null);
+      const response = await sendRuntimeMessage({ type: "AUTHENTICHECK_ANALYZE", payload: apiPayload });
       if (runId !== analysisRun) return;
       if (response?.ok && response.result) {
         try {
@@ -552,6 +573,7 @@
 
   function observePage() {
     const observer = new MutationObserver(() => {
+      if (extensionContextInvalidated) return;
       if (location.href !== currentUrl) {
         currentUrl = location.href;
         clearTimeout(refreshTimer);

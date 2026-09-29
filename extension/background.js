@@ -32,7 +32,7 @@ async function analyzeWithConfiguredService(payload) {
   const endpoint = new URL(settings.apiEndpoint);
   const allowedLocal = endpoint.hostname === "127.0.0.1" || endpoint.hostname === "localhost";
   if (!allowedLocal || endpoint.protocol !== "http:") {
-    throw new Error("Version 0.3.7 supports local HTTP AuthentiCheck API endpoints only.");
+    throw new Error("Version 0.3.8 supports local HTTP AuthentiCheck API endpoints only.");
   }
 
   const controller = new AbortController();
