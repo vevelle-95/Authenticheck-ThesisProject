@@ -212,8 +212,20 @@
     return unique.filter(node => !unique.some(other => other !== node && other.contains(node)));
   }
 
+  function isCredibleKnownReviewNode(node) {
+    if (!node?.matches) return false;
+    if (node.hasAttribute("data-review-id") || node.hasAttribute("data-rating-id")) return true;
+    const text = cleanText(node.innerText || node.textContent || "");
+    if (hasReviewDate(text)) return true;
+    if (node.matches(".shopee-product-rating, .review-item, .mod-reviews .item")) return true;
+    const insideDedicatedReviewSection = Boolean(node.closest(".mod-reviews, [data-testid*='review-list'], [class*='review-list']"));
+    const hasStarMarker = Boolean(node.querySelector("[aria-label*='star' i], [data-rating], [data-star-rating]"));
+    const hasReviewBody = Boolean(node.querySelector("p, [class*='review-content'], [class*='review-comment'], [class*='review-text']"));
+    return insideDedicatedReviewSection && hasStarMarker && hasReviewBody && text.length >= 2;
+  }
+
   function discoverReviewNodes(knownNodes = []) {
-    const selected = topLevelUniqueNodes(knownNodes);
+    const selected = topLevelUniqueNodes(knownNodes.filter(isCredibleKnownReviewNode));
     if (selected.length) return selected;
 
     const datedElements = [...document.querySelectorAll("time, span, div, p")]

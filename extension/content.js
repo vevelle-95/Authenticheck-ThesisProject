@@ -569,7 +569,9 @@
       sendResponse({
         productPage: Boolean(adapter?.isProductPage()),
         platform: adapter?.name || null,
-        reviewCount: lastPayload?.reviews?.length || 0
+        reviewCount: lastPayload?.reviews?.length || 0,
+        candidateCount: lastPayload?.extraction?.candidateNodes || 0,
+        analyzableCount: lastPayload?.extraction?.analyzableReviews || 0
       });
     }
   });

@@ -8,6 +8,10 @@
   <body>
     <section id="ratings">
       <h2>Product Ratings</h2>
+      <nav aria-label="Rating filters">
+        <button class="rating-item">5 Star (104)</button>
+        <button class="rating-item">4 Star (23)</button>
+      </nav>
       <div class="QkA17">
         <img class="avatar" src="https://example.com/avatar-one.jpg" alt="Reviewer avatar" />
         <div aria-label="5 out of 5 stars"></div>
@@ -35,6 +39,7 @@
         .find(adapter => adapter.id === "shopee")
         .extractReviews();
       const checks = {
+        ignoredRatingFilterFalsePositives: extraction.stats.candidateNodes === 2,
         foundTwoObfuscatedCards: extraction.reviews.length === 2,
         firstBuyerTextOnly: extraction.reviews[0]?.text === "Case looks charming and the matte finish feels durable.",
         secondBuyerTextOnly: extraction.reviews[1]?.text === "Okay ang buttons at sakto ang fit sa phone.",
