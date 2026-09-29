@@ -49,19 +49,25 @@ def main():
 
     y = df["ground_truth"].astype(int)
 
-    available_classes = sorted(y.unique())
-    temporary_class_map = {
-        original_label: new_label
-        for new_label, original_label in enumerate(available_classes)
-    }
+    expected_classes = {0, 1, 2, 3}
+    actual_classes = set(y.unique())
 
-    print(f"Temporary class mapping: {temporary_class_map}")
-
-    y = y.map(temporary_class_map).astype(int)
-
+    if actual_classes != expected_classes:
+        raise ValueError(
+            "Final XGBoost training requires classes "
+            f"{sorted(expected_classes)}, found "
+            f"{sorted(actual_classes)}."
+        )
+    
     print("2. Splitting Data...")
     # 80% for training, 20% for testing
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+    X_train, X_test, y_train, y_test = train_test_split(
+        X,
+        y,
+        test_size=0.2,
+        random_state=42,
+        stratify=y,
+    )
     print(f"   Training samples: {len(X_train)} | Testing samples: {len(X_test)}")
 
     print("3. Training XGBoost Meta-Classifier...")

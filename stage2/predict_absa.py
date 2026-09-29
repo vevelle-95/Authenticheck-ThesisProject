@@ -43,12 +43,28 @@ def main():
         return
 
     if args.authentic_only:
-        try:
-            df = absa_model.filter_authentic_reviews(df)
-        except ValueError as error:
-            print(f"ERROR: {error}")
-            return
-        print(f"   Restricting to authentic reviews: {len(df)} remaining.")
+        if "ground_truth" in df.columns:
+            labels = (
+                df["ground_truth"]
+                .astype(str)
+                .str.strip()
+                .str.lower()
+            )
+
+            df = df.loc[
+                labels.isin(["authentic", "0"])
+            ].reset_index(drop=True)
+        else:
+            try:
+                df = absa_model.filter_authentic_reviews(df)
+            except ValueError as error:
+                print(f"ERROR: {error}")
+                return
+
+        print(
+            f"   Restricting to authentic reviews: "
+            f"{len(df)} remaining."
+        )
 
     if df.empty:
         print("ERROR: No reviews remain for ABSA inference.")
