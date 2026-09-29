@@ -3,8 +3,12 @@
   const common = registry.common;
   const REVIEW_SELECTORS = [
     ".shopee-product-rating",
+    "[class*='shopee-product-rating']",
+    "[class*='review-item']",
+    "[class*='rating-item']",
     "[class*='product-rating'][data-review-id]",
-    "[data-testid*='review-item']"
+    "[data-testid*='review-item']",
+    "[data-testid*='rating-item']"
   ];
 
   const EXTRACTION_CONFIG = {
@@ -65,7 +69,8 @@
       ]);
     },
     extractReviews() {
-      return common.extractReviews([...document.querySelectorAll(REVIEW_SELECTORS.join(","))], "shopee", EXTRACTION_CONFIG);
+      const knownNodes = [...document.querySelectorAll(REVIEW_SELECTORS.join(","))];
+      return common.extractReviews(common.discoverReviewNodes(knownNodes), "shopee", EXTRACTION_CONFIG);
     }
   });
 })();

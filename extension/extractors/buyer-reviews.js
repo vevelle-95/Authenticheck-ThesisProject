@@ -2,6 +2,7 @@
   const registry = globalThis.AuthentiCheckExtractors ||= { adapters: [] };
   const MAX_REVIEWS = 20;
   const MAX_IMAGES_PER_REVIEW = 5;
+  const REVIEW_DATE_PATTERN = /\b20\d{2}[-/.]\d{1,2}[-/.]\d{1,2}(?:\s+\d{1,2}:\d{2})?\b/g;
   const SELLER_REPLY_PATTERN = /^(?:seller|shop|merchant)\s*(?:reply|response)|^(?:reply|response)\s+from\s+(?:seller|shop)|^(?:tugon|sagot)\s+(?:ng|mula sa)\s+(?:seller|shop|tindahan)/i;
   const DEFAULT_EXCLUSIONS = [
     "[class*='seller-reply']",
@@ -135,7 +136,32 @@
       });
     });
     if (!candidates.length) {
-      const text = textFromElement(root);
+      const clone = root.cloneNode(true);
+      findSellerResponseElements(clone, exclusionSelectors).forEach(excluded => excluded.remove());
+      [
+        ...exclusionSelectors,
+        "script", "style", "button", "svg", "img", "video",
+        "[class*='username']", "[class*='author']", "[class*='date']", "[class*='time']",
+        "[class*='variation']", "[class*='rating']", "[class*='like']", "[class*='action']"
+      ].forEach(selector => clone.querySelectorAll(selector).forEach(child => child.remove()));
+      const lines = String(clone.innerText || clone.textContent || "")
+        .split(/\n+/)
+        .map(cleanText)
+        .filter(Boolean);
+      const dateIndex = lines.findIndex(line => REVIEW_DATE_PATTERN.test(line));
+      REVIEW_DATE_PATTERN.lastIndex = 0;
+      const likelyBody = (dateIndex >= 0 ? lines.slice(dateIndex + 1) : lines)
+        .filter(line => {
+          REVIEW_DATE_PATTERN.lastIndex = 0;
+          return !REVIEW_DATE_PATTERN.test(line)
+            && !/^(?:variation|color|size|model|product quality|video quality|best feature)\s*:/i.test(line)
+            && !/^(?:helpful|report|like|reply)\b/i.test(line)
+            && !SELLER_REPLY_PATTERN.test(line)
+            && !/^\d+$/.test(line);
+        })
+        .sort((a, b) => b.length - a.length)[0];
+      REVIEW_DATE_PATTERN.lastIndex = 0;
+      const text = likelyBody || textFromElement(root);
       if (text.length >= 1) candidates.push(text);
     }
     return candidates
@@ -163,6 +189,10 @@
       if (isInsideExcluded(element, root, exclusionSelectors)) return;
       const descriptor = `${element.className || ""} ${element.getAttribute?.("alt") || ""}`.toLowerCase();
       if (/avatar|profile|seller|shop|logo|icon|star|emoji/.test(descriptor)) return;
+      const rect = element.getBoundingClientRect?.();
+      const style = globalThis.getComputedStyle?.(element);
+      if (rect && rect.width > 0 && rect.height > 0 && rect.width <= 64 && rect.height <= 64
+          && (Math.abs(rect.width - rect.height) <= 4 || style?.borderRadius === "50%")) return;
       const styleUrl = (element.getAttribute?.("style") || "").match(/background-image\s*:\s*url\(([^)]+)\)/i)?.[1];
       const raw = element.currentSrc
         || element.getAttribute?.("src")
@@ -179,6 +209,42 @@
   function topLevelUniqueNodes(nodes) {
     const unique = [...new Set(nodes)].filter(Boolean);
     return unique.filter(node => !unique.some(other => other !== node && other.contains(node)));
+  }
+
+  function discoverReviewNodes(knownNodes = []) {
+    const selected = topLevelUniqueNodes(knownNodes);
+    if (selected.length) return selected;
+
+    const markers = [...document.querySelectorAll("time, span, div, p")].filter(element => {
+      const ownText = cleanText([...element.childNodes]
+        .filter(node => node.nodeType === Node.TEXT_NODE)
+        .map(node => node.textContent)
+        .join(" "));
+      REVIEW_DATE_PATTERN.lastIndex = 0;
+      const matches = REVIEW_DATE_PATTERN.test(ownText);
+      REVIEW_DATE_PATTERN.lastIndex = 0;
+      return matches;
+    });
+
+    const discovered = markers.map(marker => {
+      let current = marker;
+      let best = null;
+      for (let depth = 0; depth < 8 && current?.parentElement; depth += 1) {
+        current = current.parentElement;
+        const text = cleanText(current.innerText || current.textContent || "");
+        REVIEW_DATE_PATTERN.lastIndex = 0;
+        const dateCount = (text.match(REVIEW_DATE_PATTERN) || []).length;
+        REVIEW_DATE_PATTERN.lastIndex = 0;
+        if (dateCount > 1) break;
+        if (dateCount === 1 && text.length >= 20 && text.length <= 2500) best = current;
+      }
+      return best;
+    }).filter(Boolean);
+
+    return [...new Set(discovered)].filter(node => {
+      const text = cleanText(node.innerText || node.textContent || "");
+      return text.length >= 20 && text.length <= 2500;
+    });
   }
 
   function extractReviews(nodes, platform, config = {}) {
@@ -227,7 +293,7 @@
     };
   }
 
-  registry.common = { metaContent, schemaProductPresent, titleFrom, descriptionFrom, ratingFromPage, extractReviews };
+  registry.common = { metaContent, schemaProductPresent, titleFrom, descriptionFrom, ratingFromPage, discoverReviewNodes, extractReviews };
   registry.register = adapter => registry.adapters.push(adapter);
   registry.getActive = () => registry.adapters.find(adapter => adapter.matches(location));
 })();
