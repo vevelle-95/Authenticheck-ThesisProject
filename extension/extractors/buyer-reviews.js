@@ -119,16 +119,19 @@
     return [...found];
   }
 
-  function extractReviewText(root, contentSelectors, exclusionSelectors) {
+  function extractReviewText(root, contentSelectors, exclusionSelectors, ratingSelectors = []) {
+    const nonReviewTextSelectors = [
+      ...exclusionSelectors,
+      ...ratingSelectors,
+      "script", "style", "button", "svg", "img", "video",
+      "[aria-label*='star' i]", "[class*='star']",
+      "[class*='username']", "[class*='author']", "[class*='date']", "[class*='time']",
+      "[class*='variation']", "[class*='like']", "[class*='action']"
+    ];
     const textFromElement = element => {
       const clone = element.cloneNode(true);
       findSellerResponseElements(clone, exclusionSelectors).forEach(excluded => excluded.remove());
-      [
-        ...exclusionSelectors,
-        "script", "style", "button", "svg", "img", "video",
-        "[class*='username']", "[class*='author']", "[class*='date']", "[class*='time']",
-        "[class*='variation']", "[class*='rating']", "[class*='like']", "[class*='action']"
-      ].forEach(selector => clone.querySelectorAll(selector).forEach(child => child.remove()));
+      nonReviewTextSelectors.forEach(selector => clone.querySelectorAll(selector).forEach(child => child.remove()));
       return cleanText(clone.innerText || clone.textContent || "");
     };
 
@@ -145,12 +148,7 @@
     if (!candidates.length) {
       const clone = root.cloneNode(true);
       findSellerResponseElements(clone, exclusionSelectors).forEach(excluded => excluded.remove());
-      [
-        ...exclusionSelectors,
-        "script", "style", "button", "svg", "img", "video",
-        "[class*='username']", "[class*='author']", "[class*='date']", "[class*='time']",
-        "[class*='variation']", "[class*='rating']", "[class*='like']", "[class*='action']"
-      ].forEach(selector => clone.querySelectorAll(selector).forEach(child => child.remove()));
+      nonReviewTextSelectors.forEach(selector => clone.querySelectorAll(selector).forEach(child => child.remove()));
       const lines = String(clone.innerText || clone.textContent || "")
         .split(/\n+/)
         .map(cleanText)
@@ -259,7 +257,7 @@
 
     reviewNodes.forEach((node, index) => {
       sellerResponsesExcluded += findSellerResponseElements(node, exclusionSelectors).length;
-      const text = extractReviewText(node, contentSelectors, exclusionSelectors);
+      const text = extractReviewText(node, contentSelectors, exclusionSelectors, ratingSelectors);
       const rating = parseRatingFromNode(node, ratingSelectors);
       const imageUrls = extractImageUrls(node, imageSelectors, exclusionSelectors);
       if (!text && !Number.isFinite(rating) && !imageUrls.length) return;

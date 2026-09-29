@@ -16,7 +16,11 @@
       ".shopee-product-rating__content",
       ".shopee-product-rating__comment",
       "[class*='rating__content']",
-      "[class*='review-comment']"
+      "[class*='review-comment']",
+      "[class*='review-content']",
+      "[class*='review-text']",
+      "[data-testid*='review-content']",
+      "[data-testid*='review-comment']"
     ],
     ratingSelectors: [
       ".shopee-product-rating__rating",
