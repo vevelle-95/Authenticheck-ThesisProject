@@ -232,7 +232,7 @@
     if (!reviews.length) {
       await minimumLoadingTime;
       if (runId !== analysisRun) return;
-      renderEmpty();
+      renderEmpty(extraction.stats);
       return;
     }
 
@@ -312,13 +312,26 @@
     };
   }
 
-  function renderEmpty() {
+  function renderEmpty(extraction = {}) {
     hideStates();
     setTriggerLoading(false);
     root.querySelector(".ac-empty").classList.add("show");
     root.querySelector(".ac-results").classList.add("hidden");
-    root.querySelector(".ac-trigger-copy strong").textContent = "Open product reviews to analyze";
-    root.querySelector(".ac-trigger-copy small").textContent = "Scroll to reviews, then tap";
+    const cardsFound = Number(extraction.candidateNodes || 0);
+    const withoutText = Number(extraction.withoutWrittenText || 0);
+    const title = root.querySelector(".ac-empty h2");
+    const message = root.querySelector(".ac-empty p");
+    if (cardsFound > 0 && withoutText > 0) {
+      title.textContent = "No written review text found";
+      message.textContent = `${cardsFound} review card${cardsFound === 1 ? " was" : "s were"} detected, but ${withoutText} contained only ratings or media. Text is required for review classification and sentiment analysis.`;
+      root.querySelector(".ac-trigger-copy strong").textContent = "Reviews found without written text";
+      root.querySelector(".ac-trigger-copy small").textContent = `${cardsFound} rating/media-only review${cardsFound === 1 ? "" : "s"}`;
+    } else {
+      title.textContent = "Reviews aren't loaded yet";
+      message.textContent = "Scroll to the product reviews so the marketplace loads them, then run the scan again.";
+      root.querySelector(".ac-trigger-copy strong").textContent = "Open product reviews to analyze";
+      root.querySelector(".ac-trigger-copy small").textContent = "Scroll to reviews, then tap";
+    }
     root.querySelector(".ac-trigger-score").textContent = "—";
   }
 

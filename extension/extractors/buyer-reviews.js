@@ -17,6 +17,13 @@
     return String(value || "").replace(/\s+/g, " ").trim();
   }
 
+  function hasReviewDate(value) {
+    REVIEW_DATE_PATTERN.lastIndex = 0;
+    const result = REVIEW_DATE_PATTERN.test(String(value || ""));
+    REVIEW_DATE_PATTERN.lastIndex = 0;
+    return result;
+  }
+
   function metaContent(selector) {
     return document.querySelector(selector)?.getAttribute("content")?.trim() || "";
   }
@@ -148,21 +155,17 @@
         .split(/\n+/)
         .map(cleanText)
         .filter(Boolean);
-      const dateIndex = lines.findIndex(line => REVIEW_DATE_PATTERN.test(line));
-      REVIEW_DATE_PATTERN.lastIndex = 0;
+      const dateIndex = lines.findIndex(hasReviewDate);
       const likelyBody = (dateIndex >= 0 ? lines.slice(dateIndex + 1) : lines)
         .filter(line => {
-          REVIEW_DATE_PATTERN.lastIndex = 0;
-          return !REVIEW_DATE_PATTERN.test(line)
+          return !hasReviewDate(line)
             && !/^(?:variation|color|size|model|product quality|video quality|best feature)\s*:/i.test(line)
             && !/^(?:helpful|report|like|reply)\b/i.test(line)
             && !SELLER_REPLY_PATTERN.test(line)
             && !/^\d+$/.test(line);
         })
         .sort((a, b) => b.length - a.length)[0];
-      REVIEW_DATE_PATTERN.lastIndex = 0;
-      const text = likelyBody || textFromElement(root);
-      if (text.length >= 1) candidates.push(text);
+      if (likelyBody?.length) candidates.push(likelyBody);
     }
     return candidates
       .filter(text => !/^\d{1,2}[\s/:.-]/.test(text))
@@ -215,16 +218,11 @@
     const selected = topLevelUniqueNodes(knownNodes);
     if (selected.length) return selected;
 
-    const markers = [...document.querySelectorAll("time, span, div, p")].filter(element => {
-      const ownText = cleanText([...element.childNodes]
-        .filter(node => node.nodeType === Node.TEXT_NODE)
-        .map(node => node.textContent)
-        .join(" "));
-      REVIEW_DATE_PATTERN.lastIndex = 0;
-      const matches = REVIEW_DATE_PATTERN.test(ownText);
-      REVIEW_DATE_PATTERN.lastIndex = 0;
-      return matches;
-    });
+    const datedElements = [...document.querySelectorAll("time, span, div, p")]
+      .filter(element => hasReviewDate(cleanText(element.textContent)));
+    const markers = datedElements.filter(element =>
+      ![...element.children].some(child => hasReviewDate(cleanText(child.textContent)))
+    );
 
     const discovered = markers.map(marker => {
       let current = marker;
@@ -257,12 +255,16 @@
     const seen = new Set();
     let duplicateReviews = 0;
     let sellerResponsesExcluded = 0;
+    let withoutWrittenText = 0;
 
     reviewNodes.forEach((node, index) => {
       sellerResponsesExcluded += findSellerResponseElements(node, exclusionSelectors).length;
       const text = extractReviewText(node, contentSelectors, exclusionSelectors);
       const key = text.toLocaleLowerCase();
-      if (!text) return;
+      if (!text) {
+        withoutWrittenText += 1;
+        return;
+      }
       if (seen.has(key)) {
         duplicateReviews += 1;
         return;
@@ -286,6 +288,7 @@
         candidateNodes: reviewNodes.length,
         acceptedReviews: accepted.length,
         duplicateReviews,
+        withoutWrittenText,
         sellerResponsesExcluded,
         withImages: accepted.filter(review => review.hasImage).length,
         withRatings: accepted.filter(review => Number.isFinite(review.rating)).length
