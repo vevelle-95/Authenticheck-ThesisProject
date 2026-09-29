@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>AuthentiCheck extractor regression fixture</title>
+  </head>
+  <body>
+    <main>
+      <h1>Extractor regression fixture</h1>
+      <div class="shopee-product-rating" data-review-id="fixture-1">
+        <div class="reviewer-profile">
+          <img class="avatar" src="https://example.com/avatar.jpg" alt="Reviewer avatar" />
+        </div>
+        <div class="shopee-product-rating__rating" aria-label="5 out of 5 stars"></div>
+        <div class="shopee-product-rating__content">Maganda ang sound quality at matagal ang battery.</div>
+        <div class="shopee-product-rating__image-list-wrapper">
+          <img src="https://example.com/buyer-headphones.jpg" alt="Buyer headphones photo" />
+        </div>
+        <section class="seller-response">
+          <strong>Seller's Response</strong>
+          <p>This intentionally longer seller reply must never appear in the extracted buyer review text or media.</p>
+          <img src="https://example.com/seller-logo.jpg" alt="Seller logo" />
+        </section>
+      </div>
+      <section class="mod-reviews">
+        <article class="item" data-review-id="fixture-2">
+          <img class="avatar" src="https://example.com/lazada-avatar.jpg" alt="Reviewer avatar" />
+          <div class="starCtn" aria-label="4 out of 5 stars"></div>
+          <div class="item-content">
+            Sulit ang presyo at maayos ang quality.
+            <div class="review-image"><img src="https://example.com/buyer-product.jpg" alt="Buyer product photo" /></div>
+            <div class="seller-reply">
+              <strong>Seller Reply</strong>
+              <p>This longer shop response must be removed even though it is nested inside the Lazada content container.</p>
+              <img src="https://example.com/lazada-shop-logo.jpg" alt="Shop logo" />
+            </div>
+          </div>
+        </article>
+      </section>
+      <pre id="result">Running…</pre>
+    </main>
+
+    <script src="../extension/extractors/common.js"></script>
+    <script src="../extension/extractors/shopee.js"></script>
+    <script src="../extension/extractors/lazada.js"></script>
+    <script>
+      const shopeeExtraction = globalThis.AuthentiCheckExtractors.adapters
+        .find(adapter => adapter.id === "shopee")
+        .extractReviews();
+      const lazadaExtraction = globalThis.AuthentiCheckExtractors.adapters
+        .find(adapter => adapter.id === "lazada")
+        .extractReviews();
+      const review = shopeeExtraction.reviews[0];
+      const lazadaReview = lazadaExtraction.reviews[0];
+      const checks = {
+        shopeeExactlyOneReview: shopeeExtraction.reviews.length === 1,
+        buyerTextOnly: review?.text === "Maganda ang sound quality at matagal ang battery.",
+        sellerTextExcluded: !review?.text.includes("seller reply"),
+        ratingLinked: review?.rating === 5,
+        buyerPhotoLinked: review?.imageUrls?.length === 1 && review.imageUrls[0].includes("buyer-headphones.jpg"),
+        avatarExcluded: !review?.imageUrls?.some(url => url.includes("avatar")),
+        sellerMediaExcluded: !review?.imageUrls?.some(url => url.includes("seller-logo")),
+        sellerResponseCounted: shopeeExtraction.stats.sellerResponsesExcluded >= 1,
+        lazadaExactlyOneReview: lazadaExtraction.reviews.length === 1,
+        nestedSellerReplyExcluded: lazadaReview?.text === "Sulit ang presyo at maayos ang quality.",
+        lazadaRatingLinked: lazadaReview?.rating === 4,
+        lazadaBuyerPhotoLinked: lazadaReview?.imageUrls?.length === 1 && lazadaReview.imageUrls[0].includes("buyer-product.jpg"),
+        lazadaAvatarExcluded: !lazadaReview?.imageUrls?.some(url => url.includes("avatar")),
+        lazadaSellerMediaExcluded: !lazadaReview?.imageUrls?.some(url => url.includes("shop-logo")),
+        lazadaSellerResponseCounted: lazadaExtraction.stats.sellerResponsesExcluded >= 1
+      };
+      const passed = Object.values(checks).every(Boolean);
+      document.querySelector("#result").textContent = JSON.stringify({ passed, checks, shopeeExtraction, lazadaExtraction }, null, 2);
+      document.title = passed ? "PASS — extractor fixture" : "FAIL — extractor fixture";
+    </script>
+  </body>
+</html>

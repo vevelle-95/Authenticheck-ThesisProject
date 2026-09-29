@@ -30,7 +30,13 @@ Enable **Use model API** in the popup and provide a local endpoint such as `http
   "productTitle": "Product name",
   "marketplaceRating": 4.8,
   "reviews": [
-    { "id": "shopee-1", "text": "...", "rating": 5, "hasImage": true }
+    {
+      "id": "shopee-1",
+      "text": "...",
+      "rating": 5,
+      "imageUrls": ["https://example.com/buyer-photo.jpg"],
+      "hasImage": true
+    }
   ]
 }
 ```
@@ -40,6 +46,8 @@ The API may return `authenticShare`, `verifiedRating`, `counts`, `sentimentCount
 ## Privacy and scope
 
 - Reads only public review content already loaded in the current product page.
+- Extracts only buyer-authored review text, the star rating belonging to that review, and buyer-review pictures from the same review card.
+- Explicitly removes seller or shop responses before review text and pictures are selected.
 - Uses separate Shopee and Lazada adapters so platform-specific page changes can be maintained independently.
 - Injects the floating interface only after detecting a supported product page.
 - Does not read account credentials, messages, cart data, addresses, or checkout information.
@@ -76,3 +84,5 @@ output/      Generated ZIP packages; ignored by Git
 ```
 
 Future backend, machine-learning, tests, and documentation source should be committed under `backend/`, `ml/`, `tests/`, and `docs/`. Full datasets, scraped buyer images, trained weights, secrets, and generated experiment output are intentionally excluded by `.gitignore`.
+
+The exact browser extraction boundary is documented in `docs/EXTRACTION_CONTRACT.md`.

@@ -3,10 +3,35 @@
   const common = registry.common;
   const REVIEW_SELECTORS = [
     ".shopee-product-rating",
-    ".shopee-product-rating__main",
-    "[class*='product-rating'][class*='main']",
-    "[class*='product-rating'] [class*='comment']"
+    "[class*='product-rating'][data-review-id]",
+    "[data-testid*='review-item']"
   ];
+
+  const EXTRACTION_CONFIG = {
+    contentSelectors: [
+      ".shopee-product-rating__content",
+      ".shopee-product-rating__comment",
+      "[class*='rating__content']",
+      "[class*='review-comment']"
+    ],
+    ratingSelectors: [
+      ".shopee-product-rating__rating",
+      "[class*='rating__rating']",
+      "[aria-label*='star' i]"
+    ],
+    imageSelectors: [
+      ".shopee-product-rating__image-list-wrapper img",
+      ".shopee-product-rating__image-list-wrapper [style*='background-image']",
+      "[class*='rating-media'] img",
+      "[class*='review-image'] img",
+      "[class*='review-image'] [style*='background-image']"
+    ],
+    sellerResponseSelectors: [
+      ".shopee-product-rating__report-menu-button + div",
+      "[class*='seller-comment']",
+      "[class*='shop-reply']"
+    ]
+  };
 
   registry.register({
     id: "shopee",
@@ -33,7 +58,7 @@
       ]);
     },
     extractReviews() {
-      return common.extractReviews([...document.querySelectorAll(REVIEW_SELECTORS.join(","))], "shopee");
+      return common.extractReviews([...document.querySelectorAll(REVIEW_SELECTORS.join(","))], "shopee", EXTRACTION_CONFIG);
     }
   });
 })();

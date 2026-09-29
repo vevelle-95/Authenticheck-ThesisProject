@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta property="og:type" content="product" />
+    <meta property="og:title" content="Auralite Wireless Headphones" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>AuthentiCheck panel fixture</title>
+    <style>
+      body { min-height:120vh; margin:0; padding:60px; background:linear-gradient(135deg,#fff5f1,#f7f8f7); font:16px Arial,sans-serif; color:#29332f; }
+      .product { max-width:760px; padding:32px; background:white; border-radius:18px; box-shadow:0 18px 50px rgba(25,40,34,.09); }
+      .shopee-product-rating { margin-top:18px; padding:16px; border:1px solid #e5e9e7; border-radius:12px; }
+      .shopee-product-rating__image-list-wrapper img { width:150px; }
+    </style>
+  </head>
+  <body>
+    <main class="product">
+      <h1>Auralite Wireless Headphones</h1>
+      <p>Noise-cancelling wireless headphones with long battery life.</p>
+
+      <article class="shopee-product-rating" data-review-id="1">
+        <div class="shopee-product-rating__rating" aria-label="5 out of 5 stars"></div>
+        <p class="shopee-product-rating__content">Super linaw ng audio at matagal ang battery. Comfortable gamitin kahit ilang oras.</p>
+        <div class="shopee-product-rating__image-list-wrapper"><img src="assets/review-photo.svg" alt="Buyer headphones photo" /></div>
+        <section class="seller-response"><strong>Seller's Response</strong><p>Thank you for buying from our shop. Please follow us for vouchers and future announcements.</p></section>
+      </article>
+
+      <article class="shopee-product-rating" data-review-id="2">
+        <div class="shopee-product-rating__rating" aria-label="5 out of 5 stars"></div>
+        <p class="shopee-product-rating__content">Okay</p>
+      </article>
+
+      <article class="shopee-product-rating" data-review-id="3">
+        <div class="shopee-product-rating__rating" aria-label="5 out of 5 stars"></div>
+        <p class="shopee-product-rating__content">Mabilis dumating ang parcel, mabait ang rider at maayos ang packaging.</p>
+      </article>
+
+      <article class="shopee-product-rating" data-review-id="4">
+        <div class="shopee-product-rating__rating" aria-label="5 out of 5 stars"></div>
+        <p class="shopee-product-rating__content">Sira at pangit ang item. Hindi gumagana at sobrang disappointing gamitin.</p>
+      </article>
+    </main>
+
+    <script>
+      globalThis.chrome = {
+        storage: {
+          sync: { get: async defaults => defaults },
+          onChanged: { addListener() {} }
+        },
+        runtime: {
+          getURL: path => `../extension/${path}`,
+          sendMessage: async () => null,
+          onMessage: { addListener() {} }
+        }
+      };
+    </script>
+    <script src="../extension/extractors/common.js"></script>
+    <script src="../extension/extractors/shopee.js"></script>
+    <script>
+      const shopeeAdapter = globalThis.AuthentiCheckExtractors.adapters.find(adapter => adapter.id === "shopee");
+      globalThis.AuthentiCheckExtractors.getActive = () => shopeeAdapter;
+    </script>
+    <script src="../extension/content.js"></script>
+  </body>
+</html>

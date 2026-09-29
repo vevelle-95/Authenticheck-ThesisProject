@@ -7,6 +7,7 @@
   const NEGATIVE = ["bad","poor","broken","fake","damaged","disappointed","waste","uncomfortable","mahina","pangit","sira","mali","sayang","hindi gumagana","defective","kulang","madumi"];
   const GENERIC = ["good product","nice product","okay","ok","good quality","recommended","highly recommended","perfect product","maganda","maayos","sulit"];
   const DELIVERY = ["delivery","shipping","courier","rider","parcel","dumating","mabilis dumating","seller responsive","packaging"];
+  const PRODUCT_SPECIFIC = ["quality","matibay","durable","material","build","battery","sound","audio","camera","gumagana","price","presyo","mahal","affordable","color","kulay","design","size","laki"];
   const ASPECTS = {
     Quality: ["quality","matibay","durable","material","build","ganda","finish","sira"],
     Performance: ["performance","works","gumagana","fast","mabilis","battery","sound","audio","camera"],
@@ -22,6 +23,7 @@
   let root;
   let lastPayload;
   let adapter;
+  let activeReviewFilter = "all";
 
   const shield = `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m12 2 8 3v6c0 5.1-3.4 9.6-8 11-4.6-1.4-8-5.9-8-11V5l8-3Z"/><path d="m8.5 12 2.2 2.2 4.8-5"/></svg>`;
   const closeIcon = `<svg viewBox="0 0 24 24"><path d="m6 6 12 12M18 6 6 18"/></svg>`;
@@ -130,7 +132,10 @@
   }
 
   function wordHits(text, terms) {
-    return terms.reduce((sum, term) => sum + (text.includes(term) ? 1 : 0), 0);
+    return terms.reduce((sum, term) => {
+      const escaped = term.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+      return sum + (new RegExp(`(?:^|[^a-zà-ž0-9])${escaped}(?:$|[^a-zà-ž0-9])`, "i").test(text) ? 1 : 0);
+    }, 0);
   }
 
   function classifyReview(review) {
@@ -140,7 +145,7 @@
     const neg = wordHits(text, NEGATIVE);
     const genericOnly = GENERIC.some(term => text === term || text === `${term}!`) || (tokens.length <= 6 && GENERIC.some(term => text.includes(term)));
     const deliveryHits = wordHits(text, DELIVERY);
-    const productAspectHits = Object.entries(ASPECTS).filter(([name]) => name !== "Delivery").reduce((sum, [,terms]) => sum + wordHits(text, terms), 0);
+    const productAspectHits = wordHits(text, PRODUCT_SPECIFIC);
     const highRatingNegative = review.rating >= 4 && neg > pos;
     const lowRatingPositive = review.rating && review.rating <= 2 && pos > neg;
 
@@ -187,12 +192,14 @@
 
   async function analyzePage() {
     if (!root || !settings.enabled || !adapter?.isProductPage()) return;
-    const reviews = adapter.extractReviews();
+    const extraction = adapter.extractReviews();
+    const reviews = extraction.reviews;
     const payload = {
       platform: adapter.name,
       url: location.href,
       productTitle: adapter.getProductTitle(),
       marketplaceRating: adapter.getMarketplaceRating(),
+      extraction: extraction.stats,
       reviews
     };
     lastPayload = payload;
@@ -213,6 +220,10 @@
 
   function normalizeApiResult(api, payload) {
     const local = analyzeLocally(payload);
+    const sourceById = new Map(payload.reviews.map(review => [review.id, review]));
+    const apiReviews = Array.isArray(api.reviews)
+      ? api.reviews.map(review => ({ ...sourceById.get(review.id), ...review }))
+      : local.reviews;
     return {
       ...local,
       ...api,
@@ -220,7 +231,7 @@
       authenticShare: api.authenticShare ?? api.confidence ?? local.authenticShare,
       counts: { ...local.counts, ...(api.counts || {}) },
       sentimentCounts: { ...local.sentimentCounts, ...(api.sentimentCounts || {}) },
-      reviews: Array.isArray(api.reviews) ? api.reviews : local.reviews,
+      reviews: apiReviews,
       aspects: Array.isArray(api.aspects) ? api.aspects : local.aspects
     };
   }
@@ -241,14 +252,15 @@
   function renderResult(result, payload) {
     const total = Object.values(result.counts).reduce((a,b) => a+b, 0);
     const confidence = Math.max(0, Math.min(100, Math.round(result.authenticShare || 0)));
-    const marketplace = Number(payload.marketplaceRating);
-    const verified = Number(result.verifiedRating);
+    const marketplace = payload.marketplaceRating == null ? Number.NaN : Number(payload.marketplaceRating);
+    const verified = result.verifiedRating == null ? Number.NaN : Number(result.verifiedRating);
     const delta = Number.isFinite(marketplace) && Number.isFinite(verified) ? verified - marketplace : null;
     const status = confidence >= 75 ? "Highly trustworthy" : confidence >= 50 ? "Mixed review quality" : "Use extra caution";
 
     root.querySelector(".ac-empty").classList.remove("show");
     root.querySelector(".ac-results").classList.remove("hidden");
-    root.querySelector(".ac-status-text").textContent = `${total} visible review${total === 1 ? "" : "s"} analyzed`;
+    const excludedReplies = payload.extraction?.sellerResponsesExcluded || 0;
+    root.querySelector(".ac-status-text").textContent = `${total} buyer review${total === 1 ? "" : "s"} · ${excludedReplies} seller repl${excludedReplies === 1 ? "y" : "ies"} excluded`;
     root.querySelector(".ac-mode").textContent = result.mode === "api" ? "Model API" : "Local estimate";
     root.querySelector(".ac-ring").style.setProperty("--score", confidence);
     root.querySelector(".ac-ring strong").textContent = confidence;
@@ -263,12 +275,12 @@
     root.querySelector(".ac-trigger-copy strong").textContent = `${confidence}% look authentic`;
     root.querySelector(".ac-trigger-copy small").textContent = `${total} visible review${total === 1 ? "" : "s"} analyzed`;
 
-    renderOverview(result, total);
+    renderOverview(result, total, payload.extraction || {});
     renderInsights(result);
     renderReviews(result);
   }
 
-  function renderOverview(result, total) {
+  function renderOverview(result, total, extraction) {
     const p = key => percent(result.counts[key] || 0, total);
     const positive = sentimentPercent(result, "positive");
     const neutral = sentimentPercent(result, "neutral");
@@ -284,9 +296,16 @@
           ${qualityRow("ac-q-decep","Potential mismatch",result.counts.deceptive,p("deceptive"))}
         </div>
       </div>
+      <div class="ac-title" style="margin-top:16px"><div><h3>Extraction coverage</h3><p>Buyer-review fields detected on this loaded page</p></div><span class="ac-lang">Reviews only</span></div>
+      <div class="ac-scope-grid">
+        <div class="ac-scope"><strong>${extraction.acceptedReviews || total}</strong><span>Buyer reviews</span></div>
+        <div class="ac-scope"><strong>${extraction.withRatings || 0}</strong><span>Star ratings</span></div>
+        <div class="ac-scope"><strong>${extraction.withImages || 0}</strong><span>With photos</span></div>
+        <div class="ac-scope excluded"><strong>${extraction.sellerResponsesExcluded || 0}</strong><span>Seller replies excluded</span></div>
+      </div>
       <div class="ac-title" style="margin-top:16px"><div><h3>Authentic sentiment</h3><p>Based on reviews classified as authentic</p></div></div>
       <div class="ac-card ac-sentiment"><div class="ac-donut" style="--positive:${positive};--neutral:${neutral}"><div><strong>${positive}%</strong><span>positive</span></div></div><div class="ac-legend"><div><i class="positive"></i><strong>Positive</strong><b>${positive}%</b></div><div><i class="neutral"></i><strong>Neutral</strong><b>${neutral}%</b></div><div><i class="negative"></i><strong>Negative</strong><b>${negative}%</b></div></div></div>
-      <div class="ac-note">${shield}<p><strong>${result.mode === "api" ? "Model-connected analysis." : "Preliminary local estimate."}</strong> Only content already visible in your browser is read. No account or checkout information is collected.</p></div>`;
+      <div class="ac-note">${shield}<p><strong>${result.mode === "api" ? "Model-connected analysis." : "Preliminary local estimate."}</strong> Only buyer review text, buyer photos, and review star ratings are extracted. Seller responses, usernames, account data, and checkout information are excluded.</p></div>`;
   }
 
   function qualityRow(colorClass, title, count = 0, pct = 0) {
@@ -303,8 +322,45 @@
 
   function renderReviews(result) {
     root.querySelector('[data-page="reviews"]').innerHTML = `
-      <div class="ac-title"><div><h3>Review evidence</h3><p>Signals behind each visible classification</p></div></div>
-      <div class="ac-review-list">${result.reviews.slice(0,20).map((review,index) => `<article class="ac-review"><header><div class="ac-review-user"><span class="ac-avatar">${String(index+1).padStart(2,"0")}</span><div><strong>Visible review</strong><span class="ac-stars">${"★".repeat(Math.max(0,Math.min(5,review.rating || 0)))}</span></div></div><span class="ac-verdict ${escapeHtml(review.label)}">${escapeHtml(verdictTitle(review.label))}</span></header><p>${escapeHtml(review.text)}</p><div class="ac-signals">${(review.signals || []).map(signal => `<span class="${review.label === "authentic" ? "" : "warn"}">${review.label === "authentic" ? "✓" : "!"} ${escapeHtml(signal)}</span>`).join("")}</div></article>`).join("")}</div>`;
+      <div class="ac-title"><div><h3>Review evidence</h3><p>Buyer content only · seller responses excluded</p></div></div>
+      <div class="ac-review-filters">
+        ${[["all","All"],["authentic","Authentic"],["liv","Low info"],["irrelevant","Irrelevant"],["deceptive","Check"]].map(([value,label]) => `<button class="ac-filter ${activeReviewFilter === value ? "active" : ""}" data-filter="${value}">${label}</button>`).join("")}
+      </div>
+      <div class="ac-review-list"></div>`;
+    root.querySelectorAll(".ac-filter").forEach(button => button.addEventListener("click", () => {
+      activeReviewFilter = button.dataset.filter;
+      root.querySelectorAll(".ac-filter").forEach(filter => filter.classList.toggle("active", filter === button));
+      renderReviewCards(result.reviews);
+    }));
+    renderReviewCards(result.reviews);
+  }
+
+  function safeImageUrl(value) {
+    try {
+      const url = new URL(value);
+      return ["http:", "https:"].includes(url.protocol) ? url.href : "";
+    } catch {
+      return "";
+    }
+  }
+
+  function renderReviewCards(reviews) {
+    const list = root.querySelector(".ac-review-list");
+    const filtered = reviews.filter(review => activeReviewFilter === "all" || review.label === activeReviewFilter).slice(0, 20);
+    if (!filtered.length) {
+      list.innerHTML = `<div class="ac-no-reviews">No loaded buyer reviews match this filter.</div>`;
+      return;
+    }
+    list.innerHTML = filtered.map((review,index) => {
+      const images = (review.imageUrls || []).map(safeImageUrl).filter(Boolean).slice(0, 4);
+      const rating = Number.isFinite(review.rating)
+        ? `<span class="ac-stars">${"★".repeat(Math.max(0,Math.min(5,Math.round(review.rating))))}<small>${review.rating}/5</small></span>`
+        : `<span class="ac-stars missing">Rating not detected</span>`;
+      const media = images.length
+        ? `<div class="ac-review-media">${images.map((url, imageIndex) => `<img src="${escapeHtml(url)}" alt="Buyer review photo ${imageIndex + 1}" loading="lazy" referrerpolicy="no-referrer" />`).join("")}</div>`
+        : "";
+      return `<article class="ac-review"><header><div class="ac-review-user"><span class="ac-avatar">${String(index+1).padStart(2,"0")}</span><div><strong>Buyer review</strong>${rating}</div></div><span class="ac-verdict ${escapeHtml(review.label)}">${escapeHtml(verdictTitle(review.label))}</span></header><p>${escapeHtml(review.text)}</p>${media}<div class="ac-signals">${(review.signals || []).map(signal => `<span class="${review.label === "authentic" ? "" : "warn"}">${review.label === "authentic" ? "✓" : "!"} ${escapeHtml(signal)}</span>`).join("")}</div></article>`;
+    }).join("");
   }
 
   function observePage() {
@@ -316,7 +372,7 @@
       } else if (settings.autoAnalyze && root && adapter?.isProductPage()) {
         clearTimeout(refreshTimer);
         refreshTimer = setTimeout(() => {
-          const count = adapter.extractReviews().length;
+          const count = adapter.extractReviews().reviews.length;
           if (count !== lastPayload?.reviews?.length) analyzePage();
         }, 2200);
       }
