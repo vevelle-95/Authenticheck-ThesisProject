@@ -29,8 +29,11 @@
         .extractReviews();
       const checks = {
         cardsDetected: extraction.stats.candidateNodes === 2,
-        noWrittenReviewsAccepted: extraction.reviews.length === 0,
-        ratingMediaOnlyCounted: extraction.stats.withoutWrittenText === 2
+        partialReviewsDisplayed: extraction.reviews.length === 2,
+        partialReviewsNotModelEligible: extraction.reviews.every(review => review.analysisEligible === false),
+        missingTextRecorded: extraction.reviews.every(review => review.missingFields.includes("text")),
+        ratingMediaOnlyCounted: extraction.stats.withoutWrittenText === 2,
+        noSellerResponseIncluded: extraction.reviews.every(review => !review.text.toLowerCase().includes("seller"))
       };
       const passed = Object.values(checks).every(Boolean);
       document.querySelector("#result").textContent = JSON.stringify({ passed, checks, extraction }, null, 2);

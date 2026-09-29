@@ -260,24 +260,33 @@
     reviewNodes.forEach((node, index) => {
       sellerResponsesExcluded += findSellerResponseElements(node, exclusionSelectors).length;
       const text = extractReviewText(node, contentSelectors, exclusionSelectors);
-      const key = text.toLocaleLowerCase();
-      if (!text) {
-        withoutWrittenText += 1;
-        return;
-      }
-      if (seen.has(key)) {
-        duplicateReviews += 1;
-        return;
-      }
-      seen.add(key);
+      const rating = parseRatingFromNode(node, ratingSelectors);
       const imageUrls = extractImageUrls(node, imageSelectors, exclusionSelectors);
+      if (!text && !Number.isFinite(rating) && !imageUrls.length) return;
+      if (text) {
+        const key = text.toLocaleLowerCase();
+        if (seen.has(key)) {
+          duplicateReviews += 1;
+          return;
+        }
+        seen.add(key);
+      } else {
+        withoutWrittenText += 1;
+      }
       const sourceId = node.getAttribute("data-review-id") || node.id || `${index + 1}`;
+      const missingFields = [
+        ...(!text ? ["text"] : []),
+        ...(!Number.isFinite(rating) ? ["rating"] : []),
+        ...(!imageUrls.length ? ["image"] : [])
+      ];
       reviews.push({
         id: `${platform.toLowerCase()}-${sourceId}`,
         text,
-        rating: parseRatingFromNode(node, ratingSelectors),
+        rating,
         hasImage: imageUrls.length > 0,
-        imageUrls
+        imageUrls,
+        analysisEligible: Boolean(text),
+        missingFields
       });
     });
 
@@ -287,6 +296,7 @@
       stats: {
         candidateNodes: reviewNodes.length,
         acceptedReviews: accepted.length,
+        analyzableReviews: accepted.filter(review => review.analysisEligible).length,
         duplicateReviews,
         withoutWrittenText,
         sellerResponsesExcluded,

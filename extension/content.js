@@ -159,7 +159,18 @@
   }
 
   function classifyReview(review) {
-    const text = review.text.toLowerCase();
+    const text = String(review.text || "").toLowerCase();
+    if (!review.analysisEligible || !text) {
+      const missing = review.missingFields?.length ? review.missingFields.join(", ") : "written text";
+      return {
+        ...review,
+        label: "unavailable",
+        sentiment: null,
+        signals: [`Not sent to the text model; missing ${missing}`],
+        positiveHits: 0,
+        negativeHits: 0
+      };
+    }
     const tokens = text.match(/[a-zà-ž0-9]+/gi) || [];
     const pos = wordHits(text, POSITIVE);
     const neg = wordHits(text, NEGATIVE);
@@ -193,21 +204,22 @@
   function analyzeLocally(payload) {
     const reviews = payload.reviews.map(classifyReview);
     const counts = { authentic: 0, liv: 0, irrelevant: 0, deceptive: 0 };
-    reviews.forEach(review => counts[review.label]++);
+    const analyzed = reviews.filter(review => review.label !== "unavailable");
+    analyzed.forEach(review => counts[review.label]++);
     const authentic = reviews.filter(review => review.label === "authentic");
     const sentimentCounts = { positive: 0, neutral: 0, negative: 0 };
     authentic.forEach(review => sentimentCounts[review.sentiment]++);
-    const confidence = reviews.length ? Math.round((counts.authentic / reviews.length) * 100) : 0;
+    const confidence = analyzed.length ? Math.round((counts.authentic / analyzed.length) * 100) : 0;
     const ratedAuthentic = authentic.filter(review => review.rating);
     const verifiedRating = ratedAuthentic.length
       ? ratedAuthentic.reduce((sum, review) => sum + review.rating, 0) / ratedAuthentic.length
-      : payload.marketplaceRating;
+      : null;
     const aspects = Object.entries(ASPECTS).map(([name, terms]) => {
       const matching = authentic.filter(review => wordHits(review.text.toLowerCase(), terms));
       const positive = matching.filter(review => review.sentiment === "positive").length;
       return { name, mentions: matching.length, positivePercent: matching.length ? Math.round(positive / matching.length * 100) : 0 };
     }).filter(aspect => aspect.mentions > 0).sort((a, b) => b.mentions - a.mentions).slice(0, 5);
-    return { mode: "local", reviews, counts, sentimentCounts, authenticShare: confidence, verifiedRating, aspects };
+    return { mode: analyzed.length ? "local" : "coverage", reviews, counts, sentimentCounts, authenticShare: confidence, verifiedRating, aspects };
   }
 
   async function analyzePage() {
@@ -217,6 +229,7 @@
     const minimumLoadingTime = new Promise(resolve => setTimeout(resolve, 1200));
     const extraction = adapter.extractReviews();
     const reviews = extraction.reviews;
+    const analyzableReviews = reviews.filter(review => review.analysisEligible && review.text.trim());
     const payload = {
       schemaVersion: "1.0",
       platform: adapter.id,
@@ -237,8 +250,18 @@
     }
 
     let result = null;
-    if (settings.useApi) {
-      const response = await chrome.runtime.sendMessage({ type: "AUTHENTICHECK_ANALYZE", payload }).catch(() => null);
+    if (settings.useApi && analyzableReviews.length) {
+      const apiPayload = {
+        ...payload,
+        reviews: analyzableReviews.map(({ id, text, rating, hasImage, imageUrls }) => ({
+          id,
+          text,
+          rating,
+          hasImage,
+          imageUrls
+        }))
+      };
+      const response = await chrome.runtime.sendMessage({ type: "AUTHENTICHECK_ANALYZE", payload: apiPayload }).catch(() => null);
       if (runId !== analysisRun) return;
       if (response?.ok && response.result) {
         try {
@@ -273,17 +296,23 @@
     if (!Array.isArray(api.reviews) || !api.counts || !api.sentimentCounts || !Array.isArray(api.aspects)) {
       throw new Error("The model API response is incomplete.");
     }
-    const apiReviews = api.reviews.map((review, index) => {
-      const source = payload.reviews.find(item => item.id === review?.id) || payload.reviews[index] || {};
-      const label = labelMap[String(review?.label || "").toLowerCase()];
+    const responseById = new Map(api.reviews.map(review => [String(review?.id || ""), review]));
+    const apiReviews = payload.reviews.map(source => {
+      if (!source.analysisEligible || !source.text.trim()) {
+        const missing = source.missingFields?.length ? source.missingFields.join(", ") : "written text";
+        return { ...source, label: "unavailable", sentiment: null, signals: [`Not sent to the model; missing ${missing}`] };
+      }
+      const review = responseById.get(String(source.id));
+      if (!review) throw new Error("The model API did not return every analyzable review.");
+      const label = labelMap[String(review.label || "").toLowerCase()];
       if (!label) throw new Error("The model API returned an unknown review classification.");
       return {
         ...source,
         ...review,
-        text: String(review?.text ?? source.text ?? ""),
-        rating: review?.starRating ?? source.rating ?? null,
+        text: String(review.text ?? source.text ?? ""),
+        rating: review.starRating ?? source.rating ?? null,
         label,
-        signals: Array.isArray(review?.signals) ? review.signals.map(String).slice(0, 8) : []
+        signals: Array.isArray(review.signals) ? review.signals.map(String).slice(0, 8) : []
       };
     });
     const apiCounts = api.counts;
@@ -387,7 +416,7 @@
   function percent(value, total) { return total ? Math.round(value / total * 100) : 0; }
   function escapeHtml(value = "") { const div = document.createElement("div"); div.textContent = String(value); return div.innerHTML; }
   function sentimentPercent(result, key) { const total = Object.values(result.sentimentCounts).reduce((a,b) => a+b, 0); return percent(result.sentimentCounts[key] || 0, total); }
-  function verdictTitle(label) { return ({ authentic:"Authentic", liv:"Low-value", irrelevant:"Irrelevant", deceptive:"Potential mismatch" })[label] || label; }
+  function verdictTitle(label) { return ({ authentic:"Authentic", liv:"Low-value", irrelevant:"Irrelevant", deceptive:"Potential mismatch", unavailable:"Not analyzed" })[label] || label; }
 
   function renderResult(result, payload) {
     const total = Object.values(result.counts).reduce((a,b) => a+b, 0);
@@ -395,27 +424,29 @@
     const marketplace = payload.marketplaceRating == null ? Number.NaN : Number(payload.marketplaceRating);
     const verified = result.verifiedRating == null ? Number.NaN : Number(result.verifiedRating);
     const delta = Number.isFinite(marketplace) && Number.isFinite(verified) ? verified - marketplace : null;
-    const status = confidence >= 75 ? "Highly trustworthy" : confidence >= 50 ? "Mixed review quality" : "Use extra caution";
+    const status = total === 0 ? "Not enough text to analyze" : confidence >= 75 ? "Highly trustworthy" : confidence >= 50 ? "Mixed review quality" : "Use extra caution";
 
     lastResult = result;
     hideStates();
     setTriggerLoading(false);
     root.querySelector(".ac-results").classList.remove("hidden");
     root.querySelector(".ac-export").disabled = false;
-    root.querySelector(".ac-status-text").textContent = `${total} visible review${total === 1 ? "" : "s"} analyzed`;
-    root.querySelector(".ac-mode").textContent = result.mode === "api" ? "Model API" : "Local estimate";
+    root.querySelector(".ac-status-text").textContent = `${total} of ${payload.reviews.length} visible review${payload.reviews.length === 1 ? "" : "s"} analyzed`;
+    root.querySelector(".ac-mode").textContent = result.mode === "api" ? "Model API" : result.mode === "coverage" ? "Input coverage" : "Local estimate";
     root.querySelector(".ac-ring").style.setProperty("--score", confidence);
-    root.querySelector(".ac-ring strong").textContent = confidence;
+    root.querySelector(".ac-ring strong").textContent = total ? confidence : "—";
     root.querySelector(".ac-score-copy h2").textContent = status;
     root.querySelector(".ac-score-copy p").textContent = result.mode === "api"
       ? "Model results combine review text, ratings, and available buyer media."
-      : "Preliminary signals from visible text, ratings, and buyer media. Connect the model API for research-grade results.";
+      : result.mode === "coverage"
+        ? "Visible buyer reviews are listed, but written text is required for classification and ABSA sentiment."
+        : "Preliminary signals from visible text, ratings, and buyer media. Connect the model API for research-grade results.";
     root.querySelector(".ac-market-rating").innerHTML = Number.isFinite(marketplace) ? `${marketplace.toFixed(1)} <em>★</em>` : "Not found";
     root.querySelector(".ac-verified-rating").innerHTML = Number.isFinite(verified) ? `${verified.toFixed(1)} <em>★</em>` : "—";
     root.querySelector(".ac-delta").textContent = delta == null ? "—" : `${delta >= 0 ? "+" : ""}${delta.toFixed(1)}`;
-    root.querySelector(".ac-trigger-score").textContent = confidence;
-    root.querySelector(".ac-trigger-copy strong").textContent = `${confidence}% look authentic`;
-    root.querySelector(".ac-trigger-copy small").textContent = `${total} visible review${total === 1 ? "" : "s"} analyzed`;
+    root.querySelector(".ac-trigger-score").textContent = total ? confidence : "—";
+    root.querySelector(".ac-trigger-copy strong").textContent = total ? `${confidence}% look authentic` : `${payload.reviews.length} review${payload.reviews.length === 1 ? "" : "s"} detected`;
+    root.querySelector(".ac-trigger-copy small").textContent = `${total} of ${payload.reviews.length} visible review${payload.reviews.length === 1 ? "" : "s"} analyzed`;
 
     renderOverview(result, total, payload);
     renderInsights(result);
@@ -429,7 +460,7 @@
     const neutral = sentimentPercent(result, "neutral");
     const negative = sentimentPercent(result, "negative");
     root.querySelector('[data-page="overview"]').innerHTML = `
-      <div class="ac-title"><div><h3>Review quality</h3><p>How currently visible reviews were classified</p></div><span class="ac-lang">Tagalog + Taglish</span></div>
+      <div class="ac-title"><div><h3>Review quality</h3><p>How visible reviews with written text were classified</p></div><span class="ac-lang">Tagalog + Taglish</span></div>
       <div class="ac-card"><div class="ac-quality-total"><div><strong>${result.counts.authentic || 0}</strong><span>Authentic reviews</span></div><b>${p("authentic")}%</b></div>
         <div class="ac-stack"><i class="ac-q-auth" style="width:${p("authentic")}%"></i><i class="ac-q-liv" style="width:${p("liv")}%"></i><i class="ac-q-irrel" style="width:${p("irrelevant")}%"></i><i class="ac-q-decep" style="width:${p("deceptive")}%"></i></div>
         <div class="ac-quality-grid">
@@ -449,8 +480,8 @@
       <div class="ac-title" style="margin-top:16px"><div><h3>Authentic sentiment</h3><p>Based on reviews classified as authentic</p></div></div>
       <div class="ac-card ac-sentiment"><div class="ac-donut" style="--positive:${positive};--neutral:${neutral}"><div><strong>${positive}%</strong><span>positive</span></div></div><div class="ac-legend"><div><i class="positive"></i><strong>Positive</strong><b>${positive}%</b></div><div><i class="neutral"></i><strong>Neutral</strong><b>${neutral}%</b></div><div><i class="negative"></i><strong>Negative</strong><b>${negative}%</b></div></div></div>
       <div class="ac-title" style="margin-top:16px"><div><h3>Input coverage</h3><p>Data prepared for the analysis pipeline</p></div></div>
-      <div class="ac-card ac-coverage"><div><strong>${payload.reviews.length}</strong><span>Visible reviews</span></div><div><strong>${payload.reviews.filter(review => review.rating).length}</strong><span>With ratings</span></div><div><strong>${payload.reviews.filter(review => review.imageUrls?.length).length}</strong><span>With buyer media</span></div></div>
-      <div class="ac-note">${shield}<p><strong>${result.mode === "api" ? "Model-connected analysis." : "Preliminary local estimate."}</strong> Only content already visible in your browser is read. No account or checkout information is collected.</p></div>`;
+      <div class="ac-card ac-coverage"><div><strong>${payload.reviews.length}</strong><span>Visible reviews</span></div><div><strong>${payload.reviews.filter(review => review.analysisEligible).length}</strong><span>With written text</span></div><div><strong>${payload.reviews.filter(review => review.rating).length}</strong><span>With ratings</span></div><div><strong>${payload.reviews.filter(review => review.imageUrls?.length).length}</strong><span>With buyer media</span></div></div>
+      <div class="ac-note">${shield}<p><strong>${result.mode === "api" ? "Model-connected analysis." : result.mode === "coverage" ? "Input coverage only." : "Preliminary local estimate."}</strong> Only content already visible in your browser is read. No account, seller-response, or checkout information is collected.</p></div>`;
   }
 
   function qualityRow(colorClass, title, count = 0, pct = 0) {
@@ -467,15 +498,15 @@
 
   function renderReviews(result) {
     root.querySelector('[data-page="reviews"]').innerHTML = `
-      <div class="ac-title"><div><h3>Review evidence</h3><p>Signals behind each visible classification</p></div></div>
-      <div class="ac-review-tools"><input class="ac-review-search" type="search" placeholder="Search visible review text" aria-label="Search visible review text"><select class="ac-review-filter" aria-label="Filter review classification"><option value="all">All classifications</option><option value="authentic">Authentic</option><option value="liv">Low-value</option><option value="irrelevant">Irrelevant</option><option value="deceptive">Potential mismatch</option></select></div>
+      <div class="ac-title"><div><h3>Review evidence</h3><p>Every detected buyer review and its analysis status</p></div></div>
+      <div class="ac-review-tools"><input class="ac-review-search" type="search" placeholder="Search visible review text" aria-label="Search visible review text"><select class="ac-review-filter" aria-label="Filter review classification"><option value="all">All reviews</option><option value="authentic">Authentic</option><option value="liv">Low-value</option><option value="irrelevant">Irrelevant</option><option value="deceptive">Potential mismatch</option><option value="unavailable">Not analyzed</option></select></div>
       <p class="ac-review-count"></p><div class="ac-review-list"></div>`;
     const search = root.querySelector(".ac-review-search");
     const filter = root.querySelector(".ac-review-filter");
     const update = () => {
       const query = search.value.trim().toLowerCase();
       const selected = filter.value;
-      const visible = result.reviews.filter(review => (selected === "all" || review.label === selected) && (!query || review.text.toLowerCase().includes(query))).slice(0, 50);
+      const visible = result.reviews.filter(review => (selected === "all" || review.label === selected) && (!query || String(review.text || "").toLowerCase().includes(query))).slice(0, 50);
       root.querySelector(".ac-review-count").textContent = `${visible.length} of ${result.reviews.length} reviews shown`;
       root.querySelector(".ac-review-list").innerHTML = visible.length ? visible.map((review,index) => reviewCard(review,index)).join("") : `<div class="ac-no-match">No reviews match this filter.</div>`;
     };
@@ -486,12 +517,14 @@
 
   function reviewCard(review, index) {
     const media = review.imageUrls?.length ? `<span>▣ ${review.imageUrls.length} media</span>` : "";
-    return `<article class="ac-review"><header><div class="ac-review-user"><span class="ac-avatar">${String(index+1).padStart(2,"0")}</span><div><strong>Visible review</strong><span class="ac-stars">${"★".repeat(Math.max(0,Math.min(5,review.rating || 0)))}</span></div></div><span class="ac-verdict ${escapeHtml(review.label)}">${escapeHtml(verdictTitle(review.label))}</span></header><p>${escapeHtml(review.text)}</p><div class="ac-signals">${(review.signals || []).map(signal => `<span class="${review.label === "authentic" ? "" : "warn"}">${review.label === "authentic" ? "✓" : "!"} ${escapeHtml(signal)}</span>`).join("")}${media}</div></article>`;
+    const text = String(review.text || "").trim();
+    const stars = review.rating ? `${"★".repeat(Math.max(0,Math.min(5,review.rating)))} <small>${review.rating}/5</small>` : `<small>No star rating</small>`;
+    return `<article class="ac-review"><header><div class="ac-review-user"><span class="ac-avatar">${String(index+1).padStart(2,"0")}</span><div><strong>Visible buyer review</strong><span class="ac-stars">${stars}</span></div></div><span class="ac-verdict ${escapeHtml(review.label)}">${escapeHtml(verdictTitle(review.label))}</span></header><p class="${text ? "" : "missing"}">${text ? escapeHtml(text) : "No written buyer comment was provided."}</p><div class="ac-signals">${(review.signals || []).map(signal => `<span class="${review.label === "authentic" ? "" : "warn"}">${review.label === "authentic" ? "✓" : "!"} ${escapeHtml(signal)}</span>`).join("")}${media}</div></article>`;
   }
 
   function exportAnalysis() {
     if (!lastPayload || !lastResult) return;
-    const exportData = { schemaVersion: "0.2", exportedAt: new Date().toISOString(), input: lastPayload, analysis: lastResult };
+    const exportData = { schemaVersion: "1.0", exportedAt: new Date().toISOString(), input: lastPayload, analysis: lastResult };
     const url = URL.createObjectURL(new Blob([JSON.stringify(exportData, null, 2)], { type: "application/json" }));
     const link = document.createElement("a");
     link.href = url;
