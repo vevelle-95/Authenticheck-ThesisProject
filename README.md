@@ -116,12 +116,16 @@ Full datasets, scraped buyer images, trained weights, secrets, and generated exp
 python -m venv .venv
 .venv\Scripts\Activate.ps1
 pip install -r requirements.txt
-python scripts/setup_models.py --archive C:\path\to\authenticheck-models.zip
+python pipeline.py
 uvicorn main:app --host 127.0.0.1 --port 8000
 ```
 
-Check `http://127.0.0.1:8000/health` for the server and `/ready` for model readiness. If your team has not uploaded the trained bundle yet, `python scripts/setup_models.py --verify-only` lists the missing files.
+`pipeline.py` trains Stage 1 DOST-RoBERTa, extracts the six-dimensional features, trains XGBoost, and trains the authentic-only ABSA model using `data/test_reviews.csv`. Check `http://127.0.0.1:8000/health` for the server and `/ready` for model readiness. `python scripts/setup_models.py --verify-only` lists any artifact that the training pipeline did not produce.
+
+If a teammate distributes already-trained artifacts instead, `python scripts/setup_models.py --archive C:\path\to\authenticheck-models.zip` installs and verifies that optional bundle without committing its weights to Git.
 
 The backend processes review photos in memory and discards their bytes after M-CLIP feature extraction; it does not create a permanent review-image store.
+
+The included 50 synthetic reviews are suitable for integration and demonstration testing. They are not sufficient for reporting the final comparative performance or statistical significance of the thesis models.
 
 The exact browser extraction boundary is documented in `docs/EXTRACTION_CONTRACT.md`.

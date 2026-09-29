@@ -21,6 +21,14 @@ powershell:
     python train_roberta.py
     python extract_6d_features.py
 
+### Run the complete local training pipeline instead
+From the repository root, the preferred integration command is:
+
+    python pipeline.py
+
+This runs Stage 1 training, six-dimensional feature extraction, XGBoost training,
+and authentic-only ABSA training against `data/test_reviews.csv`.
+
 ### 3. Run Stage 2
     cd stage2
     python train_xgboost.py

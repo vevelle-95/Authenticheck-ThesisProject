@@ -19,14 +19,17 @@ models/
     model.pt
 ```
 
-After the team uploads a model bundle to approved project storage, place its URL
-and SHA-256 digest in `manifest.json`, then run:
+The normal development path creates these files locally from the synthetic
+integration dataset:
 
 ```powershell
-python scripts/setup_models.py
+pip install -r requirements.txt
+python pipeline.py
+python scripts/setup_models.py --verify-only
 ```
 
-For a bundle already on the computer:
+If the team later distributes a trained bundle, place its URL and SHA-256 digest
+in `manifest.json`, or install a bundle already on the computer:
 
 ```powershell
 python scripts/setup_models.py --archive C:\path\to\authenticheck-models.zip
