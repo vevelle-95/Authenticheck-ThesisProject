@@ -428,7 +428,7 @@
   function percent(value, total) { return total ? Math.round(value / total * 100) : 0; }
   function escapeHtml(value = "") { const div = document.createElement("div"); div.textContent = String(value); return div.innerHTML; }
   function sentimentPercent(result, key) { const total = Object.values(result.sentimentCounts).reduce((a,b) => a+b, 0); return percent(result.sentimentCounts[key] || 0, total); }
-  function verdictTitle(label) { return ({ authentic:"Authentic", liv:"Low-value", irrelevant:"Irrelevant", deceptive:"Potential mismatch", unavailable:"Not analyzed" })[label] || label; }
+  function verdictTitle(label) { return ({ authentic:"Authentic", liv:"Low-value", irrelevant:"Irrelevant", deceptive:"Deceptive", unavailable:"Not analyzed" })[label] || label; }
 
   function renderResult(result, payload) {
     const total = Object.values(result.counts).reduce((a,b) => a+b, 0);
@@ -479,7 +479,7 @@
           ${qualityRow("ac-q-auth","Authentic",result.counts.authentic,p("authentic"))}
           ${qualityRow("ac-q-liv","Low-value",result.counts.liv,p("liv"))}
           ${qualityRow("ac-q-irrel","Irrelevant",result.counts.irrelevant,p("irrelevant"))}
-          ${qualityRow("ac-q-decep","Potential mismatch",result.counts.deceptive,p("deceptive"))}
+          ${qualityRow("ac-q-decep","Deceptive",result.counts.deceptive,p("deceptive"))}
         </div>
       </div>
       <div class="ac-title" style="margin-top:16px"><div><h3>Extraction coverage</h3><p>Buyer-review fields detected on this loaded page</p></div><span class="ac-lang">Reviews only</span></div>
@@ -511,7 +511,7 @@
   function renderReviews(result) {
     root.querySelector('[data-page="reviews"]').innerHTML = `
       <div class="ac-title"><div><h3>Review evidence</h3><p>Every detected buyer review and its analysis status</p></div></div>
-      <div class="ac-review-tools"><input class="ac-review-search" type="search" placeholder="Search visible review text" aria-label="Search visible review text"><select class="ac-review-filter" aria-label="Filter review classification"><option value="all">All reviews</option><option value="authentic">Authentic</option><option value="liv">Low-value</option><option value="irrelevant">Irrelevant</option><option value="deceptive">Potential mismatch</option><option value="unavailable">Not analyzed</option></select></div>
+      <div class="ac-review-tools"><input class="ac-review-search" type="search" placeholder="Search visible review text" aria-label="Search visible review text"><select class="ac-review-filter" aria-label="Filter review classification"><option value="all">All reviews</option><option value="authentic">Authentic</option><option value="liv">Low-value</option><option value="irrelevant">Irrelevant</option><option value="deceptive">Deceptive</option><option value="unavailable">Not analyzed</option></select></div>
       <p class="ac-review-count"></p><div class="ac-review-list"></div>`;
     const search = root.querySelector(".ac-review-search");
     const filter = root.querySelector(".ac-review-filter");
@@ -531,7 +531,12 @@
     const media = review.imageUrls?.length ? `<span>▣ ${review.imageUrls.length} media</span>` : "";
     const text = String(review.text || "").trim();
     const stars = review.rating ? `${"★".repeat(Math.max(0,Math.min(5,review.rating)))} <small>${review.rating}/5</small>` : `<small>No star rating</small>`;
-    return `<article class="ac-review"><header><div class="ac-review-user"><span class="ac-avatar">${String(index+1).padStart(2,"0")}</span><div><strong>Visible buyer review</strong><span class="ac-stars">${stars}</span></div></div><span class="ac-verdict ${escapeHtml(review.label)}">${escapeHtml(verdictTitle(review.label))}</span></header><p class="${text ? "" : "missing"}">${text ? escapeHtml(text) : "No written buyer comment was provided."}</p><div class="ac-signals">${(review.signals || []).map(signal => `<span class="${review.label === "authentic" ? "" : "warn"}">${review.label === "authentic" ? "✓" : "!"} ${escapeHtml(signal)}</span>`).join("")}${media}</div></article>`;
+    const stage2Status = review.label === "authentic"
+      ? `<span>✓ Stage 2 sentiment eligible</span>`
+      : ["deceptive", "liv", "irrelevant"].includes(review.label)
+        ? `<span class="warn">! Stage 2 sentiment skipped after classification</span>`
+        : "";
+    return `<article class="ac-review"><header><div class="ac-review-user"><span class="ac-avatar">${String(index+1).padStart(2,"0")}</span><div><strong>Visible buyer review</strong><span class="ac-stars">${stars}</span></div></div><span class="ac-verdict ${escapeHtml(review.label)}">${escapeHtml(verdictTitle(review.label))}</span></header><p class="${text ? "" : "missing"}">${text ? escapeHtml(text) : "No written buyer comment was provided."}</p><div class="ac-signals">${(review.signals || []).map(signal => `<span class="${review.label === "authentic" ? "" : "warn"}">${review.label === "authentic" ? "✓" : "!"} ${escapeHtml(signal)}</span>`).join("")}${stage2Status}${media}</div></article>`;
   }
 
   function exportAnalysis() {

@@ -101,6 +101,8 @@
           incompleteReviewDisplayed: shadow?.querySelectorAll(".ac-review").length === 5,
           incompleteReviewNotAnalyzed: shadow?.querySelectorAll(".ac-verdict.unavailable").length === 1,
           missingTextExplained: [...(shadow?.querySelectorAll(".ac-review > p.missing") || [])].some(node => node.textContent.includes("No written buyer comment")),
+          deceptiveLabelNamedClearly: [...(shadow?.querySelectorAll(".ac-verdict.deceptive") || [])].some(node => node.textContent === "Deceptive"),
+          filteredReviewsExplainSentimentGate: [...(shadow?.querySelectorAll(".ac-signals .warn") || [])].some(node => node.textContent.includes("Stage 2 sentiment skipped")),
           onlyTextReviewsSentToApi: globalThis.fixtureApiPayload?.reviews?.length === 4,
           internalDisplayFieldsNotSent: globalThis.fixtureApiPayload?.reviews?.every(review => !("analysisEligible" in review) && !("missingFields" in review)) || false,
           sellerReplyExcluded: shadow?.querySelector(".ac-scope.excluded strong")?.textContent === "1",
