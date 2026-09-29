@@ -82,7 +82,7 @@ def extract_aspect_spans(labels, valid_mask, offsets=None):
             if start is None:
                 start = index
         elif start is not None:
-            spans.append((start, index))
+            spans.append((start, index - 1))
             start = None
     if start is not None:
         spans.append((start, len(labels) - 1))

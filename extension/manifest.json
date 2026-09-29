@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "AuthentiCheck",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Review-quality and sentiment insights for Shopee and Lazada product pages.",
   "permissions": ["storage", "activeTab"],
   "host_permissions": [
@@ -21,7 +21,7 @@
     {
       "matches": ["*://*.shopee.ph/*", "*://*.lazada.com.ph/*"],
       "js": [
-        "extractors/common.js",
+        "extractors/buyer-reviews.js",
         "extractors/shopee.js",
         "extractors/lazada.js",
         "content.js"

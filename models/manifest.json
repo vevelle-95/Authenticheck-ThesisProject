@@ -1,0 +1,29 @@
+{
+  "schemaVersion": "1.0",
+  "modelVersion": "authenticheck-1.0",
+  "featureOrder": [
+    "p_authentic",
+    "p_deceptive",
+    "p_liv",
+    "p_irrelevant",
+    "mclip_max_similarity",
+    "normalized_star_rating"
+  ],
+  "classOrder": ["authentic", "deceptive", "liv", "irrelevant"],
+  "bundle": {
+    "downloadUrl": null,
+    "sha256": null
+  },
+  "required": [
+    "models/dost_roberta/config.json",
+    "models/xgboost_meta_classifier.json",
+    "models/absa_model/absa_config.json",
+    "models/absa_model/model.pt"
+  ],
+  "weightAlternatives": [
+    [
+      "models/dost_roberta/model.safetensors",
+      "models/dost_roberta/pytorch_model.bin"
+    ]
+  ]
+}

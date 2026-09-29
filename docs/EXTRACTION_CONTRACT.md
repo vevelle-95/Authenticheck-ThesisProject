@@ -36,7 +36,7 @@ AuthentiCheck's browser extension extracts one record per buyer review that is a
 3. Seller-response containers are removed before review text or media is selected.
 4. Review text, rating, and photos are read from the same review-card root.
 5. Duplicate review text is discarded.
-6. Only the first 100 currently loaded buyer reviews are processed.
+6. Only the first 20 currently loaded buyer reviews are processed per analysis request.
 7. No scrolling, pagination, or private marketplace API is automated.
 
 ## Extraction diagnostics
@@ -54,4 +54,4 @@ These diagnostics appear in the extension panel so missing or contaminated extra
 
 ## Maintenance
 
-Shopee and Lazada may change their DOM structure without notice. Update only the relevant adapter in `extension/extractors/`, then test that text, rating, and images still originate from the same buyer review and that seller replies remain excluded.
+Shopee and Lazada may change their DOM structure without notice. Update only the relevant adapter in `extension/extractors/`; shared buyer-only rules live in `buyer-reviews.js`. Then test that text, rating, and images still originate from the same buyer review and that seller replies remain excluded.

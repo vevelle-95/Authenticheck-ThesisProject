@@ -21,7 +21,7 @@
       <article class="shopee-product-rating" data-review-id="1">
         <div class="shopee-product-rating__rating" aria-label="5 out of 5 stars"></div>
         <p class="shopee-product-rating__content">Super linaw ng audio at matagal ang battery. Comfortable gamitin kahit ilang oras.</p>
-        <div class="shopee-product-rating__image-list-wrapper"><img src="assets/review-photo.svg" alt="Buyer headphones photo" /></div>
+        <div class="shopee-product-rating__image-list-wrapper"><img src="https://example.com/buyer-headphones.jpg" alt="Buyer headphones photo" /></div>
         <section class="seller-response"><strong>Seller's Response</strong><p>Thank you for buying from our shop. Please follow us for vouchers and future announcements.</p></section>
       </article>
 
@@ -54,12 +54,27 @@
         }
       };
     </script>
-    <script src="../extension/extractors/common.js"></script>
+    <script src="../extension/extractors/buyer-reviews.js"></script>
     <script src="../extension/extractors/shopee.js"></script>
     <script>
       const shopeeAdapter = globalThis.AuthentiCheckExtractors.adapters.find(adapter => adapter.id === "shopee");
       globalThis.AuthentiCheckExtractors.getActive = () => shopeeAdapter;
     </script>
     <script src="../extension/content.js"></script>
+    <pre id="panel-test">Running…</pre>
+    <script>
+      setTimeout(() => {
+        const shadow = document.querySelector("#authenticheck-extension-root")?.shadowRoot;
+        const checks = {
+          panelInjected: Boolean(shadow?.querySelector(".ac-panel")),
+          fourReviewsAnalyzed: shadow?.querySelector(".ac-status-text")?.textContent.includes("4 visible reviews") || false,
+          sellerReplyExcluded: shadow?.querySelector(".ac-scope.excluded strong")?.textContent === "1",
+          buyerImageCounted: shadow?.querySelectorAll(".ac-scope strong")?.[2]?.textContent === "1"
+        };
+        const passed = Object.values(checks).every(Boolean);
+        document.querySelector("#panel-test").textContent = JSON.stringify({ passed, checks }, null, 2);
+        document.title = passed ? "PASS — panel fixture" : "FAIL — panel fixture";
+      }, 1800);
+    </script>
   </body>
 </html>

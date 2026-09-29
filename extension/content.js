@@ -215,9 +215,11 @@
     const runId = ++analysisRun;
     renderLoading();
     const minimumLoadingTime = new Promise(resolve => setTimeout(resolve, 1200));
-    const reviews = adapter.extractReviews();
+    const extraction = adapter.extractReviews();
+    const reviews = extraction.reviews;
     const payload = {
-      platform: adapter.name,
+      schemaVersion: "1.0",
+      platform: adapter.id,
       url: location.href,
       productTitle: adapter.getProductTitle(),
       productDescription: adapter.getProductDescription?.() || "",
@@ -238,8 +240,16 @@
     if (settings.useApi) {
       const response = await chrome.runtime.sendMessage({ type: "AUTHENTICHECK_ANALYZE", payload }).catch(() => null);
       if (runId !== analysisRun) return;
-      if (response?.ok && response.result) result = normalizeApiResult(response.result, payload);
-      else {
+      if (response?.ok && response.result) {
+        try {
+          result = normalizeApiResult(response.result, payload);
+        } catch (error) {
+          await minimumLoadingTime;
+          if (runId !== analysisRun) return;
+          renderError(error.message || "The model API returned an incompatible response.");
+          return;
+        }
+      } else {
         await minimumLoadingTime;
         if (runId !== analysisRun) return;
         renderError(response?.error || "The model API did not respond. Check that the local service is running.");
@@ -253,45 +263,52 @@
   }
 
   function normalizeApiResult(api, payload) {
-    const local = analyzeLocally(payload);
-    const numberOr = (value, fallback, min = 0, max = Number.MAX_SAFE_INTEGER) => {
+    if (api?.schemaVersion !== "1.0") throw new Error("The model API response uses an unsupported schema version.");
+    const numberOr = (value, min = 0, max = Number.MAX_SAFE_INTEGER) => {
       const numeric = Number(value);
-      return Number.isFinite(numeric) ? Math.max(min, Math.min(max, numeric)) : fallback;
+      if (!Number.isFinite(numeric)) throw new Error("The model API response is missing a required numeric field.");
+      return Math.max(min, Math.min(max, numeric));
     };
     const labelMap = { authentic:"authentic", deceptive:"deceptive", irrelevant:"irrelevant", liv:"liv", "low-value":"liv", low_value:"liv", lowValue:"liv" };
-    const apiReviews = Array.isArray(api.reviews) ? api.reviews.map((review, index) => {
-      const fallback = local.reviews.find(item => item.id === review?.id) || local.reviews[index] || {};
+    if (!Array.isArray(api.reviews) || !api.counts || !api.sentimentCounts || !Array.isArray(api.aspects)) {
+      throw new Error("The model API response is incomplete.");
+    }
+    const apiReviews = api.reviews.map((review, index) => {
+      const source = payload.reviews.find(item => item.id === review?.id) || payload.reviews[index] || {};
+      const label = labelMap[String(review?.label || "").toLowerCase()];
+      if (!label) throw new Error("The model API returned an unknown review classification.");
       return {
-        ...fallback,
+        ...source,
         ...review,
-        text: String(review?.text ?? fallback.text ?? ""),
-        label: labelMap[review?.label] || fallback.label || "liv",
-        signals: Array.isArray(review?.signals) ? review.signals.map(String).slice(0, 8) : (fallback.signals || [])
+        text: String(review?.text ?? source.text ?? ""),
+        rating: review?.starRating ?? source.rating ?? null,
+        label,
+        signals: Array.isArray(review?.signals) ? review.signals.map(String).slice(0, 8) : []
       };
-    }) : local.reviews;
-    const apiCounts = api.counts || {};
+    });
+    const apiCounts = api.counts;
     return {
-      ...local,
       mode: "api",
-      authenticShare: numberOr(api.authenticShare ?? api.confidence, local.authenticShare, 0, 100),
-      verifiedRating: numberOr(api.verifiedRating, local.verifiedRating, 0, 5),
+      modelVersion: String(api.modelVersion || "unknown"),
+      authenticShare: numberOr(api.authenticShare, 0, 100),
+      verifiedRating: api.verifiedRating == null ? null : numberOr(api.verifiedRating, 0, 5),
       counts: {
-        authentic: numberOr(apiCounts.authentic, local.counts.authentic),
-        liv: numberOr(apiCounts.liv ?? apiCounts.lowValue ?? apiCounts["low-value"], local.counts.liv),
-        irrelevant: numberOr(apiCounts.irrelevant, local.counts.irrelevant),
-        deceptive: numberOr(apiCounts.deceptive, local.counts.deceptive)
+        authentic: numberOr(apiCounts.authentic),
+        liv: numberOr(apiCounts.liv),
+        irrelevant: numberOr(apiCounts.irrelevant),
+        deceptive: numberOr(apiCounts.deceptive)
       },
       sentimentCounts: {
-        positive: numberOr(api.sentimentCounts?.positive, local.sentimentCounts.positive),
-        neutral: numberOr(api.sentimentCounts?.neutral, local.sentimentCounts.neutral),
-        negative: numberOr(api.sentimentCounts?.negative, local.sentimentCounts.negative)
+        positive: numberOr(api.sentimentCounts.positive),
+        neutral: numberOr(api.sentimentCounts.neutral),
+        negative: numberOr(api.sentimentCounts.negative)
       },
       reviews: apiReviews,
-      aspects: Array.isArray(api.aspects) ? api.aspects.slice(0, 12).map(aspect => ({
+      aspects: api.aspects.slice(0, 12).map(aspect => ({
         name: String(aspect?.name || "Unnamed aspect"),
-        mentions: numberOr(aspect?.mentions, 0),
-        positivePercent: numberOr(aspect?.positivePercent, 0, 0, 100)
-      })) : local.aspects
+        mentions: numberOr(aspect?.mentions),
+        positivePercent: numberOr(aspect?.positivePercent, 0, 100)
+      }))
     };
   }
 
@@ -393,6 +410,7 @@
   }
 
   function renderOverview(result, total, payload) {
+    const extraction = payload.extraction || {};
     const p = key => percent(result.counts[key] || 0, total);
     const positive = sentimentPercent(result, "positive");
     const neutral = sentimentPercent(result, "neutral");
