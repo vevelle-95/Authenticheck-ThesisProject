@@ -1,14 +1,3 @@
-"""Stage 2 - Online inference phase (Revised Section 3.4, items 3-9).
-
-Loads the saved artifacts and runs, in order:
-  4. Feature extraction: DOST-RoBERTa P_text, M-CLIP S_clip, normalized R_star.
-  5. Deterministic (parameter-free) concatenation into the 6D vector X.
-  6. XGBoost classification into the four quality classes.
-  7. Filtering: only Authentic reviews propagate onward.
-  8. ABSA generated aspect extraction and per-aspect sentiment on authentic reviews.
-  9. Structured output (classification results, aspect sentiment, adjusted
-     rating). Dashboard/graph visualization is intentionally excluded for now.
-"""
 
 import argparse
 import json
