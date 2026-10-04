@@ -1,5 +1,49 @@
 # AuthentiCheck browser extension
 
+## Model comparison in the extension
+
+Run `python -m uvicorn main:app --reload` from the repository root, enable the
+model API in the extension popup, and open a supported product page. The
+floating analysis panel has a **Compare** tab. Select one visible buyer review
+and press **Compare this review**. The extension sends its text, rating, up to
+five buyer image URLs, and product description to `POST /api/compare/lu-et-al`, then
+shows both engines and category-level discrepancies inside the panel. The API
+also accepts up to 20 reviews per call for research scripts.
+
+The Lu et al. checkout remains outside this repository. Set `LU_ET_AL_REPO` to
+its absolute directory, `LU_ET_AL_PYTHON` to the Python executable in its own
+environment, and `LU_ET_AL_ENTRYPOINT` to `module:function` in that checkout.
+The callable receives a list of review objects and returns either a list of
+results or `{"reviews": [...]}`. Each result needs the same `id` and a holistic
+`sentiment` of `positive`, `negative`, or `neutral`.
+
+Alternatively, set `LU_ET_AL_COMMAND` to a baseline inference command. It runs
+from the external checkout, receives one JSON object on stdin, and writes one
+JSON object on stdout (logs go to stderr). The command setting takes precedence
+over the Python entrypoint. Request example:
+
+```json
+{"product_description":"Wireless headphones","reviews":[{"id":"r1","text":"Great sound but late delivery","star_rating":3,"image_url":"https://example.org/photo.jpg","image_urls":["https://example.org/photo.jpg"]}]}
+```
+
+Expected response, in the same order and with the same IDs:
+
+```json
+{"reviews":[{"id":"r1","sentiment":"negative"}]}
+```
+
+The runner may optionally include `segments`, for example
+`{"segments":[{"text":"Great sound","sentiment":"positive"}]}`. Segment text
+must occur verbatim in the review. If segment sentiment is omitted, the adapter
+inherits the holistic label and marks it `holistic_projection`. The taxonomy
+rules classify matching clauses into the six thesis categories. They are an
+explicit evaluation projection, not native Lu et al. aspect predictions.
+
+No Lu et al. implementation or weights are included here. Until its checkout and
+entrypoint or runner command are configured, the response marks the baseline unavailable. AuthentiCheck
+likewise needs its trained model artifacts to produce results; missing artifacts
+are shown as an independent unavailable status.
+
 A dependency-free Manifest V3 browser extension plus a standalone frontend prototype. The extension injects a floating review-analysis panel into Shopee Philippines and Lazada Philippines product pages. It follows the AuthentiCheck thesis pipeline: review-quality classification first, then aspect sentiment using only reviews classified as authentic.
 
 ## Install the extension in Chrome or Edge

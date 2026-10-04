@@ -1,16 +1,12 @@
 import os
-import sys
-from pathlib import Path
 from typing import Any, Literal
 
-import pandas as pd
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, ConfigDict, Field, HttpUrl, field_validator
 
-sys.path.append(str(Path(__file__).resolve().parent / "stage2"))
-import absa_model
-from online_inference import OnlineInference, DEFAULT_XGB_PATH
+from backend.routes.comparison_routes import router as comparison_router
+from backend.services.authenticheck_adapter import _pipeline
 
 SCHEMA_VERSION = "1.0"
 MODEL_VERSION = os.getenv("AUTHENTICHECK_MODEL_VERSION", "authenticheck-1.0")
@@ -47,11 +43,14 @@ class AnalyzeRequest(BaseModel):
     reviews: list[ReviewRequest] = Field(min_length=1, max_length=20)
 
 
-pipeline = OnlineInference(
-    roberta_model=absa_model.STAGE1_MODEL_DIR,
-    xgb_path=DEFAULT_XGB_PATH,
-    absa_dir=absa_model.DEFAULT_ABSA_MODEL_DIR,
-)
+class LazyPipeline:
+    """Delay model imports so status and comparison routes remain available."""
+
+    def __getattr__(self, name):
+        return getattr(_pipeline(), name)
+
+
+pipeline = LazyPipeline()
 
 
 app = FastAPI(title="AuthentiCheck Backend", version=MODEL_VERSION)
@@ -64,6 +63,8 @@ app.add_middleware(
     allow_methods=["GET", "POST"],
     allow_headers=["Content-Type", "Accept"],
 )
+
+app.include_router(comparison_router)
 
 
 @app.on_event("startup")
@@ -119,6 +120,8 @@ def analyze_usage():
 def analyze(request: AnalyzeRequest):
     if not app.state.model_ready:
         raise HTTPException(status_code=503, detail=app.state.model_error or "Model pipeline is not ready.")
+
+    import pandas as pd
 
     records = [
         {
