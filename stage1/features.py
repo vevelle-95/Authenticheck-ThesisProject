@@ -89,7 +89,7 @@ class FeatureExtractor:
         images = [(url, self.image_loader(url)) for url in parse_image_urls(urls)]
         images = [(url, image) for url, image in images if image is not None]
         if not images:
-            raise ValueError("No accessible, decodable matched buyer image; multimodal analysis cannot proceed")
+            return 0.0, None, []
         text_encoder, image_encoder = self.load_clip()
         with torch.inference_mode():
             text_embedding = text_encoder.encode(text, convert_to_tensor=True)

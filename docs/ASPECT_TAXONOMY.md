@@ -43,6 +43,10 @@ Purely visual appeal, including color, appearance, style, or look.
 
 For beauty, skincare, and personal care products only (e.g., cleansers, soaps, moisturizers, perfumes): smell, fragrance, texture, consistency, and how the product feels on the skin (e.g., "mabango", "walang amoy", "smooth ang texture", "creamy", "foamy", "liquid").
 
+Apply this boundary during annotation using product context. The code does not
+require a `product_category` column or automatically suppress sensory predictions
+based on product domain. All ten categories remain available to the model.
+
 ### value
 
 Whether the product is worth its price, including sulit, affordable, expensive, or overpriced.
@@ -84,4 +88,8 @@ Whether the received product matches what was advertised, as stated by the revie
 
 The original `stage2/absa_model.py` was a BIO phrase extractor. It has now been replaced with ten-category detection and category-conditioned sentiment. The new code preserves old weights and saves newly trained artifacts separately. `backend/services/taxonomy.py` still contains the old six-category keyword projection; comparison work is intentionally deferred.
 
-Training and evaluation use one adjudicated polarity per review/category. Repeated evidence with the same category and polarity is merged. Opposing polarities within the same review/category must be resolved by the annotation protocol before training; they are not silently averaged.
+A review can contain different sentiments for the same category, for example
+positive fragrance and negative texture under `sensory_experience`. Preserve
+both. Repeated evidence with the same category/polarity is merged. Training uses
+a distribution over the preserved polarities; the category model still predicts
+one sentiment per detected category rather than separate opinion spans.

@@ -1,7 +1,7 @@
 # Technical notes for our model
 
 For the everyday file map, commands, and output directories, read
-[ModelNavigation.md](../ModelNavigation.md) first. This page records details
+[ModelNavigation.md](ModelNavigation.md) first. This page records details
 needed when changing the code or planning an experiment.
 
 ## Training and validation rules
@@ -37,25 +37,39 @@ The six values are:
 
 ```text
 P(Authentic), P(Deceptive), P(LIV), P(Irrelevant),
-maximum review-image cosine similarity over usable matched images,
+maximum review-image cosine similarity over usable matched images (0 if none),
 (stars - 1) / 4
 ```
 
-Stars must be integers from 1 to 5. At least one matched buyer image must be
-accessible and decodable during feature generation. Missing inputs cause an
-error rather than an invented rating or similarity.
+Stars must be integers from 1 to 5. Reviews without usable buyer images receive
+CLIP similarity 0, no best-image URL, and an empty image-score list. This fallback
+is shared by training and inference and recorded in the input contract version.
 
 ABSA has ten independent category probabilities. Its sentiment head reads
 the target category definition together with the review. The saved validation
 threshold determines which categories are detected during inference.
 
-Each review/category has one adjudicated sentiment. Repeated same-sentiment
-evidence is merged; conflicting sentiments require annotation resolution.
-The model predicts categories and sentiments, not evidence spans.
+A category may have several sentiments within a review. Evidence for each
+category/polarity is grouped without discarding the other polarities. Evidence
+may paraphrase the review and is not used as a model input.
 
-Sensory eligibility uses product category metadata. That mapping is deferred
-during current annotation work, but the existing code still enforces it during
-training/inference. Definitions remain in [ASPECT_TAXONOMY.md](ASPECT_TAXONOMY.md).
+The sentiment head learns an equal-weight distribution over distinct polarities
+for a category using soft-target cross-entropy. Its output remains one sentiment
+per detected category, so it does not separately predict fragrance and texture
+opinions within the same category. Validation evaluates that prediction against
+each preserved category/polarity target. Saved artifacts record this target policy.
+
+Product gold sentiment averages the preserved review/category/polarity groups;
+predictions average detected review/category outputs. Repeated evidence with the
+same category/polarity contributes once. Assistant-filled CSV annotations are
+test drafts, with provenance in `reports/generated/csv_annotation_fill.json`.
+
+Product category metadata is not required or used. All ten categories contribute
+to training and evaluation, and none is suppressed by a product-domain mask.
+Annotators apply the beauty-only sensory definition using product context;
+prediction does not automatically enforce it. The saved model configuration
+records this policy as `annotation-guidelines-only`.
+Definitions remain in [ASPECT_TAXONOMY.md](ASPECT_TAXONOMY.md).
 
 ## Experiment records and final testing
 
@@ -97,7 +111,6 @@ test set suitable for tuning and then reporting unbiased final performance.
 ## Work still deferred
 
 - Training and measuring performance on the finalized real dataset.
-- Product category mapping before training with sensory annotations.
 - Lu et al. comparison adapters/routes and their older category projection.
 - Formal statistical tests and annotation agreement measurements.
 - Reviewed synthetic augmentation; the pipeline does not generate it.

@@ -1,7 +1,7 @@
 # Saved models
 
 Training with `pipeline.py` saves the updated models in
-`models/own_model_v2/`. Read [ModelNavigation.md](../ModelNavigation.md) for
+`models/own_model_v2/`. Read [ModelNavigation.md](../docs/ModelNavigation.md) for
 the training commands.
 
 ## Current output layout

@@ -20,7 +20,7 @@ from model_data import fingerprint, load_reviews, prepare_splits, read_splits
 from stage1.generate_oof_features import generate_oof
 from stage1.features import FeatureExtractor
 from stage2.absa_model import ABSAHeadModel, tokenize_sentiment
-from stage2.fine_tune_absa import build_targets, detection_metrics, select_threshold
+from stage2.fine_tune_absa import batch_forward, build_targets, detection_metrics, select_threshold
 from stage2.online_inference import OnlineInference, aggregate_products, build_summary
 from stage2.train_xgboost import validate_features
 
@@ -33,7 +33,7 @@ def fixture_frame(products=20):
             rows.append({
                 "review_id": f"r{product}-{label}", "product_id": f"p{product}",
                 "review_text": text, "review_image_urls": "https://example.invalid/photo.jpg",
-                "star_rating": 5, "ground_truth": CLASS_NAMES[label], "product_category": "general",
+                "star_rating": 5, "ground_truth": CLASS_NAMES[label],
                 "aspect_annotations": json.dumps([{
                     "category": "product_quality", "text": "quality", "sentiment": product % 3,
                 }]) if label == 0 else "[]",
@@ -103,7 +103,7 @@ class ContractTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             parse_image_urls("[3]")
 
-    def test_annotations_keep_category_evidence_and_reject_conflicts(self):
+    def test_annotations_preserve_same_category_mixed_sentiments(self):
         annotations = [
             {"category": "performance", "text": "sound", "sentiment": "positive"},
             {"category": "performance", "text": "battery", "sentiment": "positive"},
@@ -111,16 +111,36 @@ class ContractTests(unittest.TestCase):
         result = parse_annotations(annotations, "sound and battery")
         self.assertEqual(result[0]["evidence"], ["sound", "battery"])
         annotations[1]["sentiment"] = "negative"
-        with self.assertRaisesRegex(ValueError, "Conflicting"):
-            parse_annotations(annotations, "sound and battery")
+        result = parse_annotations(annotations, "sound and battery")
+        self.assertEqual(len(result), 2)
+        self.assertEqual({entry["sentiment"] for entry in result}, {0, 2})
+        self.assertEqual({text for entry in result for text in entry["evidence"]}, {"sound", "battery"})
 
-    def test_sensory_restriction_and_unknown_category(self):
+    def test_evidence_can_paraphrase_review_text(self):
+        annotation = [{"category": "performance", "text": "scroll wheel does not work", "sentiment": "negative"}]
+        result = parse_annotations(annotation, "the middle is kinda like ain't working")
+        self.assertEqual(result[0]["evidence"], ["scroll wheel does not work"])
+
+    def test_sensory_annotations_need_no_product_category(self):
         annotation = [{"category": "sensory_experience", "text": "smooth", "sentiment": "neutral"}]
-        with self.assertRaisesRegex(ValueError, "product_category"):
-            parse_annotations(annotation, "smooth", "electronics")
-        self.assertEqual(len(parse_annotations(annotation, "smooth", "skincare")), 1)
+        expected = parse_annotations(annotation, "smooth")
+        self.assertEqual(expected[0]["category"], "sensory_experience")
+        for legacy_category in ("", "electronics", "skincare"):
+            self.assertEqual(parse_annotations(annotation, "smooth", legacy_category), expected)
         with self.assertRaisesRegex(ValueError, "Unknown"):
             parse_annotations([{"category": "delivery", "text": "fast", "sentiment": 2}], "fast")
+
+    def test_csv_with_sensory_annotations_loads_without_product_category(self):
+        with tempfile.TemporaryDirectory() as directory:
+            frame = fixture_frame(1)
+            frame.loc[0, "aspect_annotations"] = json.dumps([
+                {"category": "sensory_experience", "text": "quality", "sentiment": "positive"},
+            ])
+            path = Path(directory) / "data.csv"
+            frame.to_csv(path, index=False)
+            loaded = load_reviews(path, require_annotations=True)
+            self.assertNotIn("product_category", loaded.columns)
+            self.assertEqual(loaded.loc[0, "annotations"][0]["category"], "sensory_experience")
 
     def test_dataset_validator_requires_ids_but_not_a_large_dataset(self):
         with tempfile.TemporaryDirectory() as directory:
@@ -131,6 +151,17 @@ class ContractTests(unittest.TestCase):
             frame.drop(columns="review_id").to_csv(path, index=False)
             with self.assertRaisesRegex(ValueError, "review_id"):
                 load_reviews(path)
+
+    def test_reviews_without_images_remain_valid(self):
+        with tempfile.TemporaryDirectory() as directory:
+            frame = fixture_frame(1)
+            frame.loc[0, "review_image_urls"] = ""
+            frame.loc[1, "review_image_urls"] = "[]"
+            path = Path(directory) / "data.csv"
+            frame.to_csv(path, index=False)
+            loaded = load_reviews(path, require_annotations=True)
+            self.assertEqual(loaded.loc[0, "image_urls"], [])
+            self.assertEqual(loaded.loc[1, "image_urls"], [])
 
 
 class SplitAndOofTests(unittest.TestCase):
@@ -186,22 +217,27 @@ class SplitAndOofTests(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, "OOF"):
                 validate_features(features, assigned)
 
-    def test_invalid_image_cannot_be_replaced_with_zero_similarity(self):
+    def test_missing_or_unusable_images_produce_zero_without_loading_clip(self):
         extractor = FeatureExtractor("unused", image_loader=lambda url: None)
-        with self.assertRaisesRegex(ValueError, "No accessible"):
-            extractor.extract("valid review", ["https://example.invalid/a"], 5, [0.4, 0.3, 0.2, 0.1])
+        for images in ([], "", None, ["https://example.invalid/a"]):
+            features, best, scores = extractor.extract("valid review", images, 5, [0.4, 0.3, 0.2, 0.1])
+            self.assertEqual(features, [0.4, 0.3, 0.2, 0.1, 0.0, 1.0])
+            self.assertIsNone(best)
+            self.assertEqual(scores, [])
+            self.assertIsNone(extractor.clip_text)
 
 
 class AbsaTests(unittest.TestCase):
-    def test_ten_outputs_and_product_context_gate(self):
+    def test_all_ten_outputs_are_available_without_product_metadata(self):
         model = ABSAHeadModel(encoder=FakeEncoder(), dropout=0)
         model.aspect_head.weight.data.zero_()
         model.aspect_head.bias.data.fill_(10)
-        results = model.predict(["review", "review"], FakeTokenizer(), ["electronics", "skincare"])
-        self.assertEqual(len(results[0]), 9)
-        self.assertEqual(len(results[1]), 10)
-        self.assertNotIn("sensory_experience", {row["category"] for row in results[0]})
+        results = model.predict(["review", "review"], FakeTokenizer())
+        self.assertTrue(all(len(row) == 10 for row in results))
+        self.assertIn("sensory_experience", {row["category"] for row in results[0]})
         self.assertTrue(all(row["category"] in ASPECTS for row in results[1]))
+        legacy = model.predict(["review", "review"], FakeTokenizer(), ["electronics", "skincare"])
+        self.assertEqual(legacy, results)
 
     def test_sentiment_encoding_explicitly_receives_category_and_review(self):
         tokenizer = FakeTokenizer()
@@ -214,15 +250,43 @@ class AbsaTests(unittest.TestCase):
 
     def test_targets_use_categories_not_phrase_lengths(self):
         frame = pd.DataFrame([{
-            "review_text": "clear sound and battery lasts all day", "product_category": "electronics",
+            "review_text": "clear sound and battery lasts all day",
             "annotations": [{"category": "performance", "sentiment": 2, "evidence": ["clear sound", "battery lasts all day"]}],
         }])
         dataset = build_targets(frame, FakeTokenizer(), 128)
         targets, sentiments = dataset.tensors[2], dataset.tensors[5]
         self.assertEqual(targets.shape, (1, 10))
         self.assertEqual(int(targets.sum()), 1)
-        self.assertEqual(sentiments[0, ASPECTS.index("performance")], 2)
-        self.assertEqual(int(sentiments.ne(-100).sum()), 1)
+        self.assertEqual(sentiments[0, ASPECTS.index("performance"), 2], 1)
+        self.assertEqual(int(sentiments.gt(0).sum()), 1)
+
+    def test_sensory_targets_are_included_without_category_metadata(self):
+        frame = pd.DataFrame([{
+            "review_text": "smooth ang texture",
+            "annotations": [{"category": "sensory_experience", "sentiment": 2, "evidence": ["smooth ang texture"]}],
+        }])
+        dataset = build_targets(frame, FakeTokenizer(), 128)
+        sensory = ASPECTS.index("sensory_experience")
+        self.assertEqual(dataset.tensors[2][0, sensory], 1)
+        self.assertEqual(dataset.tensors[5][0, sensory, 2], 1)
+        self.assertTrue(torch.equal(dataset.tensors[6], torch.ones(1, 10)))
+
+    def test_mixed_category_targets_contribute_both_polarities_to_loss(self):
+        annotations = parse_annotations([
+            {"category": "sensory_experience", "text": "mabango", "sentiment": "positive"},
+            {"category": "sensory_experience", "text": "watery", "sentiment": "negative"},
+        ], "mabango pero watery")
+        frame = pd.DataFrame([{"review_text": "mabango pero watery", "annotations": annotations}])
+        dataset = build_targets(frame, FakeTokenizer(), 128)
+        model = ABSAHeadModel(encoder=FakeEncoder(), dropout=0)
+        _, _, _, polarities, _ = batch_forward(model, dataset.tensors, torch.device("cpu"))
+        self.assertTrue(torch.equal(polarities, torch.tensor([[1.0, 0.0, 1.0]])))
+        logits = torch.tensor([[1.0, -2.0, 0.0]], requires_grad=True)
+        loss = model.compute_loss(torch.zeros(1, 10), logits, dataset.tensors[2], polarities, dataset.tensors[6])
+        expected = np.log(2) - torch.log_softmax(logits, -1)[0, [0, 2]].mean()
+        self.assertTrue(torch.allclose(loss, expected))
+        loss.backward()
+        self.assertGreater(float(logits.grad[0, 1]), 0)
 
     def test_validation_threshold_is_selected_from_probabilities(self):
         targets = np.zeros((2, 10))

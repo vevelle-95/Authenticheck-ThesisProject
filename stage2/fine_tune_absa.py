@@ -13,7 +13,7 @@ from torch.utils.data import DataLoader, TensorDataset
 from transformers import AutoTokenizer, set_seed
 
 from stage2 import absa_model
-from model_contract import ASPECTS, BASE_MODEL, SEED, sensory_allowed
+from model_contract import ASPECTS, BASE_MODEL, SEED, SENSORY_POLICY, SENTIMENT_TARGET_POLICY
 from model_data import fingerprint, load_reviews, read_splits
 from model_metrics import classification_metrics
 
@@ -24,17 +24,16 @@ def build_targets(frame, tokenizer, max_length):
     texts = frame.review_text.tolist()
     enc = absa_model.tokenize_detection(tokenizer, texts, max_length)
     targets = torch.zeros(len(frame), len(ASPECTS))
-    sentiments = torch.full((len(frame), len(ASPECTS)), -100, dtype=torch.long)
+    sentiments = torch.zeros(len(frame), len(ASPECTS), 3)
     eligible = torch.ones_like(targets)
     pair_texts = [text for text in texts for _ in ASPECTS]
     pair_categories = list(ASPECTS) * len(texts)
     pair_enc = absa_model.tokenize_sentiment(tokenizer, pair_texts, pair_categories, max_length)
     for index, row in enumerate(frame.to_dict("records")):
-        eligible[index, ASPECTS.index("sensory_experience")] = int(sensory_allowed(row["product_category"]))
         for annotation in row["annotations"]:
             category = ASPECTS.index(annotation["category"])
             targets[index, category] = 1
-            sentiments[index, category] = annotation["sentiment"]
+            sentiments[index, category, annotation["sentiment"]] = 1
     return TensorDataset(
         enc["input_ids"], enc["attention_mask"], targets,
         pair_enc["input_ids"].reshape(len(frame), len(ASPECTS), -1),
@@ -44,7 +43,7 @@ def build_targets(frame, tokenizer, max_length):
 
 def batch_forward(model, batch, device):
     ids, mask, targets, pair_ids, pair_mask, sentiments, eligible = [tensor.to(device) for tensor in batch]
-    active = sentiments.ne(-100)
+    active = sentiments.sum(-1).gt(0)
     aspect_logits, sentiment_logits = model(ids, mask, pair_ids[active], pair_mask[active])
     return aspect_logits, sentiment_logits, targets, sentiments[active], eligible
 
@@ -77,8 +76,10 @@ def evaluate_loader(model, loader, device, tune=False):
         probabilities.extend(torch.sigmoid(logits).cpu().tolist())
         eligible_rows.extend(eligible.cpu().tolist())
         if sentiments is not None:
-            sentiment_targets.extend(polarities.cpu().tolist())
-            sentiment_predictions.extend(sentiments.argmax(-1).cpu().tolist())
+            for alternatives, prediction in zip(polarities.cpu(), sentiments.argmax(-1).cpu()):
+                labels = alternatives.nonzero().flatten().tolist()
+                sentiment_targets.extend(labels)
+                sentiment_predictions.extend([int(prediction)] * len(labels))
     targets, probabilities, eligible = map(np.asarray, (target_rows, probabilities, eligible_rows))
     threshold = select_threshold(targets, probabilities, eligible) if tune else model.threshold
     return {
@@ -133,10 +134,12 @@ def train_absa(assigned, output, *, encoder=BASE_MODEL, epochs=3, batch_size=2,
             best_metrics = metrics
     Path(output, "training_metadata.json").write_text(json.dumps({
         "dataset_sha256": fingerprint(assigned), "seed": SEED,
+        "sensory_domain_policy": SENSORY_POLICY,
+        "sentiment_target_policy": SENTIMENT_TARGET_POLICY,
         "fit_review_ids": training.review_id.tolist(), "validation_review_ids": validation.review_id.tolist(),
         "best_epoch": best_epoch, "selection_metric": "mean_detection_and_gold_category_sentiment_macro_f1",
         "validation_metrics": best_metrics, "history": history,
-        "aggregation_unit": "one_adjudicated_review_category_pair",
+        "aggregation_unit": "one_review_category_polarity_group",
     }, indent=2), encoding="utf-8")
     return best_metrics
 

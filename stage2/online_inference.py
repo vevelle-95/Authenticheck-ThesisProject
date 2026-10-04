@@ -13,7 +13,7 @@ from transformers import AutoTokenizer
 
 from stage2 import absa_model
 from stage1.features import FeatureExtractor
-from model_contract import ASPECTS, CLASS_NAMES, FEATURE_COLUMNS, INPUT_VERSION, POLARITIES, TAXONOMY_VERSION, parse_image_urls
+from model_contract import ASPECTS, CLASS_NAMES, FEATURE_COLUMNS, INPUT_VERSION, POLARITIES, SENSORY_POLICY, SENTIMENT_TARGET_POLICY, TAXONOMY_VERSION, parse_image_urls
 
 DEFAULT_XGB_PATH = absa_model.MODELS_DIR / "xgboost_meta_classifier.json"
 DEFAULT_OUTPUT_PATH = absa_model.DATA_DIR / "online_inference_results.json"
@@ -51,6 +51,10 @@ class OnlineInference:
             raise ValueError("XGBoost feature/class order mismatch")
         if absa.get("model_version") != absa_model.MODEL_VERSION or absa.get("taxonomy_version") != TAXONOMY_VERSION or absa.get("aspects") != list(ASPECTS):
             raise ValueError("ABSA bundle does not implement the fixed ten-category taxonomy")
+        if absa.get("sensory_domain_policy") != SENSORY_POLICY:
+            raise ValueError("ABSA sensory policy mismatch; retrain without product-category gating")
+        if absa.get("sentiment_target_policy") != SENTIMENT_TARGET_POLICY:
+            raise ValueError("ABSA sentiment target policy mismatch; retrain with mixed-polarity support")
 
     def preload(self):
         self.check_artifacts()
@@ -83,7 +87,7 @@ class OnlineInference:
 
     def aspect_sentiment(self, text, product_category=""):
         model, tokenizer = self._load_absa()
-        return model.predict([text], tokenizer, [product_category], threshold=self.threshold)[0]
+        return model.predict([text], tokenizer, threshold=self.threshold)[0]
 
     def run(self, df):
         self.check_artifacts()
@@ -105,11 +109,13 @@ class OnlineInference:
                 "confidence": round(max(probabilities), 4),
                 "probabilities": dict(zip(CLASS_NAMES, (round(value, 4) for value in probabilities))),
                 "features": {"p_text": dict(zip(CLASS_NAMES, p_text)), "s_clip": similarity, "r_star": rating},
-                "signals": ["DOST-RoBERTa review-text evidence", "M-CLIP matched buyer-image similarity", "Normalized star rating"],
+                "signals": ["DOST-RoBERTa review-text evidence",
+                            "M-CLIP matched buyer-image similarity" if best else "No usable buyer image; CLIP score is 0",
+                            "Normalized star rating"],
                 "bestImageUrl": best,
             }
             if verdict == 0:
-                entry["aspectSentiment"] = self.aspect_sentiment(text, row.get("product_category", ""))
+                entry["aspectSentiment"] = self.aspect_sentiment(text)
             results.append(entry)
             verdicts.append(CLASS_NAMES[verdict])
         return {**build_summary(df, verdicts, results), "reviews": results}

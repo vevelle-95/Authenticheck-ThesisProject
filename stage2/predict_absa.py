@@ -37,7 +37,7 @@ def main():
     tokenizer = AutoTokenizer.from_pretrained(model.tokenizer_dir, local_files_only=True)
     results = model.predict(
         frame[text_col].astype(str).tolist(), tokenizer,
-        frame.get("product_category", pd.Series("", index=frame.index)).tolist(), threshold=args.threshold,
+        threshold=args.threshold,
     )
     output = [{
         "review_id": row.get("review_id", ""), "product_id": row.get("product_id", ""),

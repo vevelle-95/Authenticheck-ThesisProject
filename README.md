@@ -6,13 +6,13 @@ reviews classified as Authentic.
 ## Start here
 
 The team is currently collecting and annotating the dataset. Start with
-[ModelNavigation.md](ModelNavigation.md) for a plain-language explanation of
+[ModelNavigation.md](docs/ModelNavigation.md) for a plain-language explanation of
 the model, each Python file, commands, and output directories. Training examples
 there are for when annotations are ready.
 
 | Document | Read it when |
 | --- | --- |
-| [ModelNavigation.md](ModelNavigation.md) | You want to understand or run our model. |
+| [ModelNavigation.md](docs/ModelNavigation.md) | You want to understand or run our model. |
 | [ASPECT_TAXONOMY.md](docs/ASPECT_TAXONOMY.md) | You are assigning aspect labels. |
 | [models/README.md](models/README.md) | You want to identify saved model files. |
 | [OWN_MODEL_CHANGES.md](docs/OWN_MODEL_CHANGES.md) | You need experiment settings or implementation constraints. |
@@ -142,13 +142,13 @@ python pipeline.py --data data/reviews.csv
 uvicorn main:app --host 127.0.0.1 --port 8000
 ```
 
-`pipeline.py` validates the finalized dataset, persists product-disjoint partitions, generates five-fold out-of-fold RoBERTa probabilities, trains final RoBERTa and XGBoost, and independently trains fixed ten-category ABSA. It selects models and thresholds using validation data. The backend defaults to `models/own_model_v2/`; existing weights are preserved and require retraining for the new architecture. See [ModelNavigation.md](ModelNavigation.md) for the CSV schema and separate held-out test command. Check `http://127.0.0.1:8000/health` for the server and `/ready` for model readiness.
+`pipeline.py` validates the finalized dataset, persists product-disjoint partitions, generates five-fold out-of-fold RoBERTa probabilities, trains final RoBERTa and XGBoost, and independently trains fixed ten-category ABSA. It selects models and thresholds using validation data. The backend defaults to `models/own_model_v2/`; existing weights are preserved and require retraining for the new architecture. See [ModelNavigation.md](docs/ModelNavigation.md) for the CSV schema and separate held-out test command. Check `http://127.0.0.1:8000/health` for the server and `/ready` for model readiness.
 
 The existing `scripts/setup_models.py` installs/verifies the older download manifest and is not a substitute for preparing the new training bundle.
 
 The backend processes review photos in memory and discards their bytes after M-CLIP feature extraction; it does not create a permanent review-image store.
 
-`data/test_reviews.csv` remains an unchanged schema-development fixture. Its current missing `review_id` column is reported by the validator before training. It is not used as thesis performance evidence.
+`data/test_reviews.csv` is used for dataset-format testing and includes review IDs. Assistant-added draft annotations are recorded in `reports/generated/csv_annotation_fill.json`; review those drafts before thesis evaluation. Missing buyer images produce a CLIP score of 0.
 
 The exact browser extraction boundary is documented in `docs/EXTRACTION_CONTRACT.md`.
 

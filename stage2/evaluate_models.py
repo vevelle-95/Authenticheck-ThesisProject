@@ -8,7 +8,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 import numpy as np
 
-from model_contract import ASPECTS, CLASS_NAMES, DEFAULT_BUNDLE, POLARITIES, sensory_allowed
+from model_contract import ASPECTS, CLASS_NAMES, DEFAULT_BUNDLE, POLARITIES, SENSORY_POLICY, SENTIMENT_TARGET_POLICY
 from model_data import fingerprint, load_reviews, read_splits
 from model_metrics import classification_metrics
 from stage2.fine_tune_absa import detection_metrics
@@ -36,7 +36,7 @@ def check_training_provenance(assigned, bundle):
 def evaluate_own_models(test, pipe):
     pipe.check_artifacts()
     absa, tokenizer = pipe._load_absa()
-    aspect_predictions = absa.predict(test.review_text.tolist(), tokenizer, test.product_category.tolist())
+    aspect_predictions = absa.predict(test.review_text.tolist(), tokenizer)
     filtered, unfiltered, gold, quality_predictions, text_predictions = [], [], [], [], []
     polarity_gold, polarity_predicted = [], []
     per_review_polarity = {}
@@ -72,7 +72,7 @@ def evaluate_own_models(test, pipe):
             det_gold.append([int(category in categories) for category in ASPECTS])
             detected = {aspect["category"] for aspect in aspects}
             det_predicted.append([int(category in detected) for category in ASPECTS])
-            det_eligible.append([int(category != "sensory_experience" or sensory_allowed(record["product_category"])) for category in ASPECTS])
+            det_eligible.append([1] * len(ASPECTS))
     by_id = {row["id"]: index for index, row in enumerate(filtered)}
     per_product = []
     for product, rows in test.groupby("product_id"):
@@ -110,7 +110,9 @@ def evaluate_own_models(test, pipe):
         "per_product_metrics": per_product, "filtering_ablation": errors,
         "excluded_ablation_products": sum(not row["paired_eligible"] for row in errors),
         "filtered_reviews": filtered, "unfiltered_reviews": unfiltered,
-        "aggregation_unit": "one_adjudicated_review_category_pair",
+        "aggregation_unit": "one_review_category_polarity_group",
+        "sensory_domain_policy": SENSORY_POLICY,
+        "sentiment_target_policy": SENTIMENT_TARGET_POLICY,
         "statistical_tests": "Deferred until the thesis statistical protocol is finalized; no external comparison model is used.",
     }
 

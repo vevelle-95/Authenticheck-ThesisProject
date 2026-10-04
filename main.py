@@ -38,7 +38,7 @@ class AnalyzeRequest(BaseModel):
     url: HttpUrl
     productTitle: str = Field(default="", max_length=500)
     productDescription: str = Field(default="", max_length=2000)
-    productCategory: str = Field(default="", max_length=100)
+    productCategory: str = Field(default="", max_length=100, description="Optional legacy metadata; ignored by the model")
     marketplaceRating: float | None = Field(default=None, ge=1, le=5)
     extraction: dict[str, Any] = Field(default_factory=dict)
     reviews: list[ReviewRequest] = Field(min_length=1, max_length=20)
@@ -131,7 +131,6 @@ def analyze(request: AnalyzeRequest):
             "star_rating": review.rating,
             "image_urls": [str(url) for url in review.imageUrls],
             "product_description": request.productDescription,
-            "product_category": request.productCategory,
             "product_id": str(request.url),
         }
         for review in request.reviews

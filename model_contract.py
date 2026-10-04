@@ -8,8 +8,10 @@ PROJECT_ROOT = Path(__file__).resolve().parent
 DATA_DIR = PROJECT_ROOT / "data"
 DEFAULT_BUNDLE = PROJECT_ROOT / "models" / "own_model_v2"
 BASE_MODEL = "dost-asti/RoBERTa-tl-cased"
-INPUT_VERSION = "review-only-six-features-v2"
+INPUT_VERSION = "review-only-six-features-v2-missing-image-zero"
 TAXONOMY_VERSION = "fixed-ten-v1"
+SENSORY_POLICY = "annotation-guidelines-only"
+SENTIMENT_TARGET_POLICY = "category-polarity-distribution-v1"
 MAX_LENGTH = 128
 SEED = 42
 CLASS_NAMES = ("authentic", "deceptive", "liv", "irrelevant")
@@ -38,7 +40,6 @@ QUALITY_ALIASES = {name: i for i, name in enumerate(CLASS_NAMES)}
 QUALITY_ALIASES.update({name: 2 for name in (
     "vague", "low informational value", "low_informational_value", "low-value", "low_value",
 )})
-SENSORY_DOMAINS = {"beauty", "skincare", "personal_care"}
 
 
 def _label(value, names, aliases):
@@ -60,11 +61,6 @@ def map_quality(value):
 
 def map_polarity(value):
     return _label(value, POLARITIES, {name.lower(): i for i, name in enumerate(POLARITIES)})
-
-
-def sensory_allowed(product_category):
-    value = str(product_category or "").strip().lower().replace("-", "_").replace(" ", "_")
-    return value in SENSORY_DOMAINS
 
 
 def normalize_rating(value):
@@ -102,7 +98,10 @@ def aspect_prompt(category):
 
 
 def parse_annotations(value, text, product_category=""):
-    """One supervised polarity per review/category; preserve all evidence phrases."""
+    """Keep each category/polarity and its evidence; metadata is not required.
+
+    Evidence may paraphrase the review. Mixed category polarities remain separate.
+    """
     if value is None or (isinstance(value, float) and math.isnan(value)):
         raise ValueError("aspect_annotations must be an explicit JSON list (use [] for none)")
     annotations = json.loads(value) if isinstance(value, str) else value
@@ -115,16 +114,12 @@ def parse_annotations(value, text, product_category=""):
         category = annotation.get("category")
         if category not in ASPECTS:
             raise ValueError(f"Unknown aspect category {category!r}; expected {list(ASPECTS)}")
-        if category == "sensory_experience" and not sensory_allowed(product_category):
-            raise ValueError("sensory_experience requires product_category beauty, skincare, or personal_care")
         evidence = annotation.get("text")
-        if not isinstance(evidence, str) or not evidence.strip() or evidence.lower() not in text.lower():
-            raise ValueError(f"Annotation evidence {evidence!r} must occur in review_text")
+        if not isinstance(evidence, str) or not evidence.strip():
+            raise ValueError("Annotation text must be a nonempty string")
         polarity = map_polarity(annotation.get("sentiment"))
-        previous = grouped.get(category)
-        if previous and previous["sentiment"] != polarity:
-            raise ValueError(f"Conflicting polarities for {category}; adjudicate one review/category target")
-        entry = grouped.setdefault(category, {"category": category, "sentiment": polarity, "evidence": []})
+        entry = grouped.setdefault((category, polarity), {"category": category, "sentiment": polarity, "evidence": []})
         if evidence not in entry["evidence"]:
             entry["evidence"].append(evidence)
-    return [grouped[category] for category in ASPECTS if category in grouped]
+    return [grouped[(category, polarity)] for category in ASPECTS for polarity in range(len(POLARITIES))
+            if (category, polarity) in grouped]

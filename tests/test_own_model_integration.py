@@ -15,7 +15,7 @@ from tokenizers.pre_tokenizers import WhitespaceSplit
 from tokenizers.processors import TemplateProcessing
 from transformers import PreTrainedTokenizerFast, RobertaConfig, RobertaModel
 
-from model_contract import ASPECTS, aspect_prompt
+from model_contract import ASPECTS, SENSORY_POLICY, SENTIMENT_TARGET_POLICY, aspect_prompt, parse_annotations
 from model_data import prepare_splits
 from stage1.train_roberta import fit_roberta
 from stage1.generate_oof_features import generate_oof
@@ -64,7 +64,16 @@ class OfflineTrainingIntegrationTests(unittest.TestCase):
                     root = Path(directory)
                     base, bundle = root / "base", root / "bundle"
                     tokenizer = create_tiny_encoder(base)
-                    assigned = prepare_splits(validated_fixture(root), root / "splits.json")
+                    frame = validated_fixture(root)
+                    mixed = [
+                        {"category": "sensory_experience", "text": "quality", "sentiment": "positive"},
+                        {"category": "sensory_experience", "text": "value", "sentiment": "negative"},
+                    ]
+                    frame.at[0, "aspect_annotations"] = json.dumps(mixed)
+                    frame.at[0, "annotations"] = parse_annotations(mixed, frame.at[0, "review_text"])
+                    frame.at[1, "review_image_urls"] = ""
+                    frame.at[1, "image_urls"] = []
+                    assigned = prepare_splits(frame, root / "splits.json")
                     oof_path = root / "oof.csv"
                     generate_oof(assigned, oof_path, root / "folds", base_model=str(base), epochs=1, batch_size=16)
                     fit_roberta(
@@ -74,6 +83,8 @@ class OfflineTrainingIntegrationTests(unittest.TestCase):
 
                     class OfflineFeatures(FeatureExtractor):
                         def visual_features(self, text, urls):
+                            if not urls:
+                                return super().visual_features(text, urls)
                             return 0.25, urls[0], [(0.25, urls[0])]
 
                     extractor = OfflineFeatures(bundle / "dost_roberta")
@@ -89,9 +100,17 @@ class OfflineTrainingIntegrationTests(unittest.TestCase):
 
                     from transformers import AutoTokenizer
                     saved_tokenizer = AutoTokenizer.from_pretrained(reloaded.tokenizer_dir, local_files_only=True)
-                    predictions = reloaded.predict(["quality value"], saved_tokenizer, ["general"])
+                    predictions = reloaded.predict(["quality value"], saved_tokenizer)
                     self.assertTrue(all(row["category"] in ASPECTS for row in predictions[0]))
-                    self.assertNotIn("sensory_experience", {row["category"] for row in predictions[0]})
+                    config_path = bundle / "absa_model" / "absa_config.json"
+                    saved_config = json.loads(config_path.read_text())
+                    self.assertEqual(saved_config["sensory_domain_policy"], SENSORY_POLICY)
+                    self.assertEqual(saved_config["sentiment_target_policy"], SENTIMENT_TARGET_POLICY)
+                    old_config = {key: value for key, value in saved_config.items() if key != "sensory_domain_policy"}
+                    config_path.write_text(json.dumps(old_config))
+                    with self.assertRaisesRegex(ValueError, "sensory policy"):
+                        ABSAHeadModel.from_pretrained(bundle / "absa_model")
+                    config_path.write_text(json.dumps(saved_config))
                     long_features, _, _ = extractor.extract("quality " * 500, ["unused"], 5)
                     self.assertEqual(len(long_features), 6)
 
@@ -109,6 +128,9 @@ class OfflineTrainingIntegrationTests(unittest.TestCase):
                     pipeline_output = pipe.run(test)
                     self.assertEqual(pipeline_output["reviewCount"], len(test))
                     self.assertTrue(np.isfinite(pipeline_output["authenticShare"]))
+                    missing_image = pipe.run(frame.iloc[[1]])["reviews"][0]
+                    self.assertEqual(missing_image["features"]["s_clip"], 0)
+                    self.assertIsNone(missing_image["bestImageUrl"])
 
                     # Reusing OOF probabilities from in-sample predictions must fail,
                     # even if the feature table itself still has the right row count.

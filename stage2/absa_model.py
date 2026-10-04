@@ -12,7 +12,7 @@ from transformers import AutoConfig, AutoModel
 
 from model_contract import (
     ASPECTS, BASE_MODEL, DATA_DIR, DEFAULT_BUNDLE, MAX_LENGTH, POLARITIES,
-    TAXONOMY_VERSION, aspect_prompt, map_polarity, sensory_allowed,
+    SENSORY_POLICY, SENTIMENT_TARGET_POLICY, TAXONOMY_VERSION, aspect_prompt, map_polarity,
 )
 
 MODELS_DIR = DEFAULT_BUNDLE
@@ -76,7 +76,11 @@ class ABSAHeadModel(nn.Module):
         loss = F.binary_cross_entropy_with_logits(aspect_logits, aspect_targets, reduction="none")
         loss = (loss * eligible).sum() / eligible.sum().clamp_min(1)
         if sentiment_logits is not None and sentiment_targets.numel():
-            loss = loss + F.cross_entropy(sentiment_logits, sentiment_targets.long())
+            if sentiment_targets.ndim == 2:
+                sentiment_targets = sentiment_targets / sentiment_targets.sum(-1, keepdim=True).clamp_min(1)
+            else:
+                sentiment_targets = sentiment_targets.long()
+            loss = loss + F.cross_entropy(sentiment_logits, sentiment_targets)
         return loss
 
     @torch.inference_mode()
@@ -94,13 +98,10 @@ class ABSAHeadModel(nn.Module):
 
     @torch.inference_mode()
     def predict(self, texts, tokenizer, product_categories=None, threshold=None, batch_size=16):
+        # Legacy metadata is accepted but never used to suppress a category.
         self.eval()
         if isinstance(texts, str):
             texts = [texts]
-        if product_categories is None:
-            product_categories = [""] * len(texts)
-        if len(product_categories) != len(texts):
-            raise ValueError("Product-category metadata must align with reviews")
         threshold = self.threshold if threshold is None else threshold
         if not 0 < threshold < 1:
             raise ValueError("Aspect threshold must lie strictly between 0 and 1")
@@ -116,8 +117,6 @@ class ABSAHeadModel(nn.Module):
             rows = [[] for _ in batch]
             for row, scores in enumerate(detection):
                 for index, category in enumerate(ASPECTS):
-                    if category == "sensory_experience" and not sensory_allowed(product_categories[start + row]):
-                        continue
                     if float(scores[index]) >= threshold:
                         candidates.append((row, category, float(scores[index])))
             probabilities = self.predict_sentiment(
@@ -143,6 +142,8 @@ class ABSAHeadModel(nn.Module):
         torch.save(self.state_dict(), save_dir / "model.pt")
         config = {
             "model_version": MODEL_VERSION, "taxonomy_version": TAXONOMY_VERSION,
+            "sensory_domain_policy": SENSORY_POLICY,
+            "sentiment_target_policy": SENTIMENT_TARGET_POLICY,
             "aspects": list(ASPECTS), "polarities": list(POLARITIES), "encoder": self.encoder_name,
             "hidden_size": self.hidden_size, "dropout": self.dropout_rate,
             "threshold": self.threshold, "max_length": self.max_length,
@@ -157,6 +158,10 @@ class ABSAHeadModel(nn.Module):
             raise ValueError(f"ABSA checkpoint is {saved.get('model_version')!r}; retrain for {MODEL_VERSION}. Old span weights remain intact.")
         if saved.get("taxonomy_version") != TAXONOMY_VERSION or saved.get("aspects") != list(ASPECTS) or saved.get("polarities") != list(POLARITIES):
             raise ValueError("ABSA taxonomy/polarity order mismatch")
+        if saved.get("sensory_domain_policy") != SENSORY_POLICY:
+            raise ValueError("ABSA sensory policy mismatch; retrain without product-category gating")
+        if saved.get("sentiment_target_policy") != SENTIMENT_TARGET_POLICY:
+            raise ValueError("ABSA sentiment target policy mismatch; retrain with mixed-polarity support")
         config = AutoConfig.from_pretrained(model_dir / "encoder", local_files_only=True)
         model = cls(saved["encoder"], saved["dropout"], encoder=AutoModel.from_config(config),
                     threshold=saved["threshold"], max_length=saved["max_length"])

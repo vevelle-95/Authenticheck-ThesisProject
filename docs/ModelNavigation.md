@@ -2,8 +2,8 @@
 
 This is the main guide for our model. You do not need to run every Python file.
 
-**Right now:** finish collecting and annotating your dataset. Product category
-mapping is deferred until before training with sensory annotations.
+**Right now:** finish collecting and annotating your dataset. You do not need
+to add a product category column.
 
 ## 1. What the model does
 
@@ -17,7 +17,7 @@ At prediction time:
 6. The aspect sentiments are averaged per product: Positive = +1, Neutral = 0, Negative = -1.
 
 ABSA means **aspect-based sentiment analysis**. It uses the
-[ten agreed aspect categories](docs/ASPECT_TAXONOMY.md).
+[ten agreed aspect categories](ASPECT_TAXONOMY.md).
 
 XGBoost is part of the Stage 1 quality filter, although its training file is in
 the `stage2/` folder. ABSA is trained independently from the pretrained DOST
@@ -27,21 +27,21 @@ encoder; it does not reuse the quality classifier's fine-tuned weights.
 
 | File | Job |
 | --- | --- |
-| [pipeline.py](pipeline.py) | Runs the complete training and validation workflow. |
-| [model_contract.py](model_contract.py) | Defines shared labels, aspect categories, feature order, and accepted formats. |
-| [model_data.py](model_data.py) | Reads/checks the CSV and implements saved product-based splits. |
-| [model_metrics.py](model_metrics.py) | Calculates accuracy, precision, recall, F1, and confusion matrices. |
-| [stage1/prepare_splits.py](stage1/prepare_splits.py) | Command to check the dataset and create/read splits using `model_data.py`. |
-| [stage1/generate_oof_features.py](stage1/generate_oof_features.py) | Trains five fold models to create probabilities for unseen training reviews. |
-| [stage1/train_roberta.py](stage1/train_roberta.py) | Trains the final review-quality text model. |
-| [stage1/features.py](stage1/features.py) | Builds the six features in memory, using the same logic during training and prediction. |
-| [stage1/extract_6d_features.py](stage1/extract_6d_features.py) | Writes the training and validation feature CSV. |
-| [stage2/train_xgboost.py](stage2/train_xgboost.py) | Trains the final quality filter. |
-| [stage2/absa_model.py](stage2/absa_model.py) | Defines the aspect detector and category-conditioned sentiment model. |
-| [stage2/fine_tune_absa.py](stage2/fine_tune_absa.py) | Trains ABSA using human-labeled Authentic reviews. |
-| [stage2/online_inference.py](stage2/online_inference.py) | Loads trained models and predicts new reviews. |
-| [stage2/predict_absa.py](stage2/predict_absa.py) | Runs ABSA alone for diagnosis; skips the full quality filter. |
-| [stage2/evaluate_models.py](stage2/evaluate_models.py) | Measures the selected models on the held-out test partition. |
+| [pipeline.py](../pipeline.py) | Runs the complete training and validation workflow. |
+| [model_contract.py](../model_contract.py) | Defines shared labels, aspect categories, feature order, and accepted formats. |
+| [model_data.py](../model_data.py) | Reads/checks the CSV and implements saved product-based splits. |
+| [model_metrics.py](../model_metrics.py) | Calculates accuracy, precision, recall, F1, and confusion matrices. |
+| [stage1/prepare_splits.py](../stage1/prepare_splits.py) | Command to check the dataset and create/read splits using `model_data.py`. |
+| [stage1/generate_oof_features.py](../stage1/generate_oof_features.py) | Trains five fold models to create probabilities for unseen training reviews. |
+| [stage1/train_roberta.py](../stage1/train_roberta.py) | Trains the final review-quality text model. |
+| [stage1/features.py](../stage1/features.py) | Builds the six features in memory, using the same logic during training and prediction. |
+| [stage1/extract_6d_features.py](../stage1/extract_6d_features.py) | Writes the training and validation feature CSV. |
+| [stage2/train_xgboost.py](../stage2/train_xgboost.py) | Trains the final quality filter. |
+| [stage2/absa_model.py](../stage2/absa_model.py) | Defines the aspect detector and category-conditioned sentiment model. |
+| [stage2/fine_tune_absa.py](../stage2/fine_tune_absa.py) | Trains ABSA using human-labeled Authentic reviews. |
+| [stage2/online_inference.py](../stage2/online_inference.py) | Loads trained models and predicts new reviews. |
+| [stage2/predict_absa.py](../stage2/predict_absa.py) | Runs ABSA alone for diagnosis; skips the full quality filter. |
+| [stage2/evaluate_models.py](../stage2/evaluate_models.py) | Measures the selected models on the held-out test partition. |
 
 `model_data.py` contains the splitting logic; `prepare_splits.py` is one way to
 run it. The pipeline also calls that logic directly.
@@ -55,7 +55,7 @@ Keep one row per review.
 | `review_id` | Unique, permanent local review ID. |
 | `product_id` | Same ID for reviews from the same actual product listing. |
 | `review_text` | Buyer-written review. |
-| `review_image_urls` | Matched buyer-photo URLs, as a JSON list or separated by `|`. |
+| `review_image_urls` | Buyer-photo URLs as a JSON list or separated by `|`; leave empty if none. Missing/unusable images give a CLIP score of 0. |
 | `star_rating` | Integer from 1 to 5. |
 | `ground_truth` | Final human quality label: `authentic`, `deceptive`, `liv`, or `irrelevant`. |
 | `aspect_annotations` | JSON list linking each category, evidence phrase, and sentiment. |
@@ -73,15 +73,28 @@ For "Matibay ang casing pero mahal.", the annotation cell could contain:
 ]
 ```
 
-Use `[]` only for a completed annotation with no applicable aspects. An evidence
-phrase must occur in the review. The model expects one adjudicated sentiment
-per review/category; conflicting sentiments need resolution before training.
+Use `[]` for a completed annotation with no applicable aspects. Evidence text may
+paraphrase the review; exact character matching is not required. One category can
+have multiple sentiments, such as positive fragrance and negative texture under
+`sensory_experience`. The parser preserves each category/polarity group. Training
+uses an equal-weight distribution over that category's distinct sentiments;
+prediction still returns one sentiment per detected category.
 
-You can defer `product_category` while annotating. Before training with
-`sensory_experience`, map each relevant product once to `beauty`, `skincare`,
-or `personal_care`, then copy that value to its reviews. The current validator
-rejects sensory annotations without an eligible category, and predictions
-disable that aspect when category metadata is missing.
+The current CSV contains assistant draft annotations added for format testing.
+Their provenance is in `reports/generated/csv_annotation_fill.json`; have human
+annotators review them before using them for thesis evaluation.
+
+For practice training, the file also includes 120 synthetic reviews for ten new
+products. Added IDs start with `synthetic_review_` and `synthetic_prod_`; their
+titles start with `[SYNTHETIC TEST]`. The combined file has 320 reviews across
+14 products and saved five-fold assignments in `data/splits.json`. Generation
+details are in `reports/generated/synthetic_reviews_added.json`. Results from
+this mixed practice dataset are development checks.
+
+`product_category` is not required or used by the model. All ten aspect categories,
+including `sensory_experience`, are available during training and prediction.
+Annotators still apply its beauty/skincare/personal-care definition using product
+context. There is no automatic product-domain filter on predictions.
 
 `data/test_reviews.csv` is a dataset-structure fixture. Its name does not make
 it the held-out test partition; assignments come from `splits.json`.
@@ -112,7 +125,7 @@ results/
 Metadata files beside the outputs record training IDs, validation scores, and
 settings. Normal prediction uses the three final models; it does not use the
 five OOF models. Old weights outside `own_model_v2/` belong to the previous
-architecture. See [models/README.md](models/README.md) for artifact details.
+architecture. See [models/README.md](../models/README.md) for artifact details.
 
 Individual scripts can have different intermediate-output defaults. Use the
 pipeline to keep the layout above.
@@ -167,8 +180,9 @@ and without the quality filter. Final testing is separate from training.
 python stage2/online_inference.py --data data/new_reviews.csv --output results/new_review_predictions.json
 ```
 
-New reviews need text, rating, matched image URLs, and IDs for identification
-and product grouping. Human labels are not needed for prediction.
+New reviews need text, rating, and IDs for identification and product grouping.
+Images are optional; missing/unusable images produce a CLIP score of 0. Human
+labels are not needed for prediction.
 
 ## 6. Do I need the tests folder?
 
@@ -189,5 +203,5 @@ The integration test uses synthetic records, a tiny local random encoder, and
 mocked image embeddings. Its scores are software checks, not thesis results.
 
 For implementation constraints and experiment settings, use
-[the technical notes](docs/OWN_MODEL_CHANGES.md). Browser extraction details
-are in [EXTRACTION_CONTRACT.md](docs/EXTRACTION_CONTRACT.md).
+[the technical notes](OWN_MODEL_CHANGES.md). Browser extraction details
+are in [EXTRACTION_CONTRACT.md](EXTRACTION_CONTRACT.md).

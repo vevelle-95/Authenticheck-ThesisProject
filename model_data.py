@@ -35,15 +35,11 @@ def load_reviews(path, require_annotations=False):
     frame["label"] = frame.ground_truth.map(map_quality)
     frame["normalized_rating"] = frame.star_rating.map(normalize_rating)
     frame["image_urls"] = frame.review_image_urls.map(parse_image_urls)
-    if frame.image_urls.map(len).eq(0).any():
-        raise ValueError("Multimodal training/evaluation requires a matched review image for every record")
-    if "product_category" not in frame:
-        frame["product_category"] = ""
     if "product_description" not in frame:
         frame["product_description"] = ""
     if require_annotations:
         frame["annotations"] = [
-            parse_annotations(row.aspect_annotations, row.review_text, row.product_category)
+            parse_annotations(row.aspect_annotations, row.review_text)
             if row.label == 0 else [] for row in frame.itertuples()
         ]
     return frame.reset_index(drop=True)

@@ -7,7 +7,7 @@ import subprocess
 import sys
 from pathlib import Path
 
-from model_contract import ASPECTS, BASE_MODEL, DEFAULT_BUNDLE, INPUT_VERSION, TAXONOMY_VERSION
+from model_contract import ASPECTS, BASE_MODEL, DEFAULT_BUNDLE, INPUT_VERSION, SENSORY_POLICY, SENTIMENT_TARGET_POLICY, TAXONOMY_VERSION
 from model_data import load_reviews, prepare_splits
 
 ROOT = Path(__file__).resolve().parent
@@ -60,6 +60,8 @@ def main():
     bundle.mkdir(parents=True, exist_ok=True)
     (bundle / "manifest.json").write_text(json.dumps({
         "input_version": INPUT_VERSION, "taxonomy_version": TAXONOMY_VERSION,
+        "sensory_domain_policy": SENSORY_POLICY,
+        "sentiment_target_policy": SENTIMENT_TARGET_POLICY,
         "aspects": list(ASPECTS), "splits": str(Path(args.splits).resolve()),
         "test_evaluated": False,
         "model_version": "authenticheck-2.0",
