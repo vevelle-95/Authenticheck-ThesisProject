@@ -21,7 +21,7 @@
       <article class="shopee-product-rating" data-review-id="1">
         <div class="shopee-product-rating__rating" aria-label="5 out of 5 stars"></div>
         <p class="shopee-product-rating__content">Super linaw ng audio at matagal ang battery. Comfortable gamitin kahit ilang oras.</p>
-        <div class="shopee-product-rating__image-list-wrapper"><img src="assets/review-photo.svg" alt="Buyer headphones photo" /></div>
+        <div class="shopee-product-rating__image-list-wrapper"><img src="https://example.com/buyer-headphones.jpg" alt="Buyer headphones photo" /></div>
         <section class="seller-response"><strong>Seller's Response</strong><p>Thank you for buying from our shop. Please follow us for vouchers and future announcements.</p></section>
       </article>
 
@@ -39,27 +39,79 @@
         <div class="shopee-product-rating__rating" aria-label="5 out of 5 stars"></div>
         <p class="shopee-product-rating__content">Sira at pangit ang item. Hindi gumagana at sobrang disappointing gamitin.</p>
       </article>
+
+      <article class="shopee-product-rating" data-review-id="5">
+        <div class="shopee-product-rating__rating" aria-label="4 out of 5 stars"></div>
+        <div class="shopee-product-rating__image-list-wrapper"><img src="https://example.com/buyer-photo-only.jpg" alt="Buyer product photo without a written comment" /></div>
+      </article>
     </main>
 
     <script>
+      globalThis.fixtureApiPayload = null;
       globalThis.chrome = {
         storage: {
-          sync: { get: async defaults => defaults },
+          sync: { get: async defaults => ({ ...defaults, useApi: true }) },
           onChanged: { addListener() {} }
         },
         runtime: {
           getURL: path => `../extension/${path}`,
-          sendMessage: async () => null,
+          sendMessage: async message => {
+            if (message?.type !== "AUTHENTICHECK_ANALYZE") return null;
+            globalThis.fixtureApiPayload = message.payload;
+            const labels = ["authentic", "liv", "irrelevant", "deceptive"];
+            return {
+              ok: true,
+              result: {
+                schemaVersion: "1.0",
+                modelVersion: "fixture-1.0",
+                authenticShare: 25,
+                verifiedRating: 5,
+                counts: { authentic: 1, liv: 1, irrelevant: 1, deceptive: 1 },
+                sentimentCounts: { positive: 1, neutral: 0, negative: 0 },
+                reviews: message.payload.reviews.map((review, index) => ({
+                  id: review.id,
+                  text: review.text,
+                  starRating: review.rating,
+                  label: labels[index],
+                  sentiment: index === 0 ? "positive" : null,
+                  signals: ["Fixture model result"]
+                })),
+                aspects: []
+              }
+            };
+          },
           onMessage: { addListener() {} }
         }
       };
     </script>
-    <script src="../extension/extractors/common.js"></script>
+    <script src="../extension/extractors/buyer-reviews.js"></script>
     <script src="../extension/extractors/shopee.js"></script>
     <script>
       const shopeeAdapter = globalThis.AuthentiCheckExtractors.adapters.find(adapter => adapter.id === "shopee");
       globalThis.AuthentiCheckExtractors.getActive = () => shopeeAdapter;
     </script>
     <script src="../extension/content.js"></script>
+    <pre id="panel-test">Running…</pre>
+    <script>
+      setTimeout(() => {
+        const shadow = document.querySelector("#authenticheck-extension-root")?.shadowRoot;
+        const checks = {
+          panelInjected: Boolean(shadow?.querySelector(".ac-panel")),
+          fourOfFiveReviewsAnalyzed: shadow?.querySelector(".ac-status-text")?.textContent.includes("4 of 5 visible reviews analyzed") || false,
+          incompleteReviewDisplayed: shadow?.querySelectorAll(".ac-review").length === 5,
+          incompleteReviewNotAnalyzed: shadow?.querySelectorAll(".ac-verdict.unavailable").length === 1,
+          missingTextExplained: [...(shadow?.querySelectorAll(".ac-review > p.missing") || [])].some(node => node.textContent.includes("No written buyer comment")),
+          deceptiveLabelNamedClearly: [...(shadow?.querySelectorAll(".ac-verdict.deceptive") || [])].some(node => node.textContent === "Deceptive"),
+          filteredReviewsExplainSentimentGate: [...(shadow?.querySelectorAll(".ac-signals .warn") || [])].some(node => node.textContent.includes("Stage 2 sentiment skipped")),
+          onlyTextReviewsSentToApi: globalThis.fixtureApiPayload?.reviews?.length === 4,
+          internalDisplayFieldsNotSent: globalThis.fixtureApiPayload?.reviews?.every(review => !("analysisEligible" in review) && !("missingFields" in review)) || false,
+          sellerReplyExcluded: shadow?.querySelector(".ac-scope.excluded strong")?.textContent === "1",
+          buyerImagesCounted: shadow?.querySelectorAll(".ac-scope strong")?.[2]?.textContent === "2"
+        };
+        const passed = Object.values(checks).every(Boolean);
+        document.querySelector("#panel-test").textContent = JSON.stringify({ passed, checks }, null, 2);
+        document.title = passed ? "PASS — panel fixture" : "FAIL — panel fixture";
+      }, 1800);
+    </script>
   </body>
 </html>

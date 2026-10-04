@@ -25,7 +25,8 @@ Enable **Use model API** in the popup and provide a local endpoint such as `http
 
 ```json
 {
-  "platform": "Shopee",
+  "schemaVersion": "1.0",
+  "platform": "shopee",
   "url": "https://shopee.ph/...",
   "productTitle": "Product name",
   "productDescription": "Visible product description",
@@ -42,7 +43,7 @@ Enable **Use model API** in the popup and provide a local endpoint such as `http
 }
 ```
 
-The API may return `authenticShare`, `verifiedRating`, `counts`, `sentimentCounts`, `aspects`, and classified `reviews`. For backward compatibility, `confidence` is also accepted as an alias for `authenticShare`, while `low-value`, `low_value`, and `lowValue` are normalized to the interface's internal `liv` key. Missing fields fall back to the local estimate. Version 0.2 permits local API hosts only (`127.0.0.1` or `localhost`).
+The versioned API returns `authenticShare`, `verifiedRating`, `counts`, `sentimentCounts`, `aspects`, and classified `reviews`. Incomplete or incompatible model responses are rejected; they are never silently mixed with local heuristic values. Version 0.3 permits local API hosts only (`127.0.0.1` or `localhost`).
 
 The request also includes `productDescription` and an `imageUrls` array for each review when buyer media is visible. This keeps the frontend contract ready for product-description similarity and M-CLIP visual-grounding features without claiming that those models are already running.
 
@@ -55,7 +56,7 @@ When API mode is enabled, connection and response errors are shown explicitly. T
 - Input-coverage counts for reviews, ratings, and buyer media.
 - JSON export containing the exact analysis input and displayed result.
 - Responsive and keyboard-friendly panel behavior.
-- Stable local API boundary with a 20-second timeout and basic JSON validation.
+- Stable local API boundary with a 60-second timeout and strict schema validation.
 
 The standalone prototype and local estimate are appropriate for demonstrating the proposed workflow and interface during the mock defense. They are not empirical model results and should not be used as thesis performance evidence. Replace the local preview with the trained API for the tool defense.
 
@@ -100,12 +101,31 @@ extension/   Browser extension source that should be committed
 prototype/   Standalone interface demonstration that should be committed
 data/        Centralized input data and generated 6D features
 models/      Centralized trained models
+main.py      Versioned FastAPI boundary used by the extension
 stage1/      RoBERTa training and 6D feature extraction scripts
 stage2/      XGBoost meta-classifier and open-ended ABSA scripts
 requirements.txt  Shared Python dependencies
 output/      Generated ZIP packages; ignored by Git
 ```
 
-Future backend, machine-learning, tests, and documentation source should be committed under `backend/`, `ml/`, `tests/`, and `docs/`. Full datasets, scraped buyer images, trained weights, secrets, and generated experiment output are intentionally excluded by `.gitignore`.
+Full datasets, scraped buyer images, trained weights, secrets, and generated experiment output are intentionally excluded by `.gitignore`. The tracked `models/manifest.json` documents the required local model artifacts.
+
+## Run the integrated local API
+
+```powershell
+python -m venv .venv
+.venv\Scripts\Activate.ps1
+pip install -r requirements.txt
+python pipeline.py
+uvicorn main:app --host 127.0.0.1 --port 8000
+```
+
+`pipeline.py` trains Stage 1 DOST-RoBERTa, extracts the six-dimensional features, trains XGBoost, and trains the authentic-only ABSA model using `data/test_reviews.csv`. Check `http://127.0.0.1:8000/health` for the server and `/ready` for model readiness. `python scripts/setup_models.py --verify-only` lists any artifact that the training pipeline did not produce.
+
+If a teammate distributes already-trained artifacts instead, `python scripts/setup_models.py --archive C:\path\to\authenticheck-models.zip` installs and verifies that optional bundle without committing its weights to Git.
+
+The backend processes review photos in memory and discards their bytes after M-CLIP feature extraction; it does not create a permanent review-image store.
+
+The included 50 synthetic reviews are suitable for integration and demonstration testing. They are not sufficient for reporting the final comparative performance or statistical significance of the thesis models.
 
 The exact browser extraction boundary is documented in `docs/EXTRACTION_CONTRACT.md`.

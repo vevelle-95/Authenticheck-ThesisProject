@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta property="og:type" content="product" />
+    <title>Shopee rating-only fixture</title>
+  </head>
+  <body>
+    <section>
+      <h2>Product Ratings</h2>
+      <div class="ObfuscatedA">
+        <span aria-label="5 out of 5 stars"></span>
+        <div><span>2026-09-20 22:08</span><span> | Variation: Brown</span></div>
+        <img src="https://example.com/buyer-photo.jpg" alt="Buyer product photo" />
+        <button>Helpful</button>
+      </div>
+      <div class="ObfuscatedB">
+        <span aria-label="5 out of 5 stars"></span>
+        <div><span>2026-09-21 20:08</span><span> | Variation: Black</span></div>
+        <button>Helpful</button>
+      </div>
+    </section>
+    <pre id="result">Running…</pre>
+    <script src="../extension/extractors/buyer-reviews.js"></script>
+    <script src="../extension/extractors/shopee.js"></script>
+    <script>
+      const extraction = globalThis.AuthentiCheckExtractors.adapters
+        .find(adapter => adapter.id === "shopee")
+        .extractReviews();
+      const checks = {
+        cardsDetected: extraction.stats.candidateNodes === 2,
+        partialReviewsDisplayed: extraction.reviews.length === 2,
+        partialReviewsNotModelEligible: extraction.reviews.every(review => review.analysisEligible === false),
+        missingTextRecorded: extraction.reviews.every(review => review.missingFields.includes("text")),
+        ratingMediaOnlyCounted: extraction.stats.withoutWrittenText === 2,
+        noSellerResponseIncluded: extraction.reviews.every(review => !review.text.toLowerCase().includes("seller"))
+      };
+      const passed = Object.values(checks).every(Boolean);
+      document.querySelector("#result").textContent = JSON.stringify({ passed, checks, extraction }, null, 2);
+      document.title = passed ? "PASS — rating-only fixture" : "FAIL — rating-only fixture";
+    </script>
+  </body>
+</html>

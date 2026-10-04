@@ -1,9 +1,18 @@
 {
-  "platform": "Shopee",
+  "schemaVersion": "1.0",
+  "platform": "shopee",
   "url": "https://shopee.ph/example-product/123456789",
   "productTitle": "Synthetic Wireless Headphones",
   "productDescription": "Illustrative product description for interface testing only.",
   "marketplaceRating": 4.6,
+  "extraction": {
+    "candidateNodes": 5,
+    "acceptedReviews": 5,
+    "duplicateReviews": 0,
+    "sellerResponsesExcluded": 1,
+    "withImages": 1,
+    "withRatings": 5
+  },
   "reviews": [
     {
       "id": "shopee-1",

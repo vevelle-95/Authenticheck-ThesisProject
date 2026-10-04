@@ -1,8 +1,11 @@
 
 import argparse
+import ipaddress
 import json
+import socket
 from io import BytesIO
 from pathlib import Path
+from urllib.parse import urlparse
 
 import pandas as pd
 import requests
@@ -19,8 +22,12 @@ DEFAULT_XGB_PATH = absa_model.MODELS_DIR / "xgboost_meta_classifier.json"
 DEFAULT_OUTPUT_PATH = absa_model.DATA_DIR / "online_inference_results.json"
 
 CLASS_NAMES = ["Authentic", "Deceptive", "Low Informational Value", "Irrelevant"]
+API_CLASS_NAMES = ["authentic", "deceptive", "liv", "irrelevant"]
 STAR_SCALE_MIN = 1
 STAR_SCALE_MAX = 5
+STAGE1_MAX_LENGTH = 128
+MAX_IMAGE_BYTES = 5 * 1024 * 1024
+MAX_IMAGES_PER_REVIEW = 5
 
 
 def normalize_rating(rating):
@@ -29,13 +36,67 @@ def normalize_rating(rating):
     return max(0.0, min(1.0, (float(rating) - STAR_SCALE_MIN) / (STAR_SCALE_MAX - STAR_SCALE_MIN)))
 
 
-def load_image(url):
+def parse_image_urls(value):
+    if value is None or (not isinstance(value, (list, tuple)) and pd.isna(value)):
+        return []
+    if isinstance(value, (list, tuple)):
+        values = value
+    else:
+        text = str(value).strip()
+        if not text:
+            return []
+        try:
+            parsed = json.loads(text)
+            values = parsed if isinstance(parsed, list) else [parsed]
+        except json.JSONDecodeError:
+            values = [part.strip() for part in text.split("|")]
+    return list(dict.fromkeys(str(item).strip() for item in values if str(item).strip()))[:MAX_IMAGES_PER_REVIEW]
+
+
+def image_url_is_safe(url):
     try:
-        response = requests.get(url, timeout=5)
+        parsed = urlparse(url)
+        if parsed.scheme not in {"http", "https"} or not parsed.hostname:
+            return False
+        addresses = socket.getaddrinfo(parsed.hostname, parsed.port or (443 if parsed.scheme == "https" else 80))
+        for address in addresses:
+            ip = ipaddress.ip_address(address[4][0])
+            if not ip.is_global:
+                return False
+        return True
+    except (OSError, ValueError):
+        return False
+
+
+def load_image(url):
+    if not image_url_is_safe(url):
+        return None
+    try:
+        response = requests.get(
+            url,
+            timeout=(3, 7),
+            stream=True,
+            allow_redirects=False,
+            headers={"User-Agent": "AuthentiCheck/1.0"},
+        )
         response.raise_for_status()
-        return Image.open(BytesIO(response.content)).convert("RGB")
-    except Exception:
-        return Image.new("RGB", (224, 224), color="white")
+        if not response.headers.get("Content-Type", "").lower().startswith("image/"):
+            return None
+        content_length = int(response.headers.get("Content-Length", "0") or 0)
+        if content_length > MAX_IMAGE_BYTES:
+            return None
+        chunks = []
+        total = 0
+        for chunk in response.iter_content(64 * 1024):
+            total += len(chunk)
+            if total > MAX_IMAGE_BYTES:
+                return None
+            chunks.append(chunk)
+        image = Image.open(BytesIO(b"".join(chunks)))
+        image.load()
+        return image.convert("RGB")
+    except (requests.RequestException, OSError, ValueError):
+        return None
 
 
 class OnlineInference:
@@ -63,6 +124,13 @@ class OnlineInference:
             missing.append(f"ABSA model not found at {self.absa_dir}")
         if missing:
             raise FileNotFoundError(" | ".join(missing))
+
+    def preload(self):
+        self.check_artifacts()
+        self._load_text()
+        self._load_clip()
+        self._load_xgb()
+        self._load_absa()
 
     def _load_text(self):
         if self._text_model is None:
@@ -92,21 +160,41 @@ class OnlineInference:
             self._absa_tokenizer = AutoTokenizer.from_pretrained(self._absa.encoder_name, use_fast=True)
         return self._absa, self._absa_tokenizer
 
-    def extract_features(self, text, img_url, star_rating):
+    def extract_features(self, product_description, text, image_urls, star_rating):
         tokenizer, model = self._load_text()
-        inputs = tokenizer(text, return_tensors="pt", truncation=True, max_length=absa_model.ABSA_MAX_LENGTH).to(self.device)
+        inputs = tokenizer(
+            str(product_description or ""),
+            str(text),
+            return_tensors="pt",
+            padding="max_length",
+            truncation="only_first",
+            max_length=STAGE1_MAX_LENGTH,
+        ).to(self.device)
         with torch.no_grad():
             logits = model(**inputs).logits
             probs = F.softmax(logits, dim=-1).squeeze(0).tolist()
+        if len(probs) != 4:
+            raise ValueError("Stage 1 model must output exactly four probabilities.")
 
-        text_enc, image_enc = self._load_clip()
-        image = load_image(img_url)
-        img_emb = image_enc.encode(image, convert_to_tensor=True)
-        txt_emb = text_enc.encode(text, convert_to_tensor=True)
-        s_clip = util.cos_sim(img_emb, txt_emb).item()
+        s_clip = 0.0
+        best_image_url = ""
+        urls = parse_image_urls(image_urls)
+        if urls:
+            text_enc, image_enc = self._load_clip()
+            context = f"{product_description}\n{text}" if product_description else str(text)
+            txt_emb = text_enc.encode(context, convert_to_tensor=True)
+            scores = []
+            for image_url in urls:
+                image = load_image(image_url)
+                if image is None:
+                    continue
+                img_emb = image_enc.encode(image, convert_to_tensor=True)
+                scores.append((util.cos_sim(img_emb, txt_emb).item(), image_url))
+            if scores:
+                s_clip, best_image_url = max(scores, key=lambda item: item[0])
 
         r_star = normalize_rating(star_rating)
-        return probs + [s_clip, r_star], probs, s_clip, r_star
+        return probs + [s_clip, r_star], probs, s_clip, r_star, best_image_url
 
     def classify(self, features):
         probs = self._load_xgb().predict_proba([features])[0].tolist()
@@ -139,20 +227,24 @@ class OnlineInference:
         results = []
         verdicts = []
         for record in df.to_dict("records"):
-            text = record[text_col]
-            img_url = record.get("image_url", "")
+            text = str(record[text_col])
+            product_description = str(record.get("product_description", "") or "")
+            image_urls = record.get("image_urls", record.get("image_url", ""))
             star_rating = record.get("star_rating", None)
 
-            features, p_text, s_clip, r_star = self.extract_features(text, img_url, star_rating)
+            features, p_text, s_clip, r_star, best_image_url = self.extract_features(
+                product_description, text, image_urls, star_rating
+            )
             verdict_idx, probs = self.classify(features)
+            label = API_CLASS_NAMES[verdict_idx]
 
             entry = {
+                "id": str(record.get("review_id", "")),
                 "text": text,
-                "star_rating": star_rating,
-                "classification": {
-                    "verdict": CLASS_NAMES[verdict_idx],
-                    "probabilities": {name: round(p, 4) for name, p in zip(CLASS_NAMES, probs)},
-                },
+                "starRating": None if pd.isna(star_rating) else float(star_rating),
+                "label": label,
+                "confidence": round(float(max(probs)), 4),
+                "probabilities": {name: round(p, 4) for name, p in zip(API_CLASS_NAMES, probs)},
                 "features": {
                     "p_text": {
                         name: round(p, 4)
@@ -163,44 +255,68 @@ class OnlineInference:
                     "s_clip": round(s_clip, 4),
                     "r_star": round(r_star, 4),
                 },
+                "signals": [
+                    "DOST-RoBERTa product/review evidence",
+                    "M-CLIP buyer-media similarity" if best_image_url else "No usable buyer image",
+                    "Normalized star-rating evidence",
+                ],
             }
 
             if verdict_idx == 0:
-                entry["aspect_sentiment"] = self.aspect_sentiment(text)
+                entry["aspectSentiment"] = self.aspect_sentiment(text)
             verdicts.append(CLASS_NAMES[verdict_idx])
             results.append(entry)
 
-        summary = build_summary(df, verdicts)
-        return {"summary": summary, "reviews": results}
+        summary = build_summary(df, verdicts, results)
+        return {**summary, "reviews": results}
 
 
-def build_summary(df, verdicts):
+def build_summary(df, verdicts, results=None):
     df = df.copy()
     df["verdict"] = verdicts
     authentic = df[df["verdict"] == "Authentic"]
-    summary = {
-        "review_count": len(df),
-        "verdict_counts": df["verdict"].value_counts().to_dict(),
-        "authentic_count": len(authentic),
-        "authentic_share": round(len(authentic) / len(df), 4) if len(df) else None,
-        "authenticity_adjusted_rating": (
-            float(round(authentic["star_rating"].mean(), 4)) if len(authentic) else None
-        ),
+    verdict_counts = df["verdict"].value_counts().to_dict()
+    rated_authentic = pd.to_numeric(authentic.get("star_rating", pd.Series(dtype=float)), errors="coerce").dropna()
+    aspects, sentiment_counts = aggregate_aspects(results or [])
+    return {
+        "reviewCount": len(df),
+        "authenticShare": round(len(authentic) / len(df) * 100, 2) if len(df) else 0.0,
+        "verifiedRating": float(round(rated_authentic.mean(), 2)) if len(rated_authentic) else None,
+        "counts": {
+            "authentic": int(verdict_counts.get("Authentic", 0)),
+            "deceptive": int(verdict_counts.get("Deceptive", 0)),
+            "liv": int(verdict_counts.get("Low Informational Value", 0)),
+            "irrelevant": int(verdict_counts.get("Irrelevant", 0)),
+        },
+        "sentimentCounts": sentiment_counts,
+        "aspects": aspects,
     }
-    if "product_id" in df.columns:
-        per_product = []
-        for pid, group in df.groupby("product_id"):
-            auth = group[group["verdict"] == "Authentic"]
-            per_product.append({
-                "product_id": pid,
-                "review_count": len(group),
-                "authentic_share": round(len(auth) / len(group), 4),
-                "authenticity_adjusted_rating": (
-                    float(round(auth["star_rating"].mean(), 4)) if len(auth) else None
-                ),
-            })
-        summary["per_product"] = per_product
-    return summary
+
+
+def aggregate_aspects(results):
+    grouped = {}
+    sentiment_counts = {"positive": 0, "neutral": 0, "negative": 0}
+    for review in results:
+        for item in review.get("aspectSentiment", []):
+            name = str(item.get("aspect", "")).strip()
+            sentiment = str(item.get("sentiment", "neutral")).lower()
+            if not name or sentiment not in sentiment_counts:
+                continue
+            sentiment_counts[sentiment] += 1
+            key = name.casefold()
+            bucket = grouped.setdefault(key, {"name": name, "mentions": 0, "positive": 0})
+            bucket["mentions"] += 1
+            bucket["positive"] += int(sentiment == "positive")
+    aspects = [
+        {
+            "name": bucket["name"],
+            "mentions": bucket["mentions"],
+            "positivePercent": round(bucket["positive"] / bucket["mentions"] * 100, 2),
+        }
+        for bucket in grouped.values()
+    ]
+    aspects.sort(key=lambda item: (-item["mentions"], item["name"].casefold()))
+    return aspects[:12], sentiment_counts
 
 
 def main():

@@ -3,7 +3,7 @@ const DEFAULTS = {
   autoAnalyze: true,
   useApi: false,
   apiEndpoint: "http://127.0.0.1:8000/analyze",
-  apiTimeoutMs: 20000
+  apiTimeoutMs: 60000
 };
 
 chrome.runtime.onInstalled.addListener(async () => {
@@ -32,11 +32,11 @@ async function analyzeWithConfiguredService(payload) {
   const endpoint = new URL(settings.apiEndpoint);
   const allowedLocal = endpoint.hostname === "127.0.0.1" || endpoint.hostname === "localhost";
   if (!allowedLocal || endpoint.protocol !== "http:") {
-    throw new Error("Version 0.2 supports local HTTP AuthentiCheck API endpoints only.");
+    throw new Error("Version 0.3.8 supports local HTTP AuthentiCheck API endpoints only.");
   }
 
   const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), Math.max(3000, settings.apiTimeoutMs || 20000));
+  const timeout = setTimeout(() => controller.abort(), Math.max(60000, settings.apiTimeoutMs || 60000));
   let response;
   try {
     response = await fetch(endpoint.href, {
@@ -52,14 +52,17 @@ async function analyzeWithConfiguredService(payload) {
     clearTimeout(timeout);
   }
 
-  if (!response.ok) throw new Error(`Model API returned HTTP ${response.status}.`);
+  if (!response.ok) {
+    const problem = await response.json().catch(() => null);
+    const detail = typeof problem?.detail === "string" ? ` ${problem.detail}` : "";
+    throw new Error(`Model API returned HTTP ${response.status}.${detail}`);
+  }
   const result = await response.json().catch(() => { throw new Error("The model API did not return valid JSON."); });
   if (!result || typeof result !== "object" || Array.isArray(result)) {
     throw new Error("The model API returned an invalid result object.");
   }
-  const supportedFields = ["authenticShare", "confidence", "verifiedRating", "counts", "sentimentCounts", "aspects", "reviews"];
-  if (!supportedFields.some(field => Object.hasOwn(result, field))) {
-    throw new Error("The model API response does not contain any supported analysis fields.");
+  if (result.schemaVersion !== "1.0") {
+    throw new Error("The model API returned an unsupported response schema.");
   }
   return result;
 }

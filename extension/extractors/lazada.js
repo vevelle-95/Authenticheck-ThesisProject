@@ -67,7 +67,8 @@
       ]);
     },
     extractReviews() {
-      return common.extractReviews([...document.querySelectorAll(REVIEW_SELECTORS.join(","))], "lazada", EXTRACTION_CONFIG);
+      const knownNodes = [...document.querySelectorAll(REVIEW_SELECTORS.join(","))];
+      return common.extractReviews(common.discoverReviewNodes(knownNodes), "lazada", EXTRACTION_CONFIG);
     }
   });
 })();

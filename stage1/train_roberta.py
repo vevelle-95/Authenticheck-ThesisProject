@@ -86,7 +86,7 @@ def main():
             examples["product_description"],
             examples["review_text"],
             padding="max_length",
-            truncation=True,
+            truncation="only_first",
             max_length=config.MAX_LENGTH,
         )
 

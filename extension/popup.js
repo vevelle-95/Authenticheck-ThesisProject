@@ -29,8 +29,13 @@ async function initialize() {
   }
   const activeProduct = Boolean(pageStatus?.productPage);
   state.className = `support ${activeProduct ? "ok" : "unsupported"}`;
+  const reviewStatus = pageStatus?.reviewCount
+    ? `${pageStatus.reviewCount} visible · ${pageStatus.analyzableCount} with text`
+    : pageStatus?.candidateCount
+      ? `0 accepted · ${pageStatus.candidateCount} candidate elements`
+      : "0 visible reviews";
   state.querySelector("span").textContent = activeProduct
-    ? `Active on this ${pageStatus.platform} product page · ${pageStatus.reviewCount} visible reviews`
+    ? `Active on this ${pageStatus.platform} product page · ${reviewStatus}`
     : supported ? "Supported marketplace, but this is not a product page" : "Open a Shopee or Lazada product page";
   document.querySelector("#rescan").disabled = !activeProduct;
 }

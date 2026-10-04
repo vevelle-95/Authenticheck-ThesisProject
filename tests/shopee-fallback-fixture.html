@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta property="og:type" content="product" />
+    <title>Shopee fallback extractor fixture</title>
+  </head>
+  <body>
+    <section id="ratings">
+      <h2>Product Ratings</h2>
+      <nav aria-label="Rating filters">
+        <button class="rating-item">5 Star (104)</button>
+        <button class="rating-item">4 Star (23)</button>
+      </nav>
+      <div class="QkA17">
+        <img class="avatar" src="https://example.com/avatar-one.jpg" alt="Reviewer avatar" />
+        <div aria-label="5 out of 5 stars"></div>
+        <div class="product-rating-main">
+          <div>2026-09-18 14:35 | Variation: White</div>
+          <div>Case looks charming and the matte finish feels durable.</div>
+        </div>
+        <img src="https://example.com/buyer-case.jpg" alt="Buyer product photo" />
+        <div class="seller-response"><strong>Seller Response</strong><p>Thank you for your order and support.</p></div>
+      </div>
+      <div class="QkA18">
+        <img class="avatar" src="https://example.com/avatar-two.jpg" alt="Reviewer avatar" />
+        <div aria-label="4 out of 5 stars"></div>
+        <div class="product-rating-main">
+          <div>2026-09-19 09:10 | Variation: Black</div>
+          <div>Okay ang buttons at sakto ang fit sa phone.</div>
+        </div>
+      </div>
+    </section>
+    <pre id="result">Running…</pre>
+    <script src="../extension/extractors/buyer-reviews.js"></script>
+    <script src="../extension/extractors/shopee.js"></script>
+    <script>
+      const extraction = globalThis.AuthentiCheckExtractors.adapters
+        .find(adapter => adapter.id === "shopee")
+        .extractReviews();
+      const checks = {
+        ignoredRatingFilterFalsePositives: extraction.stats.candidateNodes === 2,
+        foundTwoObfuscatedCards: extraction.reviews.length === 2,
+        firstBuyerTextOnly: extraction.reviews[0]?.text === "Case looks charming and the matte finish feels durable.",
+        secondBuyerTextOnly: extraction.reviews[1]?.text === "Okay ang buttons at sakto ang fit sa phone.",
+        ratingsLinked: extraction.reviews[0]?.rating === 5 && extraction.reviews[1]?.rating === 4,
+        buyerPhotoLinked: extraction.reviews[0]?.imageUrls?.some(url => url.includes("buyer-case.jpg")),
+        avatarExcluded: !extraction.reviews.some(review => review.imageUrls?.some(url => url.includes("avatar"))),
+        sellerReplyExcluded: !extraction.reviews[0]?.text.toLowerCase().includes("seller")
+      };
+      const passed = Object.values(checks).every(Boolean);
+      document.querySelector("#result").textContent = JSON.stringify({ passed, checks, extraction }, null, 2);
+      document.title = passed ? "PASS — Shopee fallback fixture" : "FAIL — Shopee fallback fixture";
+    </script>
+  </body>
+</html>

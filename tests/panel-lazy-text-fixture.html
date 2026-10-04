@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta property="og:type" content="product" />
+    <meta property="og:title" content="Lazy review fixture" />
+    <title>AuthentiCheck lazy text fixture</title>
+  </head>
+  <body>
+    <main>
+      <h1>Lazy review fixture</h1>
+      <article class="shopee-product-rating" data-review-id="lazy-1">
+        <div class="shopee-product-rating__rating" aria-label="5 out of 5 stars"></div>
+        <p class="shopee-product-rating__content"></p>
+      </article>
+    </main>
+    <script>
+      globalThis.chrome = {
+        storage: {
+          sync: { get: async defaults => defaults },
+          onChanged: { addListener() {} }
+        },
+        runtime: {
+          getURL: path => `../extension/${path}`,
+          sendMessage: async () => null,
+          onMessage: { addListener() {} }
+        }
+      };
+    </script>
+    <script src="../extension/extractors/buyer-reviews.js"></script>
+    <script src="../extension/extractors/shopee.js"></script>
+    <script>
+      const shopeeAdapter = globalThis.AuthentiCheckExtractors.adapters.find(adapter => adapter.id === "shopee");
+      globalThis.AuthentiCheckExtractors.getActive = () => shopeeAdapter;
+    </script>
+    <script src="../extension/content.js"></script>
+    <pre id="result">Running…</pre>
+    <script>
+      setTimeout(() => {
+        document.querySelector(".shopee-product-rating__content").textContent =
+          "Maganda ang quality at matibay ang item. Sulit ito para sa presyo.";
+      }, 100);
+
+      setTimeout(() => {
+        const shadow = document.querySelector("#authenticheck-extension-root")?.shadowRoot;
+        shadow?.querySelector('[data-tab="reviews"]')?.click();
+        const checks = {
+          sameCardReanalyzedAfterTextLoaded: shadow?.querySelector(".ac-status-text")?.textContent.includes("1 of 1 visible review analyzed") || false,
+          loadedTextDisplayed: [...(shadow?.querySelectorAll(".ac-review > p") || [])].some(node => node.textContent.includes("Maganda ang quality")),
+          noLongerMarkedUnavailable: shadow?.querySelectorAll(".ac-verdict.unavailable").length === 0
+        };
+        const passed = Object.values(checks).every(Boolean);
+        document.querySelector("#result").textContent = JSON.stringify({ passed, checks }, null, 2);
+        document.title = passed ? "PASS — lazy text fixture" : "FAIL — lazy text fixture";
+      }, 4000);
+    </script>
+  </body>
+</html>

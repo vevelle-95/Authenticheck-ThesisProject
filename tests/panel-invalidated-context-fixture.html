@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta property="og:type" content="product" />
+    <meta property="og:title" content="Invalidated extension fixture" />
+    <title>AuthentiCheck invalidated context fixture</title>
+  </head>
+  <body>
+    <main>
+      <h1>Invalidated extension fixture</h1>
+      <article class="shopee-product-rating" data-review-id="invalidated-1">
+        <div class="shopee-product-rating__rating" aria-label="5 out of 5 stars"></div>
+        <p class="shopee-product-rating__content">Maganda ang quality at matibay ang item.</p>
+      </article>
+    </main>
+    <script>
+      globalThis.chrome = {
+        storage: {
+          sync: { get: async defaults => ({ ...defaults, useApi: true }) },
+          onChanged: { addListener() {} }
+        },
+        runtime: {
+          getURL: path => `../extension/${path}`,
+          sendMessage() { throw new Error("Extension context invalidated."); },
+          onMessage: { addListener() {} }
+        }
+      };
+    </script>
+    <script src="../extension/extractors/buyer-reviews.js"></script>
+    <script src="../extension/extractors/shopee.js"></script>
+    <script>
+      const adapter = globalThis.AuthentiCheckExtractors.adapters.find(item => item.id === "shopee");
+      globalThis.AuthentiCheckExtractors.getActive = () => adapter;
+    </script>
+    <script src="../extension/content.js"></script>
+    <pre id="result">Running…</pre>
+    <script>
+      setTimeout(() => {
+        const shadow = document.querySelector("#authenticheck-extension-root")?.shadowRoot;
+        const message = shadow?.querySelector(".ac-error-message")?.textContent || "";
+        const checks = {
+          errorStateShown: shadow?.querySelector(".ac-error.show") != null,
+          refreshInstructionShown: message.includes("Refresh this Shopee/Lazada tab"),
+          resultPanelHidden: shadow?.querySelector(".ac-results")?.classList.contains("hidden") || false
+        };
+        const passed = Object.values(checks).every(Boolean);
+        document.querySelector("#result").textContent = JSON.stringify({ passed, checks, message }, null, 2);
+        document.title = passed ? "PASS — invalidated context fixture" : "FAIL — invalidated context fixture";
+      }, 1800);
+    </script>
+  </body>
+</html>
