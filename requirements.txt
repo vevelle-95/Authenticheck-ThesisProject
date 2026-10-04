@@ -3,6 +3,7 @@ transformers
 datasets
 accelerate
 pandas
+numpy
 requests
 pillow
 xgboost

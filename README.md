@@ -1,48 +1,25 @@
-# AuthentiCheck browser extension
+# AuthentiCheck
 
-## Model comparison in the extension
+AuthentiCheck filters reviews by quality, then predicts aspect sentiments for
+reviews classified as Authentic.
 
-Run `python -m uvicorn main:app --reload` from the repository root, enable the
-model API in the extension popup, and open a supported product page. The
-floating analysis panel has a **Compare** tab. Select one visible buyer review
-and press **Compare this review**. The extension sends its text, rating, up to
-five buyer image URLs, and product description to `POST /api/compare/lu-et-al`, then
-shows both engines and category-level discrepancies inside the panel. The API
-also accepts up to 20 reviews per call for research scripts.
+## Start here
 
-The Lu et al. checkout remains outside this repository. Set `LU_ET_AL_REPO` to
-its absolute directory, `LU_ET_AL_PYTHON` to the Python executable in its own
-environment, and `LU_ET_AL_ENTRYPOINT` to `module:function` in that checkout.
-The callable receives a list of review objects and returns either a list of
-results or `{"reviews": [...]}`. Each result needs the same `id` and a holistic
-`sentiment` of `positive`, `negative`, or `neutral`.
+The team is currently collecting and annotating the dataset. Start with
+[ModelNavigation.md](ModelNavigation.md) for a plain-language explanation of
+the model, each Python file, commands, and output directories. Training examples
+there are for when annotations are ready.
 
-Alternatively, set `LU_ET_AL_COMMAND` to a baseline inference command. It runs
-from the external checkout, receives one JSON object on stdin, and writes one
-JSON object on stdout (logs go to stderr). The command setting takes precedence
-over the Python entrypoint. Request example:
+| Document | Read it when |
+| --- | --- |
+| [ModelNavigation.md](ModelNavigation.md) | You want to understand or run our model. |
+| [ASPECT_TAXONOMY.md](docs/ASPECT_TAXONOMY.md) | You are assigning aspect labels. |
+| [models/README.md](models/README.md) | You want to identify saved model files. |
+| [OWN_MODEL_CHANGES.md](docs/OWN_MODEL_CHANGES.md) | You need experiment settings or implementation constraints. |
+| [EXTRACTION_CONTRACT.md](docs/EXTRACTION_CONTRACT.md) | You are working on browser review extraction. |
 
-```json
-{"product_description":"Wireless headphones","reviews":[{"id":"r1","text":"Great sound but late delivery","star_rating":3,"image_url":"https://example.org/photo.jpg","image_urls":["https://example.org/photo.jpg"]}]}
-```
-
-Expected response, in the same order and with the same IDs:
-
-```json
-{"reviews":[{"id":"r1","sentiment":"negative"}]}
-```
-
-The runner may optionally include `segments`, for example
-`{"segments":[{"text":"Great sound","sentiment":"positive"}]}`. Segment text
-must occur verbatim in the review. If segment sentiment is omitted, the adapter
-inherits the holistic label and marks it `holistic_projection`. The taxonomy
-rules classify matching clauses into the six thesis categories. They are an
-explicit evaluation projection, not native Lu et al. aspect predictions.
-
-No Lu et al. implementation or weights are included here. Until its checkout and
-entrypoint or runner command are configured, the response marks the baseline unavailable. AuthentiCheck
-likewise needs its trained model artifacts to produce results; missing artifacts
-are shown as an independent unavailable status.
+The rest of this README covers the browser extension, API, and prototype.
+The deferred Lu et al. comparison setup is at the end.
 
 A dependency-free Manifest V3 browser extension plus a standalone frontend prototype. The extension injects a floating review-analysis panel into Shopee Philippines and Lazada Philippines product pages. It follows the AuthentiCheck thesis pipeline: review-quality classification first, then aspect sentiment using only reviews classified as authentic.
 
@@ -89,7 +66,7 @@ Enable **Use model API** in the popup and provide a local endpoint such as `http
 
 The versioned API returns `authenticShare`, `verifiedRating`, `counts`, `sentimentCounts`, `aspects`, and classified `reviews`. Incomplete or incompatible model responses are rejected; they are never silently mixed with local heuristic values. Version 0.3 permits local API hosts only (`127.0.0.1` or `localhost`).
 
-The request also includes `productDescription` and an `imageUrls` array for each review when buyer media is visible. This keeps the frontend contract ready for product-description similarity and M-CLIP visual-grounding features without claiming that those models are already running.
+The request also includes `productDescription` and an `imageUrls` array for each review when buyer media is visible. The current model uses review text, buyer photos, and stars. Product description is retained as context; it is not a learned input.
 
 When API mode is enabled, connection and response errors are shown explicitly. The extension does not silently replace a failed model response with heuristic output; the user may deliberately select **Use local preview**, which remains labeled as a preliminary estimate.
 
@@ -147,12 +124,12 @@ data/        Centralized input data and generated 6D features
 models/      Centralized trained models
 main.py      Versioned FastAPI boundary used by the extension
 stage1/      RoBERTa training and 6D feature extraction scripts
-stage2/      XGBoost meta-classifier and open-ended ABSA scripts
+stage2/      XGBoost, fixed ten-category ABSA, inference, and held-out evaluation
 requirements.txt  Shared Python dependencies
 output/      Generated ZIP packages; ignored by Git
 ```
 
-Full datasets, scraped buyer images, trained weights, secrets, and generated experiment output are intentionally excluded by `.gitignore`. The tracked `models/manifest.json` documents the required local model artifacts.
+Full datasets, scraped buyer images, trained weights, secrets, and generated experiment output are intentionally excluded by `.gitignore`. The tracked `models/manifest.json` describes the older download bundle; new training saves a separate manifest under `models/own_model_v2/`.
 
 ## Run the integrated local API
 
@@ -160,16 +137,61 @@ Full datasets, scraped buyer images, trained weights, secrets, and generated exp
 python -m venv .venv
 .venv\Scripts\Activate.ps1
 pip install -r requirements.txt
-python pipeline.py
+python pipeline.py --data data/reviews.csv --validate-only
+python pipeline.py --data data/reviews.csv
 uvicorn main:app --host 127.0.0.1 --port 8000
 ```
 
-`pipeline.py` trains Stage 1 DOST-RoBERTa, extracts the six-dimensional features, trains XGBoost, and trains the authentic-only ABSA model using `data/test_reviews.csv`. Check `http://127.0.0.1:8000/health` for the server and `/ready` for model readiness. `python scripts/setup_models.py --verify-only` lists any artifact that the training pipeline did not produce.
+`pipeline.py` validates the finalized dataset, persists product-disjoint partitions, generates five-fold out-of-fold RoBERTa probabilities, trains final RoBERTa and XGBoost, and independently trains fixed ten-category ABSA. It selects models and thresholds using validation data. The backend defaults to `models/own_model_v2/`; existing weights are preserved and require retraining for the new architecture. See [ModelNavigation.md](ModelNavigation.md) for the CSV schema and separate held-out test command. Check `http://127.0.0.1:8000/health` for the server and `/ready` for model readiness.
 
-If a teammate distributes already-trained artifacts instead, `python scripts/setup_models.py --archive C:\path\to\authenticheck-models.zip` installs and verifies that optional bundle without committing its weights to Git.
+The existing `scripts/setup_models.py` installs/verifies the older download manifest and is not a substitute for preparing the new training bundle.
 
 The backend processes review photos in memory and discards their bytes after M-CLIP feature extraction; it does not create a permanent review-image store.
 
-The included 50 synthetic reviews are suitable for integration and demonstration testing. They are not sufficient for reporting the final comparative performance or statistical significance of the thesis models.
+`data/test_reviews.csv` remains an unchanged schema-development fixture. Its current missing `review_id` column is reported by the validator before training. It is not used as thesis performance evidence.
 
 The exact browser extraction boundary is documented in `docs/EXTRACTION_CONTRACT.md`.
+
+## Model comparison in the extension
+
+Run `python -m uvicorn main:app --reload` from the repository root, enable the
+model API in the extension popup, and open a supported product page. The
+floating analysis panel has a **Compare** tab. Select one visible buyer review
+and press **Compare this review**. The extension sends its text, rating, up to
+five buyer image URLs, and product description to `POST /api/compare/lu-et-al`, then
+shows both engines and category-level discrepancies inside the panel. The API
+also accepts up to 20 reviews per call for research scripts.
+
+The Lu et al. checkout remains outside this repository. Set `LU_ET_AL_REPO` to
+its absolute directory, `LU_ET_AL_PYTHON` to the Python executable in its own
+environment, and `LU_ET_AL_ENTRYPOINT` to `module:function` in that checkout.
+The callable receives a list of review objects and returns either a list of
+results or `{"reviews": [...]}`. Each result needs the same `id` and a holistic
+`sentiment` of `positive`, `negative`, or `neutral`.
+
+Alternatively, set `LU_ET_AL_COMMAND` to a baseline inference command. It runs
+from the external checkout, receives one JSON object on stdin, and writes one
+JSON object on stdout (logs go to stderr). The command setting takes precedence
+over the Python entrypoint. Request example:
+
+```json
+{"product_description":"Wireless headphones","reviews":[{"id":"r1","text":"Great sound but late delivery","star_rating":3,"image_url":"https://example.org/photo.jpg","image_urls":["https://example.org/photo.jpg"]}]}
+```
+
+Expected response, in the same order and with the same IDs:
+
+```json
+{"reviews":[{"id":"r1","sentiment":"negative"}]}
+```
+
+The runner may optionally include `segments`, for example
+`{"segments":[{"text":"Great sound","sentiment":"positive"}]}`. Segment text
+must occur verbatim in the review. If segment sentiment is omitted, the adapter
+inherits the holistic label and marks it `holistic_projection`. The taxonomy
+rules classify matching clauses into the six thesis categories. They are an
+explicit evaluation projection, not native Lu et al. aspect predictions.
+
+No Lu et al. implementation or weights are included here. Until its checkout and
+entrypoint or runner command are configured, the response marks the baseline unavailable. AuthentiCheck
+likewise needs its trained model artifacts to produce results; missing artifacts
+are shown as an independent unavailable status.
