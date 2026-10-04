@@ -1,118 +1,95 @@
-import pandas as pd
-from pathlib import Path
-import xgboost as xgb
-from sklearn.model_selection import train_test_split
-from sklearn.metrics import accuracy_score, classification_report, confusion_matrix
+"""Fit XGBoost on OOF features and select settings using validation products."""
 
-PROJECT_ROOT = Path(__file__).resolve().parent.parent
-FEATURES_PATH = PROJECT_ROOT / "data" / "6d_features.csv"
-MODEL_PATH = PROJECT_ROOT / "models" / "xgboost_meta_classifier.json"
+import argparse
+import json
+import sys
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+import numpy as np
+import pandas as pd
+import xgboost as xgb
+from sklearn.utils.class_weight import compute_sample_weight
+from model_contract import CLASS_NAMES, DEFAULT_BUNDLE, FEATURE_COLUMNS, INPUT_VERSION
+from model_data import fingerprint, load_reviews, read_splits
+from model_metrics import classification_metrics
+
+
+def validate_features(features, assigned):
+    expected = assigned[assigned.partition.ne("test")]
+    required = {"review_id", "product_id", "partition", "fold", "ground_truth", "probability_source", *FEATURE_COLUMNS}
+    if required.difference(features.columns):
+        raise ValueError(f"Missing feature fields: {sorted(required.difference(features.columns))}")
+    if features.review_id.duplicated().any() or set(features.review_id) != set(expected.review_id):
+        raise ValueError("Feature table must cover training/validation reviews exactly once, excluding test")
+    matched = features.merge(
+        expected[["review_id", "product_id", "partition", "fold", "label"]],
+        on=["review_id", "product_id", "partition", "fold"], validate="one_to_one",
+    )
+    if len(matched) != len(expected) or not matched.ground_truth.eq(matched.label).all():
+        raise ValueError("Features disagree with the shared split/ground-truth manifest")
+    for row in matched.itertuples():
+        source = f"oof_fold_{row.fold}" if row.partition == "train" else "final_roberta"
+        if row.probability_source != source:
+            raise ValueError("Training requires OOF probabilities; validation requires final-RoBERTa probabilities")
+    values = matched[list(FEATURE_COLUMNS)].apply(pd.to_numeric, errors="raise").to_numpy()
+    if not np.isfinite(values).all():
+        raise ValueError("Features must be finite")
+    if (values[:, :4] < 0).any() or not np.allclose(values[:, :4].sum(axis=1), 1, atol=1e-5):
+        raise ValueError("Invalid probability features")
+    if (abs(values[:, 4]) > 1.00001).any() or ((values[:, 5] < 0) | (values[:, 5] > 1)).any():
+        raise ValueError("Invalid cosine similarity or normalized rating")
+    return matched
+
+
+def train_classifier(features, assigned, output):
+    features = validate_features(features, assigned)
+    train = features[features.partition.eq("train")]
+    validation = features[features.partition.eq("validation")]
+    if set(train.ground_truth) != {0, 1, 2, 3} or validation.empty:
+        raise ValueError("All training classes and a nonempty validation partition are required")
+    best = None
+    trials = []
+    for depth in (2, 4, 6):
+        for rate in (0.05, 0.1):
+            settings = {"n_estimators": 100, "max_depth": depth, "learning_rate": rate}
+            model = xgb.XGBClassifier(**settings, random_state=42, eval_metric="mlogloss", n_jobs=2)
+            model.fit(
+                train[list(FEATURE_COLUMNS)], train.ground_truth,
+                sample_weight=compute_sample_weight("balanced", train.ground_truth),
+            )
+            metrics = classification_metrics(
+                validation.ground_truth.to_numpy(), model.predict(validation[list(FEATURE_COLUMNS)]), range(4),
+            )
+            trials.append({"settings": settings, "metrics": metrics})
+            if best is None or metrics["macro_f1"] > best[0]:
+                best = (metrics["macro_f1"], model, settings, metrics)
+    output = Path(output)
+    output.parent.mkdir(parents=True, exist_ok=True)
+    best[1].save_model(output)
+    output.with_suffix(".metadata.json").write_text(json.dumps({
+        "input_version": INPUT_VERSION, "dataset_sha256": fingerprint(assigned),
+        "class_order": list(CLASS_NAMES), "feature_columns": list(FEATURE_COLUMNS),
+        "settings": best[2], "validation_metrics": best[3], "validation_trials": trials,
+        "fit_review_ids": train.review_id.tolist(), "validation_review_ids": validation.review_id.tolist(),
+    }, indent=2), encoding="utf-8")
+    print(json.dumps(best[3], indent=2))
+    return best[1]
+
 
 def main():
-    print("1. Loading 6D Features...")
-    # Load the CSV generated in Stage 1
-    df = pd.read_csv(FEATURES_PATH)
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--data", default="data/test_reviews.csv")
+    parser.add_argument("--splits", default="data/splits.json")
+    parser.add_argument("--features", default="data/6d_features.csv")
+    parser.add_argument("--output", default=str(DEFAULT_BUNDLE / "xgboost_meta_classifier.json"))
+    args = parser.parse_args()
+    assigned = read_splits(load_reviews(args.data), args.splits)
+    metadata = json.loads(Path(args.features).with_suffix(".metadata.json").read_text(encoding="utf-8"))
+    if metadata.get("dataset_sha256") != fingerprint(assigned) or metadata.get("input_version") != INPUT_VERSION:
+        raise ValueError("Feature metadata does not match this experiment")
+    train_classifier(pd.read_csv(args.features, dtype={"review_id": str, "product_id": str}), assigned, args.output)
 
-    # Define the 6 feature columns (X) and the target label (y)
-    feature_cols = [
-        "dim1_prob_auth", 
-        "dim2_prob_dec", 
-        "dim3_prob_liv", 
-        "dim4_prob_irr", 
-        "dim5_clip_sim", 
-        "dim6_star_rating"
-    ]
-
-    missing_features = [
-    column for column in feature_cols
-    if column not in df.columns
-]
-
-    if missing_features:
-        raise ValueError(
-            f"Missing required features: {missing_features}"
-        )
-
-    if not df[feature_cols].apply(
-        lambda column: pd.to_numeric(column, errors="coerce").notna().all()
-    ).all():
-        raise ValueError("All six features must be numeric.")
-
-    if not df["dim6_star_rating"].between(0.0, 1.0).all():
-        raise ValueError(
-            "dim6_star_rating must be normalized between 0 and 1."
-        )
-
-    X = df[feature_cols]
-    # 0 Authentic, 1 Deceptive, 2 Low Informational Value, 3 Irrelevant
-    #y = df["ground_truth"]
-
-    y = df["ground_truth"].astype(int)
-
-    expected_classes = {0, 1, 2, 3}
-    actual_classes = set(y.unique())
-
-    if actual_classes != expected_classes:
-        raise ValueError(
-            "Final XGBoost training requires classes "
-            f"{sorted(expected_classes)}, found "
-            f"{sorted(actual_classes)}."
-        )
-    
-    print("2. Splitting Data...")
-    # 80% for training, 20% for testing
-    X_train, X_test, y_train, y_test = train_test_split(
-        X,
-        y,
-        test_size=0.2,
-        random_state=42,
-        stratify=y,
-    )
-    print(f"   Training samples: {len(X_train)} | Testing samples: {len(X_test)}")
-
-    print("3. Training XGBoost Meta-Classifier...")
-    # Initialize and train the XGBoost model
-    model = xgb.XGBClassifier(
-        n_estimators=100,
-        learning_rate=0.1,
-        max_depth=4,
-        random_state=42,
-        eval_metric='logloss'
-    )
-    
-    model.fit(X_train, y_train)
-
-    print("4. Evaluating Model Performance...")
-    # Generate predictions on the unseen test set
-    y_pred = model.predict(X_test)
-    
-    # Calculate metrics
-    accuracy = accuracy_score(y_test, y_pred)
-    conf_matrix = confusion_matrix(y_test, y_pred, labels=[0, 1, 2, 3])
-    class_report = classification_report(
-        y_test,
-        y_pred,
-        labels=[0, 1, 2, 3],
-        target_names=[
-            "Authentic (0)",
-            "Deceptive (1)",
-            "Low Info Value (2)",
-            "Irrelevant (3)",
-        ],
-        zero_division=0,
-    )
-
-    print(f"\n--- RESULTS ---")
-    print(f"Accuracy: {accuracy * 100:.2f}%\n")
-    print("Confusion Matrix:")
-    print(conf_matrix)
-    print("\nClassification Report:")
-    print(class_report)
-
-    # 5. Save the trained model for future use
-    MODEL_PATH.parent.mkdir(parents=True, exist_ok=True)
-    model.save_model(MODEL_PATH)
-    print("\nSuccess! Model saved to models/xgboost_meta_classifier.json")
 
 if __name__ == "__main__":
     main()

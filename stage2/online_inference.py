@@ -1,361 +1,193 @@
+"""Our multimodal review gate followed by fixed-category ABSA and aggregation."""
 
 import argparse
-import ipaddress
 import json
-import socket
-from io import BytesIO
+import sys
 from pathlib import Path
-from urllib.parse import urlparse
 
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 import pandas as pd
-import requests
 import torch
-import torch.nn.functional as F
 import xgboost as xgb
-from PIL import Image
-from sentence_transformers import SentenceTransformer, util
-from transformers import AutoModelForSequenceClassification, AutoTokenizer
+from transformers import AutoTokenizer
 
-import absa_model
+from stage2 import absa_model
+from stage1.features import FeatureExtractor
+from model_contract import ASPECTS, CLASS_NAMES, FEATURE_COLUMNS, INPUT_VERSION, POLARITIES, TAXONOMY_VERSION, parse_image_urls
 
 DEFAULT_XGB_PATH = absa_model.MODELS_DIR / "xgboost_meta_classifier.json"
 DEFAULT_OUTPUT_PATH = absa_model.DATA_DIR / "online_inference_results.json"
-
-CLASS_NAMES = ["Authentic", "Deceptive", "Low Informational Value", "Irrelevant"]
-API_CLASS_NAMES = ["authentic", "deceptive", "liv", "irrelevant"]
-STAR_SCALE_MIN = 1
-STAR_SCALE_MAX = 5
-STAGE1_MAX_LENGTH = 128
-MAX_IMAGE_BYTES = 5 * 1024 * 1024
-MAX_IMAGES_PER_REVIEW = 5
-
-
-def normalize_rating(rating):
-    if rating is None or pd.isna(rating):
-        rating = 3.0
-    return max(0.0, min(1.0, (float(rating) - STAR_SCALE_MIN) / (STAR_SCALE_MAX - STAR_SCALE_MIN)))
-
-
-def parse_image_urls(value):
-    if value is None or (not isinstance(value, (list, tuple)) and pd.isna(value)):
-        return []
-    if isinstance(value, (list, tuple)):
-        values = value
-    else:
-        text = str(value).strip()
-        if not text:
-            return []
-        try:
-            parsed = json.loads(text)
-            values = parsed if isinstance(parsed, list) else [parsed]
-        except json.JSONDecodeError:
-            values = [part.strip() for part in text.split("|")]
-    return list(dict.fromkeys(str(item).strip() for item in values if str(item).strip()))[:MAX_IMAGES_PER_REVIEW]
-
-
-def image_url_is_safe(url):
-    try:
-        parsed = urlparse(url)
-        if parsed.scheme not in {"http", "https"} or not parsed.hostname:
-            return False
-        addresses = socket.getaddrinfo(parsed.hostname, parsed.port or (443 if parsed.scheme == "https" else 80))
-        for address in addresses:
-            ip = ipaddress.ip_address(address[4][0])
-            if not ip.is_global:
-                return False
-        return True
-    except (OSError, ValueError):
-        return False
-
-
-def load_image(url):
-    if not image_url_is_safe(url):
-        return None
-    try:
-        response = requests.get(
-            url,
-            timeout=(3, 7),
-            stream=True,
-            allow_redirects=False,
-            headers={"User-Agent": "AuthentiCheck/1.0"},
-        )
-        response.raise_for_status()
-        if not response.headers.get("Content-Type", "").lower().startswith("image/"):
-            return None
-        content_length = int(response.headers.get("Content-Length", "0") or 0)
-        if content_length > MAX_IMAGE_BYTES:
-            return None
-        chunks = []
-        total = 0
-        for chunk in response.iter_content(64 * 1024):
-            total += len(chunk)
-            if total > MAX_IMAGE_BYTES:
-                return None
-            chunks.append(chunk)
-        image = Image.open(BytesIO(b"".join(chunks)))
-        image.load()
-        return image.convert("RGB")
-    except (requests.RequestException, OSError, ValueError):
-        return None
+API_CLASS_NAMES = list(CLASS_NAMES)
 
 
 class OnlineInference:
-    def __init__(self, roberta_model, xgb_path, absa_dir, threshold=0.5):
+    def __init__(self, roberta_model, xgb_path, absa_dir, threshold=None):
         self.roberta_model = Path(roberta_model)
         self.xgb_path = Path(xgb_path)
         self.absa_dir = Path(absa_dir)
         self.threshold = threshold
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-        self._text_tokenizer = None
-        self._text_model = None
-        self._clip_text = None
-        self._clip_image = None
-        self._xgb = None
-        self._absa = None
-        self._absa_tokenizer = None
+        self.extractor = FeatureExtractor(self.roberta_model)
+        self._xgb = self._absa = self._absa_tokenizer = None
 
     def check_artifacts(self):
-        missing = []
-        if not (self.roberta_model / "config.json").exists():
-            missing.append(f"Stage 1 RoBERTa classifier not found at {self.roberta_model}")
-        if not self.xgb_path.exists():
-            missing.append(f"XGBoost classifier not found at {self.xgb_path}")
-        if not (self.absa_dir / "absa_config.json").exists() or not (self.absa_dir / "model.pt").exists():
-            missing.append(f"ABSA model not found at {self.absa_dir}")
+        required = [
+            self.roberta_model / "config.json",
+            self.xgb_path, self.xgb_path.with_suffix(".metadata.json"),
+            self.absa_dir / "absa_config.json", self.absa_dir / "model.pt",
+            self.absa_dir / "encoder" / "config.json", self.absa_dir / "tokenizer" / "tokenizer_config.json",
+        ]
+        missing = [str(path) for path in required if not path.is_file()]
+        if not any((self.roberta_model / name).is_file() for name in ("model.safetensors", "pytorch_model.bin")):
+            missing.append(str(self.roberta_model / "model.safetensors"))
         if missing:
-            raise FileNotFoundError(" | ".join(missing))
+            raise FileNotFoundError("Train our v2 bundle first. Missing artifacts: " + ", ".join(missing))
+        text = json.loads((self.roberta_model / "config.json").read_text(encoding="utf-8"))
+        meta = json.loads(self.xgb_path.with_suffix(".metadata.json").read_text(encoding="utf-8"))
+        absa = json.loads((self.absa_dir / "absa_config.json").read_text(encoding="utf-8"))
+        if text.get("input_contract_version") != INPUT_VERSION or meta.get("input_version") != INPUT_VERSION:
+            raise ValueError("Stage 1 checkpoint contract mismatch; old feature/model bundles require retraining")
+        if meta.get("feature_columns") != list(FEATURE_COLUMNS) or meta.get("class_order") != list(CLASS_NAMES):
+            raise ValueError("XGBoost feature/class order mismatch")
+        if absa.get("model_version") != absa_model.MODEL_VERSION or absa.get("taxonomy_version") != TAXONOMY_VERSION or absa.get("aspects") != list(ASPECTS):
+            raise ValueError("ABSA bundle does not implement the fixed ten-category taxonomy")
 
     def preload(self):
         self.check_artifacts()
-        self._load_text()
-        self._load_clip()
+        self.extractor.load_text()
+        self.extractor.load_clip()
         self._load_xgb()
         self._load_absa()
-
-    def _load_text(self):
-        if self._text_model is None:
-            self._text_tokenizer = AutoTokenizer.from_pretrained(str(self.roberta_model))
-            self._text_model = AutoModelForSequenceClassification.from_pretrained(
-                str(self.roberta_model)
-            ).to(self.device)
-            self._text_model.eval()
-        return self._text_tokenizer, self._text_model
-
-    def _load_clip(self):
-        if self._clip_text is None:
-            self._clip_text = SentenceTransformer("clip-ViT-B-32-multilingual-v1")
-            self._clip_image = SentenceTransformer("clip-ViT-B-32")
-        return self._clip_text, self._clip_image
 
     def _load_xgb(self):
         if self._xgb is None:
             self._xgb = xgb.XGBClassifier()
-            self._xgb.load_model(str(self.xgb_path))
+            self._xgb.load_model(self.xgb_path)
         return self._xgb
 
     def _load_absa(self):
         if self._absa is None:
-            self._absa = absa_model.ABSAHeadModel.from_pretrained(self.absa_dir).to(self.device)
-            self._absa.eval()
-            self._absa_tokenizer = AutoTokenizer.from_pretrained(self._absa.encoder_name, use_fast=True)
+            self._absa = absa_model.ABSAHeadModel.from_pretrained(self.absa_dir).to(self.device).eval()
+            self._absa_tokenizer = AutoTokenizer.from_pretrained(self._absa.tokenizer_dir, local_files_only=True)
         return self._absa, self._absa_tokenizer
 
     def extract_features(self, product_description, text, image_urls, star_rating):
-        tokenizer, model = self._load_text()
-        inputs = tokenizer(
-            str(product_description or ""),
-            str(text),
-            return_tensors="pt",
-            padding="max_length",
-            truncation="only_first",
-            max_length=STAGE1_MAX_LENGTH,
-        ).to(self.device)
-        with torch.no_grad():
-            logits = model(**inputs).logits
-            probs = F.softmax(logits, dim=-1).squeeze(0).tolist()
-        if len(probs) != 4:
-            raise ValueError("Stage 1 model must output exactly four probabilities.")
-
-        s_clip = 0.0
-        best_image_url = ""
-        urls = parse_image_urls(image_urls)
-        if urls:
-            text_enc, image_enc = self._load_clip()
-            context = f"{product_description}\n{text}" if product_description else str(text)
-            txt_emb = text_enc.encode(context, convert_to_tensor=True)
-            scores = []
-            for image_url in urls:
-                image = load_image(image_url)
-                if image is None:
-                    continue
-                img_emb = image_enc.encode(image, convert_to_tensor=True)
-                scores.append((util.cos_sim(img_emb, txt_emb).item(), image_url))
-            if scores:
-                s_clip, best_image_url = max(scores, key=lambda item: item[0])
-
-        r_star = normalize_rating(star_rating)
-        return probs + [s_clip, r_star], probs, s_clip, r_star, best_image_url
+        # Description is retained in the API for annotation/reporting, not model input.
+        features, best, scores = self.extractor.extract(text, image_urls, star_rating)
+        return features, features[:4], features[4], features[5], best
 
     def classify(self, features):
-        probs = self._load_xgb().predict_proba([features])[0].tolist()
-        verdict_idx = int(max(range(len(probs)), key=lambda i: probs[i]))
-        return verdict_idx, probs
+        frame = pd.DataFrame([features], columns=FEATURE_COLUMNS)
+        probabilities = self._load_xgb().predict_proba(frame)[0].tolist()
+        return int(max(range(4), key=lambda index: probabilities[index])), probabilities
 
-    def aspect_sentiment(self, text):
-        absa, tokenizer = self._load_absa()
-        enc = tokenizer(
-            text,
-            return_tensors="pt",
-            padding="max_length",
-            truncation=True,
-            max_length=absa_model.ABSA_MAX_LENGTH,
-            return_offsets_mapping=True,
-        ).to(self.device)
-        return absa.predict(
-            enc["input_ids"],
-            enc["attention_mask"],
-            offset_mapping=enc["offset_mapping"],
-            tokenizer=tokenizer,
-            texts=[text],
-            threshold=self.threshold,
-        )[0]
+    def aspect_sentiment(self, text, product_category=""):
+        model, tokenizer = self._load_absa()
+        return model.predict([text], tokenizer, [product_category], threshold=self.threshold)[0]
 
     def run(self, df):
         self.check_artifacts()
-        text_col = "text" if "text" in df.columns else "review_text"
-
-        results = []
-        verdicts = []
-        for record in df.to_dict("records"):
-            text = str(record[text_col])
-            product_description = str(record.get("product_description", "") or "")
-            image_urls = record.get("image_urls", record.get("image_url", ""))
-            star_rating = record.get("star_rating", None)
-
-            features, p_text, s_clip, r_star, best_image_url = self.extract_features(
-                product_description, text, image_urls, star_rating
+        text_col = "review_text" if "review_text" in df else "text"
+        if text_col not in df:
+            raise ValueError("review_text/text is required")
+        results, verdicts = [], []
+        for row in df.to_dict("records"):
+            text = row[text_col]
+            urls = row.get("review_image_urls", row.get("image_urls", row.get("image_url")))
+            features, p_text, similarity, rating, best = self.extract_features(
+                row.get("product_description", ""), text, urls, row.get("star_rating"),
             )
-            verdict_idx, probs = self.classify(features)
-            label = API_CLASS_NAMES[verdict_idx]
-
+            verdict, probabilities = self.classify(features)
             entry = {
-                "id": str(record.get("review_id", "")),
-                "text": text,
-                "starRating": None if pd.isna(star_rating) else float(star_rating),
-                "label": label,
-                "confidence": round(float(max(probs)), 4),
-                "probabilities": {name: round(p, 4) for name, p in zip(API_CLASS_NAMES, probs)},
-                "features": {
-                    "p_text": {
-                        name: round(p, 4)
-                        for name, p in zip(
-                            ["p_authentic", "p_deceptive", "p_liv", "p_irrelevant"], p_text
-                        )
-                    },
-                    "s_clip": round(s_clip, 4),
-                    "r_star": round(r_star, 4),
-                },
-                "signals": [
-                    "DOST-RoBERTa product/review evidence",
-                    "M-CLIP buyer-media similarity" if best_image_url else "No usable buyer image",
-                    "Normalized star-rating evidence",
-                ],
+                "id": str(row.get("review_id", row.get("id", ""))),
+                "product_id": str(row.get("product_id", "")),
+                "text": text, "starRating": float(row["star_rating"]), "label": CLASS_NAMES[verdict],
+                "confidence": round(max(probabilities), 4),
+                "probabilities": dict(zip(CLASS_NAMES, (round(value, 4) for value in probabilities))),
+                "features": {"p_text": dict(zip(CLASS_NAMES, p_text)), "s_clip": similarity, "r_star": rating},
+                "signals": ["DOST-RoBERTa review-text evidence", "M-CLIP matched buyer-image similarity", "Normalized star rating"],
+                "bestImageUrl": best,
             }
-
-            if verdict_idx == 0:
-                entry["aspectSentiment"] = self.aspect_sentiment(text)
-            verdicts.append(CLASS_NAMES[verdict_idx])
+            if verdict == 0:
+                entry["aspectSentiment"] = self.aspect_sentiment(text, row.get("product_category", ""))
             results.append(entry)
+            verdicts.append(CLASS_NAMES[verdict])
+        return {**build_summary(df, verdicts, results), "reviews": results}
 
-        summary = build_summary(df, verdicts, results)
-        return {**summary, "reviews": results}
+
+def valid_aspects(review):
+    for item in review.get("aspectSentiment", []):
+        category = item.get("category", item.get("aspect"))
+        sentiment = str(item.get("sentiment", "")).lower()
+        if category not in ASPECTS or sentiment not in {"positive", "neutral", "negative"}:
+            raise ValueError("Invalid fixed-category sentiment output")
+        yield category, sentiment
 
 
-def build_summary(df, verdicts, results=None):
-    df = df.copy()
-    df["verdict"] = verdicts
-    authentic = df[df["verdict"] == "Authentic"]
-    verdict_counts = df["verdict"].value_counts().to_dict()
-    rated_authentic = pd.to_numeric(authentic.get("star_rating", pd.Series(dtype=float)), errors="coerce").dropna()
-    aspects, sentiment_counts = aggregate_aspects(results or [])
-    return {
-        "reviewCount": len(df),
-        "authenticShare": round(len(authentic) / len(df) * 100, 2) if len(df) else 0.0,
-        "verifiedRating": float(round(rated_authentic.mean(), 2)) if len(rated_authentic) else None,
-        "counts": {
-            "authentic": int(verdict_counts.get("Authentic", 0)),
-            "deceptive": int(verdict_counts.get("Deceptive", 0)),
-            "liv": int(verdict_counts.get("Low Informational Value", 0)),
-            "irrelevant": int(verdict_counts.get("Irrelevant", 0)),
-        },
-        "sentimentCounts": sentiment_counts,
-        "aspects": aspects,
-    }
+def aggregate_products(results, authentic_only=True):
+    groups = {}
+    for review in results:
+        product = str(review.get("product_id", ""))
+        group = groups.setdefault(product, {"product_id": product, "values": [], "reviewCount": 0})
+        group["reviewCount"] += 1
+        if authentic_only and review.get("label") != "authentic":
+            continue
+        group["values"].extend({"negative": -1, "neutral": 0, "positive": 1}[polarity]
+                               for _, polarity in valid_aspects(review))
+    return [{
+        "product_id": product, "reviewCount": group["reviewCount"], "aspectCount": len(group["values"]),
+        "aggregateSentiment": sum(group["values"]) / len(group["values"]) if group["values"] else None,
+    } for product, group in groups.items()]
 
 
 def aggregate_aspects(results):
-    grouped = {}
-    sentiment_counts = {"positive": 0, "neutral": 0, "negative": 0}
+    groups = {}
+    counts = {"positive": 0, "neutral": 0, "negative": 0}
     for review in results:
-        for item in review.get("aspectSentiment", []):
-            name = str(item.get("aspect", "")).strip()
-            sentiment = str(item.get("sentiment", "neutral")).lower()
-            if not name or sentiment not in sentiment_counts:
-                continue
-            sentiment_counts[sentiment] += 1
-            key = name.casefold()
-            bucket = grouped.setdefault(key, {"name": name, "mentions": 0, "positive": 0})
+        if review.get("label") != "authentic":
+            continue
+        for category, polarity in valid_aspects(review):
+            counts[polarity] += 1
+            bucket = groups.setdefault(category, {"name": category, "mentions": 0, "positive": 0})
             bucket["mentions"] += 1
-            bucket["positive"] += int(sentiment == "positive")
-    aspects = [
-        {
-            "name": bucket["name"],
-            "mentions": bucket["mentions"],
-            "positivePercent": round(bucket["positive"] / bucket["mentions"] * 100, 2),
-        }
-        for bucket in grouped.values()
-    ]
-    aspects.sort(key=lambda item: (-item["mentions"], item["name"].casefold()))
-    return aspects[:12], sentiment_counts
+            bucket["positive"] += int(polarity == "positive")
+    return [{
+        "name": category, "mentions": groups[category]["mentions"],
+        "positivePercent": round(100 * groups[category]["positive"] / groups[category]["mentions"], 2),
+    } for category in ASPECTS if category in groups], counts
+
+
+def build_summary(df, verdicts, results=None):
+    results = results or []
+    counts = {name: verdicts.count(name) for name in CLASS_NAMES}
+    authentic_ratings = [row["starRating"] for row in results if row.get("label") == "authentic"]
+    aspects, sentiments = aggregate_aspects(results)
+    product_summaries = aggregate_products(results)
+    aspect_count = sum(row["aspectCount"] for row in product_summaries)
+    overall = (sum(row["aggregateSentiment"] * row["aspectCount"] for row in product_summaries
+                   if row["aggregateSentiment"] is not None) / aspect_count) if aspect_count else None
+    return {
+        "reviewCount": len(df), "authenticShare": 100 * counts["authentic"] / len(df) if len(df) else 0,
+        "verifiedRating": sum(authentic_ratings) / len(authentic_ratings) if authentic_ratings else None,
+        "counts": counts, "sentimentCounts": sentiments, "aspects": aspects,
+        "aggregateSentiment": overall, "perProduct": product_summaries,
+    }
 
 
 def main():
-    parser = argparse.ArgumentParser(description="AuthentiCheck online inference phase (items 3-9, no visualization)")
-    parser.add_argument("--data", required=True, help="CSV of new reviews (text, image_url, star_rating)")
-    parser.add_argument("--roberta-model", default=str(absa_model.STAGE1_MODEL_DIR), help="Fine-tuned Stage 1 DOST-RoBERTa classifier directory")
-    parser.add_argument("--xgb-path", default=str(DEFAULT_XGB_PATH), help="Trained XGBoost meta-classifier")
-    parser.add_argument("--absa-dir", default=str(absa_model.DEFAULT_ABSA_MODEL_DIR), help="Trained ABSA heads directory")
-    parser.add_argument("--output", default=str(DEFAULT_OUTPUT_PATH), help="JSON output path")
-    parser.add_argument("--threshold", type=float, default=0.5, help="ABSA aspect detection threshold")
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--data", required=True)
+    parser.add_argument("--roberta-model", default=str(absa_model.STAGE1_MODEL_DIR))
+    parser.add_argument("--xgb-path", default=str(DEFAULT_XGB_PATH))
+    parser.add_argument("--absa-dir", default=str(absa_model.DEFAULT_ABSA_MODEL_DIR))
+    parser.add_argument("--output", default=str(DEFAULT_OUTPUT_PATH))
+    parser.add_argument("--threshold", type=float, default=None)
     args = parser.parse_args()
-
-    data_path = Path(args.data)
-    if not data_path.exists():
-        print(f"ERROR: Input data not found at {data_path}.")
-        return
-
-    print("1. Loading input reviews...")
-    df = pd.read_csv(data_path, encoding="utf-8-sig", skipinitialspace=True)
-    print(f"   Loaded {len(df)} reviews.")
-
-    print("2. Initializing inference components...")
-    pipe = OnlineInference(args.roberta_model, args.xgb_path, args.absa_dir, threshold=args.threshold)
-    try:
-        pipe.check_artifacts()
-    except FileNotFoundError as e:
-        print(f"ERROR: {e}")
-        print("Required artifacts are missing. Train Stage 1 (train_roberta.py), Stage 2 (train_xgboost.py),")
-        print("and ABSA (fine_tune_absa.py) first, or point --roberta-model/--xgb-path/--absa-dir at existing artifacts.")
-        return
-
-    print("3. Running classification -> filtering -> ABSA...")
-    output = pipe.run(df)
-
-    out_path = Path(args.output)
-    out_path.parent.mkdir(parents=True, exist_ok=True)
-    with open(out_path, "w", encoding="utf-8") as f:
-        json.dump(output, f, ensure_ascii=False, indent=2)
-    print(f"Success! Results saved to {out_path}")
+    pipe = OnlineInference(args.roberta_model, args.xgb_path, args.absa_dir, args.threshold)
+    output = pipe.run(pd.read_csv(args.data, keep_default_na=False))
+    path = Path(args.output)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(json.dumps(output, ensure_ascii=False, indent=2, allow_nan=False), encoding="utf-8")
 
 
 if __name__ == "__main__":
