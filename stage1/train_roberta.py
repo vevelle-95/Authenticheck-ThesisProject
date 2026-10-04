@@ -1,139 +1,117 @@
-import os
+"""Train the review-only four-class model using shared training/validation products."""
 
-import pandas as pd
-import torch
-from datasets import Dataset
-from transformers import (
-    AutoModelForSequenceClassification,
-    AutoTokenizer,
-    Trainer,
-    TrainingArguments,
-)
+import argparse
+import json
+import sys
+from pathlib import Path
 
-import config
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+from stage1 import config
+from model_contract import CLASS_NAMES, INPUT_VERSION, SEED
+from model_data import fingerprint, load_reviews, read_splits
+from model_metrics import classification_metrics
 
 
-DATA_PATH = config.DATA_PATH
-MODEL_DIR = config.MODEL_DIR
+def tokenize_reviews(tokenizer, texts, max_length=config.MAX_LENGTH, **kwargs):
+    return tokenizer(list(texts), padding="max_length", truncation=True, max_length=max_length, **kwargs)
+
+
+def fit_roberta(train_frame, validation_frame, output, *, base_model=config.BASE_MODEL,
+                epochs=config.EPOCHS, batch_size=config.BATCH_SIZE, learning_rate=config.LEARNING_RATE,
+                max_length=config.MAX_LENGTH, seed=SEED):
+    import torch
+    from datasets import Dataset
+    from transformers import AutoModelForSequenceClassification, AutoTokenizer, Trainer, TrainingArguments, set_seed
+
+    if set(train_frame.label) != {0, 1, 2, 3}:
+        raise ValueError("RoBERTa fitting requires all four quality classes")
+    if epochs < 1 or batch_size < 1 or max_length < 8:
+        raise ValueError("epochs/batch_size must be positive; max_length must be at least 8")
+    set_seed(seed)
+    output = Path(output)
+    tokenizer = AutoTokenizer.from_pretrained(base_model)
+    model = AutoModelForSequenceClassification.from_pretrained(
+        base_model, num_labels=4, ignore_mismatched_sizes=True,
+        id2label=dict(enumerate(CLASS_NAMES)), label2id={name: i for i, name in enumerate(CLASS_NAMES)},
+    )
+    model.config.input_contract_version = INPUT_VERSION
+    model.config.review_max_length = max_length
+
+    def dataset(frame):
+        encodings = tokenize_reviews(tokenizer, frame.review_text, max_length)
+        return Dataset.from_dict({**encodings, "labels": frame.label.tolist()})
+
+    def metrics(prediction):
+        logits = prediction.predictions[0] if isinstance(prediction.predictions, tuple) else prediction.predictions
+        result = classification_metrics(prediction.label_ids, logits.argmax(axis=-1), range(4))
+        return {key: result[key] for key in ("accuracy", "macro_precision", "macro_recall", "macro_f1")}
+
+    validating = validation_frame is not None and len(validation_frame) > 0
+    arguments = TrainingArguments(
+        output_dir=str(output / "checkpoints"), learning_rate=learning_rate,
+        per_device_train_batch_size=batch_size, per_device_eval_batch_size=batch_size,
+        num_train_epochs=epochs, eval_strategy="epoch" if validating else "no",
+        save_strategy="epoch" if validating else "no", save_total_limit=1,
+        load_best_model_at_end=validating, metric_for_best_model="macro_f1",
+        greater_is_better=True, use_cpu=not torch.cuda.is_available(), seed=seed, data_seed=seed,
+        report_to="none", dataloader_pin_memory=torch.cuda.is_available(),
+    )
+    trainer = Trainer(
+        model=model, args=arguments, train_dataset=dataset(train_frame),
+        eval_dataset=dataset(validation_frame) if validating else None,
+        processing_class=tokenizer, compute_metrics=metrics,
+    )
+    trainer.train()
+    trainer.save_model(str(output))
+    tokenizer.save_pretrained(output)
+    validation_metrics = trainer.evaluate() if validating else None
+    metadata = {
+        "input_version": INPUT_VERSION, "max_length": max_length, "seed": seed,
+        "base_model": str(base_model), "epochs": epochs,
+        "fit_review_ids": train_frame.review_id.tolist(),
+        "validation_review_ids": validation_frame.review_id.tolist() if validating else [],
+        "training_sha256": fingerprint(train_frame), "validation_metrics": validation_metrics,
+    }
+    (output / "training_metadata.json").write_text(json.dumps(metadata, indent=2), encoding="utf-8")
+    return model, tokenizer
+
+
+def predict_probabilities(model, tokenizer, frame, batch_size=16, max_length=None):
+    import numpy as np
+    import torch
+
+    max_length = max_length or model.config.review_max_length
+    model.eval()
+    probabilities = []
+    for start in range(0, len(frame), batch_size):
+        enc = tokenize_reviews(
+            tokenizer, frame.review_text.iloc[start:start + batch_size], max_length, return_tensors="pt",
+        ).to(next(model.parameters()).device)
+        with torch.inference_mode():
+            probabilities.extend(torch.softmax(model(**enc).logits, dim=-1).cpu().tolist())
+    result = np.asarray(probabilities).reshape(-1, 4)
+    if not np.isfinite(result).all() or not np.allclose(result.sum(axis=1), 1, atol=1e-5):
+        raise ValueError("Invalid four-class probabilities")
+    return result
 
 
 def main():
-    if not DATA_PATH.exists():
-        print(f"ERROR: Dataset not found at {DATA_PATH}.")
-        return
-
-    print("1. Loading dataset...")
-    df = pd.read_csv(
-        DATA_PATH,
-        encoding="utf-8-sig",
-        skipinitialspace=True,
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--data", default=str(config.DATA_PATH))
+    parser.add_argument("--splits", default=str(config.SPLITS_PATH))
+    parser.add_argument("--output", default=str(config.MODEL_DIR))
+    parser.add_argument("--base-model", default=config.BASE_MODEL)
+    parser.add_argument("--epochs", type=int, default=config.EPOCHS)
+    parser.add_argument("--batch-size", type=int, default=config.BATCH_SIZE)
+    parser.add_argument("--max-length", type=int, default=config.MAX_LENGTH)
+    args = parser.parse_args()
+    assigned = read_splits(load_reviews(args.data), args.splits)
+    fit_roberta(
+        assigned[assigned.partition.eq("train")], assigned[assigned.partition.eq("validation")],
+        args.output, base_model=args.base_model, epochs=args.epochs,
+        batch_size=args.batch_size, max_length=args.max_length,
     )
-
-    required_columns = {
-        "review_text",
-        "product_description",
-        "text_label",
-    }
-    missing_columns = required_columns.difference(df.columns)
-
-    if missing_columns:
-        raise ValueError(
-            f"Missing required columns: {sorted(missing_columns)}"
-        )
-
-    df["review_text"] = df["review_text"].fillna("").astype(str)
-    df["product_description"] = (
-        df["product_description"]
-        .fillna("")
-        .astype(str)
-    )
-
-    # Stage 1 is trained exclusively against text_label.
-    df["labels"] = df["text_label"].map(config.map_label)
-
-    if df["labels"].isna().any():
-        raise ValueError("One or more text_label values could not be mapped.")
-
-    df["labels"] = df["labels"].astype("int64")
-
-    print(f"   Loaded {len(df)} reviews.")
-    print(f"   Stage 1 label counts:\n{df['labels'].value_counts().sort_index()}")
-
-    print("2. Loading DOST-ASTI RoBERTa...")
-    tokenizer = AutoTokenizer.from_pretrained(config.BASE_MODEL)
-
-    model = AutoModelForSequenceClassification.from_pretrained(
-        config.BASE_MODEL,
-        num_labels=4,
-        ignore_mismatched_sizes=True,
-    )
-
-    dataset = Dataset.from_pandas(
-        df[
-            [
-                "product_description",
-                "review_text",
-                "labels",
-            ]
-        ],
-        preserve_index=False,
-    )
-
-    def tokenize_function(examples):
-        # Product description is the first sequence and review is the second.
-        # The tokenizer inserts the model's separator tokens automatically.
-        return tokenizer(
-            examples["product_description"],
-            examples["review_text"],
-            padding="max_length",
-            truncation="only_first",
-            max_length=config.MAX_LENGTH,
-        )
-
-    print("3. Tokenizing product descriptions and reviews...")
-    tokenized_dataset = dataset.map(
-        tokenize_function,
-        batched=True,
-        remove_columns=[
-            "product_description",
-            "review_text",
-        ],
-    )
-    tokenized_dataset.set_format("torch")
-
-    split_dataset = tokenized_dataset.train_test_split(
-        test_size=config.TEST_SPLIT,
-        seed=42,
-    )
-
-    print("4. Starting training...")
-    os.makedirs(MODEL_DIR, exist_ok=True)
-
-    training_args = TrainingArguments(
-        output_dir=str(MODEL_DIR),
-        eval_strategy="epoch",
-        learning_rate=config.LEARNING_RATE,
-        per_device_train_batch_size=config.BATCH_SIZE,
-        num_train_epochs=config.EPOCHS,
-        save_strategy="no",
-        use_cpu=not torch.cuda.is_available(),
-    )
-
-    trainer = Trainer(
-        model=model,
-        args=training_args,
-        train_dataset=split_dataset["train"],
-        eval_dataset=split_dataset["test"],
-        processing_class=tokenizer,
-    )
-
-    trainer.train()
-
-    print(f"5. Saving Stage 1 model to {MODEL_DIR}...")
-    model.save_pretrained(MODEL_DIR)
-    tokenizer.save_pretrained(MODEL_DIR)
-
-    print("Stage 1 training complete.")
+    print(f"Saved validation-selected RoBERTa to {args.output}; test products were not used.")
 
 
 if __name__ == "__main__":

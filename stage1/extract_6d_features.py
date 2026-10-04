@@ -1,319 +1,87 @@
-import pandas as pd
-import requests
-import torch
-import torch.nn.functional as F
-from io import BytesIO
+"""Build XGBoost train/validation features; test features belong to final evaluation."""
+
+import argparse
+import json
+import sys
 from pathlib import Path
 
-from PIL import Image
-from sentence_transformers import SentenceTransformer, util
-from transformers import AutoModelForSequenceClassification, AutoTokenizer
-
-import config
-
-
-LABEL_MAP = {
-    "authentic": 0,
-    "deceptive": 1,
-    "vague": 2,
-    "low informational value": 2,
-    "low_informational_value": 2,
-    "low-value": 2,
-    "low_value": 2,
-    "irrelevant": 3,
-}
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+import pandas as pd
+from stage1 import config
+from stage1.features import FeatureExtractor
+from model_contract import FEATURE_COLUMNS, INPUT_VERSION
+from model_data import fingerprint, load_reviews, read_splits
 
 
-def map_ground_truth(value):
-    if pd.isna(value):
-        raise ValueError("ground_truth cannot be empty.")
-
-    normalized = str(value).strip().lower()
-
-    if normalized in LABEL_MAP:
-        return LABEL_MAP[normalized]
-
-    try:
-        numeric = int(float(normalized))
-    except ValueError as error:
-        raise ValueError(
-            f"Unknown ground_truth label: {value!r}"
-        ) from error
-
-    if numeric not in range(4):
-        raise ValueError(
-            f"ground_truth must map to 0, 1, 2, or 3: {value!r}"
-        )
-
-    return numeric
-
-
-def normalize_rating(rating):
-    if rating is None or pd.isna(rating):
-        rating = 3.0
-
-    return max(
-        0.0,
-        min(1.0, (float(rating) - 1.0) / 4.0),
+def build_features(assigned, oof_path, output, model_dir, extractor=None):
+    oof_path = Path(oof_path)
+    oof = pd.read_csv(oof_path, dtype={"review_id": str, "product_id": str})
+    metadata = json.loads(oof_path.with_suffix(".metadata.json").read_text(encoding="utf-8"))
+    if metadata.get("dataset_sha256") != fingerprint(assigned) or metadata.get("input_version") != INPUT_VERSION:
+        raise ValueError("OOF features belong to a different dataset/input contract")
+    training = assigned[assigned.partition.eq("train")]
+    folds = metadata.get("folds", [])
+    if len(folds) != 5 or {item.get("fold") for item in folds} != set(range(5)):
+        raise ValueError("OOF metadata must include all five fitting/prediction cohorts")
+    for item in folds:
+        fit = training[training.fold.ne(item["fold"])]
+        held = training[training.fold.eq(item["fold"])]
+        if (set(item.get("fit_review_ids", [])) != set(fit.review_id)
+                or set(item.get("predicted_review_ids", [])) != set(held.review_id)
+                or set(item.get("fit_product_ids", [])) != set(fit.product_id)
+                or set(item.get("predicted_product_ids", [])) != set(held.product_id)):
+            raise ValueError("OOF provenance does not match the training folds")
+    if extractor is None:
+        final_metadata = json.loads(Path(model_dir, "training_metadata.json").read_text(encoding="utf-8"))
+        validation = assigned[assigned.partition.eq("validation")]
+        if (set(final_metadata.get("fit_review_ids", [])) != set(training.review_id)
+                or set(final_metadata.get("validation_review_ids", [])) != set(validation.review_id)
+                or final_metadata.get("training_sha256") != fingerprint(training)):
+            raise ValueError("Final RoBERTa checkpoint does not match this training/validation experiment")
+    if oof.review_id.duplicated().any() or set(oof.review_id) != set(training.review_id):
+        raise ValueError("OOF features must cover training reviews exactly once")
+    aligned = training[["review_id", "product_id", "fold"]].merge(
+        oof, on=["review_id", "product_id", "fold"], validate="one_to_one",
     )
-
-
-def parse_image_urls(value):
-    if value is None or pd.isna(value):
-        return []
-
-    return [
-        url.strip()
-        for url in str(value).split("|")
-        if url.strip()
-    ]
-
-
-def load_image(url):
-    try:
-        response = requests.get(url, timeout=5)
-        response.raise_for_status()
-        return Image.open(
-            BytesIO(response.content)
-        ).convert("RGB")
-    except Exception as error:
-        print(f"  [Warning] Could not load image {url}: {error}")
-        return None
-
-
-def build_context(product_description, review_text):
-    product_description = str(product_description or "").strip()
-    review_text = str(review_text or "").strip()
-
-    return product_description, review_text
-
-
-def extract_image_scores(
-    image_urls,
-    image_encoder,
-    text_embedding,
-):
-    scores = []
-    valid_urls = []
-
-    for image_url in image_urls:
-        image = load_image(image_url)
-
-        if image is None:
-            continue
-
-        image_embedding = image_encoder.encode(
-            image,
-            convert_to_tensor=True,
+    if len(aligned) != len(training) or not aligned.apply(
+        lambda row: row.probability_source == f"oof_fold_{row.fold}", axis=1,
+    ).all():
+        raise ValueError("OOF product/fold provenance mismatch")
+    extractor = extractor or FeatureExtractor(model_dir)
+    lookup = aligned.set_index("review_id")
+    records = []
+    for row in assigned[assigned.partition.ne("test")].to_dict("records"):
+        probabilities = lookup.loc[row["review_id"], list(FEATURE_COLUMNS[:4])].tolist() if row["partition"] == "train" else None
+        features, best, scores = extractor.extract(
+            row["review_text"], row["image_urls"], row["star_rating"], probabilities,
         )
-
-        score = float(
-            util.cos_sim(
-                image_embedding,
-                text_embedding,
-            ).item()
-        )
-
-        scores.append(score)
-        valid_urls.append(image_url)
-
-    return valid_urls, scores
+        records.append({
+            "review_id": row["review_id"], "product_id": row["product_id"],
+            "partition": row["partition"], "fold": row["fold"], "ground_truth": row["label"],
+            "probability_source": f"oof_fold_{row['fold']}" if row["partition"] == "train" else "final_roberta",
+            **dict(zip(FEATURE_COLUMNS, features)), "best_image_url": best,
+            "image_scores": json.dumps(scores),
+        })
+    output = Path(output)
+    output.parent.mkdir(parents=True, exist_ok=True)
+    pd.DataFrame(records).to_csv(output, index=False)
+    output.with_suffix(".metadata.json").write_text(json.dumps({
+        "input_version": INPUT_VERSION, "dataset_sha256": fingerprint(assigned),
+    }, indent=2), encoding="utf-8")
+    return pd.DataFrame(records)
 
 
 def main():
-    if not config.DATA_PATH.exists():
-        print(f"ERROR: Dataset not found at {config.DATA_PATH}.")
-        return
-
-    print("1. Loading root dataset...")
-    df = pd.read_csv(
-        config.DATA_PATH,
-        encoding="utf-8-sig",
-        skipinitialspace=True,
-    )
-
-    required_columns = {
-        "review_text",
-        "product_description",
-        "review_image_urls",
-        "star_rating",
-        "ground_truth",
-    }
-
-    missing_columns = required_columns.difference(df.columns)
-
-    if missing_columns:
-        raise ValueError(
-            "Missing required columns: "
-            f"{sorted(missing_columns)}"
-        )
-
-    print(f"   Loaded {len(df)} reviews.")
-
-    print("2. Loading fine-tuned DOST-RoBERTa...")
-    text_tokenizer = AutoTokenizer.from_pretrained(
-        config.MODEL_DIR,
-        use_fast=True,
-    )
-    text_model = AutoModelForSequenceClassification.from_pretrained(
-        config.MODEL_DIR
-    )
-    text_model.eval()
-
-    print("3. Loading CLIP models...")
-    text_encoder = SentenceTransformer(
-        "clip-ViT-B-32-multilingual-v1"
-    )
-    image_encoder = SentenceTransformer(
-        "clip-ViT-B-32"
-    )
-
-    print("4. Extracting 6D features...")
-    features_list = []
-
-    for index, row in df.iterrows():
-        product_description, review_text = build_context(
-            row["product_description"],
-            row["review_text"],
-        )
-
-        if not review_text:
-            raise ValueError(
-                f"Review at row {index} is empty."
-            )
-
-        ground_truth = map_ground_truth(
-            row["ground_truth"]
-        )
-        normalized_rating = normalize_rating(
-            row["star_rating"]
-        )
-
-        # Use the same product-description/review pair
-        # used during Stage 1 training.
-        inputs = text_tokenizer(
-            product_description,
-            review_text,
-            return_tensors="pt",
-            padding="max_length",
-            truncation="only_first",
-            max_length=config.MAX_LENGTH,
-        )
-
-        with torch.no_grad():
-            outputs = text_model(**inputs)
-            probabilities = F.softmax(
-                outputs.logits,
-                dim=-1,
-            ).squeeze(0).tolist()
-
-        if len(probabilities) != 4:
-            raise ValueError(
-                "Stage 1 model must output exactly four probabilities."
-            )
-
-        (
-            prob_authentic,
-            prob_deceptive,
-            prob_liv,
-            prob_irrelevant,
-        ) = probabilities
-
-        # Use the contextual text for the image-text comparison.
-        combined_text = (
-            f"{product_description}\n{review_text}"
-            if product_description
-            else review_text
-        )
-
-        text_embedding = text_encoder.encode(
-            combined_text,
-            convert_to_tensor=True,
-        )
-
-        image_urls = parse_image_urls(
-            row["review_image_urls"]
-        )
-
-        valid_urls, image_scores = extract_image_scores(
-            image_urls,
-            image_encoder,
-            text_embedding,
-        )
-
-        # Select the most similar useful image.
-        if image_scores:
-            best_image_index = int(
-                max(
-                    range(len(image_scores)),
-                    key=lambda item: image_scores[item],
-                )
-            )
-            similarity_score = image_scores[best_image_index]
-            best_image_url = valid_urls[best_image_index]
-        else:
-            similarity_score = 0.0
-            best_image_url = ""
-
-        features_list.append(
-            {
-                "review_text": review_text,
-                "product_description": product_description,
-                "ground_truth": ground_truth,
-                "dim1_prob_auth": round(
-                    prob_authentic,
-                    4,
-                ),
-                "dim2_prob_dec": round(
-                    prob_deceptive,
-                    4,
-                ),
-                "dim3_prob_liv": round(
-                    prob_liv,
-                    4,
-                ),
-                "dim4_prob_irr": round(
-                    prob_irrelevant,
-                    4,
-                ),
-                "dim5_clip_sim": round(
-                    similarity_score,
-                    4,
-                ),
-                "dim6_star_rating": round(
-                    normalized_rating,
-                    4,
-                ),
-                "image_scores": [
-                    round(score, 4)
-                    for score in image_scores
-                ],
-                "best_image_url": best_image_url,
-            }
-        )
-
-        print(
-            f"  Processed review "
-            f"{index + 1}/{len(df)} "
-            f"({len(image_scores)} valid images)"
-        )
-
-    print("5. Saving six-dimensional features...")
-    features_df = pd.DataFrame(features_list)
-
-    output_path = Path(config.FEATURES_PATH)
-    output_path.parent.mkdir(
-        parents=True,
-        exist_ok=True,
-    )
-
-    features_df.to_csv(
-        output_path,
-        index=False,
-        encoding="utf-8-sig",
-    )
-
-    print(f"Success! Features saved to {output_path}")
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--data", default=str(config.DATA_PATH))
+    parser.add_argument("--splits", default=str(config.SPLITS_PATH))
+    parser.add_argument("--oof", default=str(config.DATA_DIR / "oof_probabilities.csv"))
+    parser.add_argument("--output", default=str(config.FEATURES_PATH))
+    parser.add_argument("--model", default=str(config.MODEL_DIR))
+    args = parser.parse_args()
+    assigned = read_splits(load_reviews(args.data), args.splits)
+    result = build_features(assigned, args.oof, args.output, args.model)
+    print(f"Saved {len(result)} train/validation feature rows. Test products were not processed.")
 
 
 if __name__ == "__main__":
