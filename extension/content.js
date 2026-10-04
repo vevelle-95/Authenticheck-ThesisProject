@@ -518,10 +518,23 @@
       const media = page.querySelector(".ac-compare-media");
       media.replaceChildren();
       if (review?.imageUrls?.length) {
-        const image = document.createElement("img");
-        image.src = review.imageUrls[0];
-        image.alt = "Buyer review image";
-        media.append(image);
+        review.imageUrls.slice(0, 5).forEach((url, index) => {
+          // Only marketplace HTTP images may open in a new tab.
+          let imageUrl;
+          try { imageUrl = new URL(url); } catch { return; }
+          if (!["http:", "https:"].includes(imageUrl.protocol)) return;
+          const link = document.createElement("a");
+          link.href = imageUrl.href;
+          link.target = "_blank";
+          link.rel = "noopener noreferrer";
+          link.title = `Open buyer image ${index + 1} in a new tab`;
+          const image = document.createElement("img");
+          image.src = imageUrl.href;
+          image.alt = `Buyer image ${index + 1} — open full size`;
+          image.loading = "lazy";
+          link.append(image);
+          media.append(link);
+        });
         const count = document.createElement("span");
         count.textContent = `${review.imageUrls.length} buyer image${review.imageUrls.length === 1 ? "" : "s"} found`;
         media.append(count);
@@ -538,6 +551,8 @@
       if (!review) return;
       const runId = ++comparisonRun;
       button.disabled = true;
+      button.textContent = "Comparing…";
+      button.setAttribute("aria-busy", "true");
       page.querySelector(".ac-compare-status").textContent = "Running both engines…";
       page.querySelector(".ac-compare-output").replaceChildren();
       const response = await sendRuntimeMessage({
@@ -554,6 +569,8 @@
       });
       if (runId !== comparisonRun || !page.isConnected) return;
       button.disabled = false;
+      button.textContent = "Compare this review";
+      button.removeAttribute("aria-busy");
       if (!response?.ok) {
         page.querySelector(".ac-compare-status").textContent = response?.error || "The comparison API did not respond.";
         return;
@@ -602,7 +619,9 @@
         }
         if (!review?.aspects?.length) {
           const empty = document.createElement("p");
-          empty.textContent = "No taxonomy-matched aspect evidence.";
+          empty.textContent = key === "authenticheck" && review?.classification && review.classification !== "authentic"
+            ? `Aspect extraction skipped: this review was classified as ${review.classification}.`
+            : "No taxonomy-matched aspect evidence.";
           card.append(empty);
         }
       }
