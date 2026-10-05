@@ -1,0 +1,19 @@
+# Ignore Python bytecode compilation files anywhere
+**/__pycache__/
+*.py[cod]
+
+# Catch-all for checkpoints across nested structures
+outputs/checkpoints/*.pt
+
+# Ignore generated evaluation/inference predictions spreadsheet
+outputs/predictions.csv
+
+# Local environments, downloaded encoders, images, and cached features
+.venv/
+outputs/model_cache/
+outputs/image_cache/
+outputs/clip_cache/
+outputs/*.json
+outputs/checkpoints/*.json
+outputs/checkpoints/tokenizer/
+outputs/checkpoints/*.tmp
