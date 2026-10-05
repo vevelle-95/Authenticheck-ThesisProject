@@ -140,6 +140,7 @@
   }
 
   function closePanel() {
+    if (!root) return;
     root.querySelector(".ac-panel").classList.remove("open");
     root.querySelector(".ac-panel").setAttribute("aria-hidden", "true");
     root.querySelector(".ac-trigger").classList.remove("hidden");
@@ -152,6 +153,7 @@
   }
 
   function applyEnabledState() {
+    if (!host) return;
     host.style.display = settings.enabled ? "block" : "none";
   }
 
@@ -322,15 +324,21 @@
   function normalizeApiResult(api, payload) {
     if (api?.schemaVersion !== "1.0") throw new Error("The model API response uses an unsupported schema version.");
     const numberOr = (value, min = 0, max = Number.MAX_SAFE_INTEGER) => {
-      const numeric = Number(value);
-      if (!Number.isFinite(numeric)) throw new Error("The model API response is missing a required numeric field.");
-      return Math.max(min, Math.min(max, numeric));
+      if (typeof value !== "number" || !Number.isFinite(value) || value < min || value > max) {
+        throw new Error("The model API response contains an invalid numeric field.");
+      }
+      return value;
     };
     const labelMap = { authentic:"authentic", deceptive:"deceptive", irrelevant:"irrelevant", liv:"liv", "low-value":"liv", low_value:"liv", lowValue:"liv" };
     if (!Array.isArray(api.reviews) || !api.counts || !api.sentimentCounts || !Array.isArray(api.aspects)) {
       throw new Error("The model API response is incomplete.");
     }
     const responseById = new Map(api.reviews.map(review => [String(review?.id || ""), review]));
+    const eligibleIds = new Set(payload.reviews.filter(review => review.analysisEligible && review.text.trim()).map(review => String(review.id)));
+    if (responseById.size !== api.reviews.length || responseById.size !== eligibleIds.size
+      || [...responseById.keys()].some(id => !eligibleIds.has(id))) {
+      throw new Error("The model API returned duplicate or unexpected review IDs.");
+    }
     const apiReviews = payload.reviews.map(source => {
       if (!source.analysisEligible || !source.text.trim()) {
         const missing = source.missingFields?.length ? source.missingFields.join(", ") : "written text";
@@ -350,6 +358,18 @@
       };
     });
     const apiCounts = api.counts;
+    const expectedCounts = { authentic: 0, liv: 0, irrelevant: 0, deceptive: 0 };
+    apiReviews.filter(review => review.label !== "unavailable").forEach(review => expectedCounts[review.label]++);
+    for (const [label, expected] of Object.entries(expectedCounts)) {
+      if (numberOr(apiCounts[label]) !== expected) throw new Error("The model API counts do not match its review classifications.");
+    }
+    const expectedShare = eligibleIds.size ? expectedCounts.authentic / eligibleIds.size * 100 : 0;
+    if (Math.abs(numberOr(api.authenticShare, 0, 100) - expectedShare) > 0.51) {
+      throw new Error("The model API authentic share does not match its review classifications.");
+    }
+    for (const key of ["positive", "neutral", "negative"]) {
+      if (!Number.isInteger(numberOr(api.sentimentCounts[key]))) throw new Error("The model API returned an invalid sentiment count.");
+    }
     return {
       mode: "api",
       modelVersion: String(api.modelVersion || "unknown"),

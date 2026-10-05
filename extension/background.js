@@ -45,24 +45,30 @@ async function analyzeWithConfiguredService(payload) {
       body: JSON.stringify(payload),
       signal: controller.signal
     });
+    if (!response.ok) {
+      const problem = await response.json().catch(error => {
+        if (controller.signal.aborted) throw error;
+        return null;
+      });
+      const detail = typeof problem?.detail === "string" ? ` ${problem.detail}` : "";
+      throw new Error(`Model API returned HTTP ${response.status}.${detail}`);
+    }
+    const result = await response.json().catch(error => {
+      if (controller.signal.aborted) throw error;
+      throw new Error("The model API did not return valid JSON.");
+    });
+    if (!result || typeof result !== "object" || Array.isArray(result)) {
+      throw new Error("The model API returned an invalid result object.");
+    }
+    if (result.schemaVersion !== "1.0") {
+      throw new Error("The model API returned an unsupported response schema.");
+    }
+    return result;
   } catch (error) {
-    if (error?.name === "AbortError") throw new Error("The model API timed out. Check that the local inference service is running.");
-    throw new Error("The model API could not be reached. Check the endpoint and local inference service.");
+    if (controller.signal.aborted || error?.name === "AbortError") throw new Error("The model API timed out. Check that the local inference service is running.");
+    if (!response) throw new Error("The model API could not be reached. Check the endpoint and local inference service.");
+    throw error;
   } finally {
     clearTimeout(timeout);
   }
-
-  if (!response.ok) {
-    const problem = await response.json().catch(() => null);
-    const detail = typeof problem?.detail === "string" ? ` ${problem.detail}` : "";
-    throw new Error(`Model API returned HTTP ${response.status}.${detail}`);
-  }
-  const result = await response.json().catch(() => { throw new Error("The model API did not return valid JSON."); });
-  if (!result || typeof result !== "object" || Array.isArray(result)) {
-    throw new Error("The model API returned an invalid result object.");
-  }
-  if (result.schemaVersion !== "1.0") {
-    throw new Error("The model API returned an unsupported response schema.");
-  }
-  return result;
 }

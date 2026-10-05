@@ -1,0 +1,17 @@
+{
+  "schemaVersion": "1.0",
+  "platform": "shopee",
+  "url": "https://shopee.ph/product/123/456",
+  "productTitle": "Illustrative wireless headphones",
+  "productDescription": "Wireless headphones with rechargeable battery.",
+  "marketplaceRating": 4.5,
+  "reviews": [
+    {
+      "id": "shopee-example-1",
+      "text": "Malinaw ang audio at comfortable gamitin kahit ilang oras.",
+      "rating": 5,
+      "hasImage": false,
+      "imageUrls": []
+    }
+  ]
+}

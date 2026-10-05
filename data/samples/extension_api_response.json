@@ -1,0 +1,11 @@
+{
+  "schemaVersion": "1.0",
+  "modelVersion": "illustrative-contract-fixture",
+  "reviewCount": 1,
+  "authenticShare": 100,
+  "verifiedRating": 5,
+  "counts": { "authentic": 1, "deceptive": 0, "irrelevant": 0, "liv": 0 },
+  "sentimentCounts": { "positive": 1, "neutral": 0, "negative": 0 },
+  "aspects": [{ "name": "Performance", "mentions": 1, "positivePercent": 100 }],
+  "reviews": [{ "id": "shopee-example-1", "label": "authentic", "starRating": 5, "signals": [] }]
+}
