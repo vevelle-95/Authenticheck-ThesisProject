@@ -90,6 +90,7 @@
           <section class="ac-state ac-error"><span class="ac-empty-icon ac-error-icon">!</span><h2>Model connection failed</h2><p class="ac-error-message">The local inference service could not be reached.</p><div class="ac-error-actions"><button class="ac-retry">Try model again</button><button class="ac-local-preview">Use local preview</button></div><small>Local preview is heuristic-only and is never presented as model output.</small></section>
           <div class="ac-results hidden">
             <section class="ac-hero">
+              <p class="ac-development-notice" role="note"><strong>Development model — evaluation pending</strong><span>Dataset annotation is ongoing. Predictions are provisional and should not be used to judge a seller or buyer.</span></p>
               <div class="ac-status"><i></i><span class="ac-status-text">Analysis complete</span><span class="ac-mode">Local estimate</span></div>
               <div class="ac-score-row"><div class="ac-ring"><div><strong>0</strong><span>%</span></div></div><div class="ac-score-copy"><span class="ac-eyebrow">Authentic review share</span><h2>Analyzing…</h2><p>Checking review detail, rating consistency, and visible buyer media.</p></div></div>
               <div class="ac-rating"><div><span>Marketplace rating</span><strong class="ac-market-rating">—</strong></div>${arrowIcon}<div><span>Authenticity-adjusted rating</span><strong class="ac-verified-rating">—</strong></div><span class="ac-delta">—</span></div>

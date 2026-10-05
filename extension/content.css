@@ -47,3 +47,5 @@ button:focus-visible, select:focus-visible, a:focus-visible { outline:3px solid 
   .ac-rating { grid-template-columns:1fr 20px 1fr; }
   .ac-delta { grid-column:1 / -1; justify-self:start; }
 }
+
+.ac-development-notice { margin:0 0 16px; padding:12px 14px; display:flex; flex-direction:column; gap:4px; color:#73501b; background:#fff5df; border:1px solid #ead5aa; border-radius:10px; font-size:12px; line-height:1.5; }.ac-development-notice strong { font-size:13px; }
