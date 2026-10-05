@@ -67,9 +67,31 @@ Authenticheck-ThesisProject/data/splits.json
 
 The config resolves them as `../../data/test_reviews.csv` and
 `../../data/splits.json`. The old baseline-local data folder is
-not needed. The split file is currently ignored by the project's Git rules;
-obtain the team's matching copy or include it in the repository. Everyone
-must use the same CSV and split assignments for a paired comparison.
+not needed. Development split files can stay ignored while the dataset is
+changing. After setting up the baseline environment, generate the initial
+local splits from the **AuthentiCheck project root**:
+
+```powershell
+.\baselines\clip-ca-cg\.venv\Scripts\python.exe stage1/prepare_splits.py --data data/test_reviews.csv --splits data/splits.json
+```
+
+This reuses AuthentiCheck's splitter; it does not train a model. An existing
+matching file is reused. For a paired experiment, both models must read the
+same saved split file and the same dataset snapshot.
+
+When the CSV changes, an old split file is rejected because its dataset
+fingerprint no longer matches. Preserve the old experiment and generate a
+new file, for example:
+
+```powershell
+.\baselines\clip-ca-cg\.venv\Scripts\python.exe stage1/prepare_splits.py --data data/test_reviews.csv --splits data/splits_v2.json
+```
+
+Set this baseline's `configs/config.yaml` entry `data.splits` to
+`../../data/splits_v2.json`, and pass `--splits data/splits_v2.json` to
+AuthentiCheck's own training workflow for that experiment. Train and evaluate
+against that dataset version. Archive its CSV, splits, and model metadata
+when you freeze an experiment; committing development split files is optional.
 
 From this baseline folder:
 
