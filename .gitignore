@@ -36,9 +36,6 @@ htmlcov/
 venv/
 env/
 
-# External baseline checkout and its isolated dependencies
-/baselines/lu_et_al_repo/
-
 # JavaScript dependencies and logs
 node_modules/
 npm-debug.log*

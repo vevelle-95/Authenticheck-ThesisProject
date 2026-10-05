@@ -19,13 +19,6 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     return true;
   }
 
-  if (message?.type === "AUTHENTICHECK_COMPARE") {
-    compareWithConfiguredService(message.payload)
-      .then(result => sendResponse({ ok: true, result }))
-      .catch(error => sendResponse({ ok: false, error: error.message }));
-    return true;
-  }
-
   if (message?.type === "AUTHENTICHECK_RESCAN") {
     chrome.tabs.sendMessage(message.tabId, { type: "AUTHENTICHECK_RESCAN" }).catch(() => {});
     sendResponse({ ok: true });
@@ -72,33 +65,4 @@ async function analyzeWithConfiguredService(payload) {
     throw new Error("The model API returned an unsupported response schema.");
   }
   return result;
-}
-
-async function compareWithConfiguredService(payload) {
-  const settings = await chrome.storage.sync.get(DEFAULTS);
-  if (!settings.useApi) throw new Error("Enable the model API in extension settings to compare models.");
-  const configured = new URL(settings.apiEndpoint);
-  if (configured.protocol !== "http:" || !["127.0.0.1", "localhost"].includes(configured.hostname)) {
-    throw new Error("Comparison requires a local HTTP AuthentiCheck API endpoint.");
-  }
-  const endpoint = new URL("/api/compare/lu-et-al", configured.origin);
-  const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), 180000);
-  try {
-    const response = await fetch(endpoint.href, {
-      method: "POST",
-      headers: { "Content-Type": "application/json", "Accept": "application/json" },
-      body: JSON.stringify(payload),
-      signal: controller.signal
-    });
-    if (!response.ok) throw new Error(`Comparison API returned HTTP ${response.status}.`);
-    const result = await response.json();
-    if (!result?.engines || !Array.isArray(result?.taxonomy)) throw new Error("Comparison API returned an invalid result.");
-    return result;
-  } catch (error) {
-    if (error?.name === "AbortError") throw new Error("Comparison timed out. Check the local inference service.");
-    throw error;
-  } finally {
-    clearTimeout(timeout);
-  }
 }

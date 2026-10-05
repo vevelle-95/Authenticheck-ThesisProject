@@ -28,7 +28,6 @@
   let refreshTimer;
   let loadingTipTimer;
   let analysisRun = 0;
-  let comparisonRun = 0;
   let host;
   let root;
   let lastPayload;
@@ -95,11 +94,10 @@
               <div class="ac-score-row"><div class="ac-ring"><div><strong>0</strong><span>%</span></div></div><div class="ac-score-copy"><span class="ac-eyebrow">Authentic review share</span><h2>Analyzing…</h2><p>Checking review detail, rating consistency, and visible buyer media.</p></div></div>
               <div class="ac-rating"><div><span>Marketplace rating</span><strong class="ac-market-rating">—</strong></div>${arrowIcon}<div><span>Authenticity-adjusted rating</span><strong class="ac-verified-rating">—</strong></div><span class="ac-delta">—</span></div>
             </section>
-            <nav class="ac-tabs"><button class="ac-tab active" data-tab="overview">Overview</button><button class="ac-tab" data-tab="insights">Insights</button><button class="ac-tab" data-tab="reviews">Reviews</button><button class="ac-tab" data-tab="compare">Compare</button></nav>
+            <nav class="ac-tabs"><button class="ac-tab active" data-tab="overview">Overview</button><button class="ac-tab" data-tab="insights">Insights</button><button class="ac-tab" data-tab="reviews">Reviews</button></nav>
             <section class="ac-page active" data-page="overview"></section>
             <section class="ac-page" data-page="insights"></section>
             <section class="ac-page" data-page="reviews"></section>
-            <section class="ac-page" data-page="compare"></section>
           </div>
         </div>
         <footer class="ac-footer"><span><i></i><b>Analyzes visible public reviews only</b></span><div><button class="ac-export" disabled>Export JSON</button><button class="ac-rescan">Rescan</button></div></footer>
@@ -124,7 +122,6 @@
 
   function destroyShell() {
     analysisRun += 1;
-    comparisonRun += 1;
     stopLoadingTips();
     if (host?.isConnected) host.remove();
     host = null;
@@ -260,7 +257,6 @@
       return;
     }
     const runId = ++analysisRun;
-    comparisonRun += 1;
     renderLoading();
     const minimumLoadingTime = new Promise(resolve => setTimeout(resolve, 1200));
     const extraction = adapter.extractReviews();
@@ -488,162 +484,6 @@
     renderOverview(result, total, payload);
     renderInsights(result);
     renderReviews(result);
-    renderComparisonInput(payload);
-  }
-
-  function renderComparisonInput(payload) {
-    const page = root.querySelector('[data-page="compare"]');
-    const reviews = payload.reviews.filter(review => review.analysisEligible && review.text?.trim());
-    page.innerHTML = `
-      <div class="ac-title"><div><h3>Model comparison</h3><p>Compare a visible buyer review with both engines</p></div></div>
-      <div class="ac-card ac-compare-input">
-        <label for="ac-compare-review">Review to compare</label>
-        <select id="ac-compare-review" class="ac-compare-select" aria-label="Review to compare"></select>
-        <p class="ac-compare-text"></p>
-        <div class="ac-compare-media"></div>
-        <button class="ac-compare-run" type="button">Compare this review</button>
-      </div>
-      <p class="ac-compare-status" role="status" aria-live="polite">${settings.useApi ? "Choose a review and run the comparison." : "Enable the model API in extension settings to run a comparison."}</p>
-      <div class="ac-compare-output"></div>`;
-    const select = page.querySelector(".ac-compare-select");
-    reviews.forEach((review, index) => {
-      const option = document.createElement("option");
-      option.value = String(index);
-      option.textContent = `Review ${index + 1}: ${review.text.trim().slice(0, 45)}`;
-      select.append(option);
-    });
-    const showSelected = () => {
-      const review = reviews[Number(select.value)];
-      page.querySelector(".ac-compare-text").textContent = review?.text || "No written review is available.";
-      const media = page.querySelector(".ac-compare-media");
-      media.replaceChildren();
-      if (review?.imageUrls?.length) {
-        review.imageUrls.slice(0, 5).forEach((url, index) => {
-          // Only marketplace HTTP images may open in a new tab.
-          let imageUrl;
-          try { imageUrl = new URL(url); } catch { return; }
-          if (!["http:", "https:"].includes(imageUrl.protocol)) return;
-          const link = document.createElement("a");
-          link.href = imageUrl.href;
-          link.target = "_blank";
-          link.rel = "noopener noreferrer";
-          link.title = `Open buyer image ${index + 1} in a new tab`;
-          const image = document.createElement("img");
-          image.src = imageUrl.href;
-          image.alt = `Buyer image ${index + 1} — open full size`;
-          image.loading = "lazy";
-          link.append(image);
-          media.append(link);
-        });
-        const count = document.createElement("span");
-        count.textContent = `${review.imageUrls.length} buyer image${review.imageUrls.length === 1 ? "" : "s"} found`;
-        media.append(count);
-      } else {
-        media.textContent = "No buyer image in this review.";
-      }
-    };
-    select.addEventListener("change", showSelected);
-    showSelected();
-    const button = page.querySelector(".ac-compare-run");
-    button.disabled = !reviews.length || !settings.useApi;
-    button.addEventListener("click", async () => {
-      const review = reviews[Number(select.value)];
-      if (!review) return;
-      const runId = ++comparisonRun;
-      button.disabled = true;
-      button.textContent = "Comparing…";
-      button.setAttribute("aria-busy", "true");
-      page.querySelector(".ac-compare-status").textContent = "Running both engines…";
-      page.querySelector(".ac-compare-output").replaceChildren();
-      const response = await sendRuntimeMessage({
-        type: "AUTHENTICHECK_COMPARE",
-        payload: {
-          product_description: String(payload.productDescription || "").slice(0, 2000),
-          reviews: [{
-            id: String(review.id), text: String(review.text),
-            star_rating: review.rating ?? null,
-            image_url: review.imageUrls?.[0] || "",
-            image_urls: review.imageUrls?.slice(0, 5) || []
-          }]
-        }
-      });
-      if (runId !== comparisonRun || !page.isConnected) return;
-      button.disabled = false;
-      button.textContent = "Compare this review";
-      button.removeAttribute("aria-busy");
-      if (!response?.ok) {
-        page.querySelector(".ac-compare-status").textContent = response?.error || "The comparison API did not respond.";
-        return;
-      }
-      page.querySelector(".ac-compare-status").textContent = "Comparison complete. Unavailable engines are labeled below.";
-      renderComparisonResult(page.querySelector(".ac-compare-output"), response.result);
-    });
-  }
-
-  function renderComparisonResult(target, result) {
-    target.replaceChildren();
-    const grid = document.createElement("div");
-    grid.className = "ac-compare-grid";
-    for (const [key, title] of [["authenticheck", "AuthentiCheck"], ["lu_et_al", "Lu et al."]]) {
-      const engine = result.engines[key];
-      const card = document.createElement("section");
-      card.className = "ac-card ac-compare-engine";
-      const heading = document.createElement("strong");
-      heading.textContent = title;
-      card.append(heading);
-      const state = document.createElement("p");
-      state.textContent = engine?.status === "ok" ? "Result available" : `${engine?.status || "unavailable"}: ${engine?.message || "No result"}`;
-      card.append(state);
-      if (engine?.status === "ok") {
-        const review = engine.reviews?.[0];
-        if (key === "authenticheck") {
-          const classification = document.createElement("p");
-          classification.textContent = `Classification: ${review?.classification || "unknown"}`;
-          card.append(classification);
-        } else {
-          const sentiment = document.createElement("p");
-          sentiment.textContent = `Holistic sentiment: ${review?.holistic_sentiment || "unknown"}`;
-          card.append(sentiment);
-        }
-        for (const aspect of review?.aspects || []) {
-          const item = document.createElement("div");
-          item.className = "ac-compare-aspect";
-          const category = document.createElement("b");
-          category.textContent = `${aspect.category.replaceAll("_", " ")} · ${aspect.sentiment}`;
-          const evidence = document.createElement("span");
-          evidence.textContent = `“${aspect.evidence}”`;
-          const source = document.createElement("small");
-          source.textContent = aspect.sentiment_source.replaceAll("_", " ");
-          item.append(category, evidence, source);
-          card.append(item);
-        }
-        if (!review?.aspects?.length) {
-          const empty = document.createElement("p");
-          empty.textContent = key === "authenticheck" && review?.classification && review.classification !== "authentic"
-            ? `Aspect extraction skipped: this review was classified as ${review.classification}.`
-            : "No taxonomy-matched aspect evidence.";
-          card.append(empty);
-        }
-      }
-      grid.append(card);
-    }
-    target.append(grid);
-    const metrics = result.metrics;
-    const summary = document.createElement("div");
-    summary.className = "ac-card ac-compare-metrics";
-    const title = document.createElement("strong");
-    title.textContent = "Agreement and discrepancies";
-    summary.append(title);
-    const note = document.createElement("p");
-    note.textContent = metrics ? `${metrics.agreements} agreement${metrics.agreements === 1 ? "" : "s"} · ${metrics.divergences} divergence${metrics.divergences === 1 ? "" : "s"}. ${metrics.note}` : "Both engines must be available to compare categories.";
-    summary.append(note);
-    for (const row of metrics?.rows || []) {
-      const line = document.createElement("div");
-      line.className = `ac-compare-metric ${row.status}`;
-      line.textContent = `${row.category.replaceAll("_", " ")}: ${row.authenticheck.join(", ") || "none"} / ${row.baseline.join(", ") || "none"} · ${row.status}`;
-      summary.append(line);
-    }
-    target.append(summary);
   }
 
   function renderOverview(result, total, payload) {

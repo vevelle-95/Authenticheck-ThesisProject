@@ -1,12 +1,10 @@
 import os
+from functools import lru_cache
 from typing import Any, Literal
 
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, ConfigDict, Field, HttpUrl, field_validator
-
-from backend.routes.comparison_routes import router as comparison_router
-from backend.services.authenticheck_adapter import _pipeline
 
 SCHEMA_VERSION = "1.0"
 MODEL_VERSION = os.getenv("AUTHENTICHECK_MODEL_VERSION", "authenticheck-2.0")
@@ -44,8 +42,20 @@ class AnalyzeRequest(BaseModel):
     reviews: list[ReviewRequest] = Field(min_length=1, max_length=20)
 
 
+@lru_cache(maxsize=1)
+def _pipeline():
+    from stage2.absa_model import DEFAULT_ABSA_MODEL_DIR, STAGE1_MODEL_DIR
+    from stage2.online_inference import DEFAULT_XGB_PATH, OnlineInference
+
+    return OnlineInference(
+        roberta_model=STAGE1_MODEL_DIR,
+        xgb_path=DEFAULT_XGB_PATH,
+        absa_dir=DEFAULT_ABSA_MODEL_DIR,
+    )
+
+
 class LazyPipeline:
-    """Delay model imports so status and comparison routes remain available."""
+    """Delay model imports so health endpoints remain available during setup."""
 
     def __getattr__(self, name):
         return getattr(_pipeline(), name)
@@ -64,8 +74,6 @@ app.add_middleware(
     allow_methods=["GET", "POST"],
     allow_headers=["Content-Type", "Accept"],
 )
-
-app.include_router(comparison_router)
 
 
 @app.on_event("startup")

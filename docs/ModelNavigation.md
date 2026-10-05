@@ -191,7 +191,7 @@ It checks software behavior; it is separate from the thesis test partition.
 
 - `test_own_model.py` checks labels, splits, features, ABSA, and aggregation.
 - `test_own_model_integration.py` runs a small temporary training/prediction workflow.
-- Other tests cover the backend, extension, or deferred comparison functionality.
+- Other tests cover the API, extension, or model setup.
 
 To run only our model checks:
 
