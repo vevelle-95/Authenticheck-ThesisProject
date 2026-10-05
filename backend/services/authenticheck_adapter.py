@@ -22,15 +22,17 @@ def _pipeline():
     )
 
 
-def run_authenticheck(reviews, product_description=""):
+def run_authenticheck(reviews, product_title, product_description):
     import pandas as pd
 
     pipeline = _pipeline()
     pipeline.check_artifacts()
     records = [{
-        "review_id": review["id"], "text": review["text"],
+        "review_id": review["id"], 
+        "text": review["text"],
         "image_urls": review.get("image_urls") or ([review["image_url"]] if review.get("image_url") else []),
         "product_description": product_description,
+        "product_title": product_title,
         "star_rating": review["star_rating"],
     } for review in reviews]
     output = pipeline.run(pd.DataFrame.from_records(records))

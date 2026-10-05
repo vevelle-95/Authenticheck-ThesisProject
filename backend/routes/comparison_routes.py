@@ -19,6 +19,7 @@ class ComparisonReview(BaseModel):
 
 
 class ComparisonRequest(BaseModel):
+    product_title: str = Field(default="", max_length=100)
     product_description: str = Field(default="", max_length=2000)
     reviews: list[ComparisonReview] = Field(min_length=1, max_length=20)
 
@@ -55,7 +56,7 @@ def compare_lu_et_al(request: ComparisonRequest):
 
     engines = {}
     try:
-        ours = run_authenticheck(reviews, request.product_description)
+        ours = run_authenticheck(reviews, request.product_title, request.product_description)
         engines["authenticheck"] = {"status": "ok", "reviews": ours}
     except Exception as error:
         ours = None
