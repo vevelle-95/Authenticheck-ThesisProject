@@ -9,6 +9,12 @@ practice checkpoints and working APIs. The frontend currently connects to
 AuthentiCheck; the CLIP-CA-CG comparison call and display remain to be connected.
 Practice results include draft/synthetic data and are development checks.
 
+**For groupmates preparing for the tool defense:** read
+[what runs](#1-what-runs), the [project map](#8-file-map-tests-and-troubleshooting),
+and the [API/frontend flow](#6-run-the-apis-and-connect-the-frontend) first.
+The command sections are for the person setting up or training the models.
+You do not need to open every Python file to explain the tool.
+
 - [1. What runs](#1-what-runs)
 - [2. Set up the environments](#2-set-up-the-environments)
 - [3. Dataset and annotation rules](#3-dataset-and-annotation-rules)
@@ -28,6 +34,10 @@ Practice results include draft/synthetic data and are development checks.
 | CLIP-CA-CG baseline | Review text and optional buyer photos | Six aspect categories and their sentiments |
 | Extension | Buyer reviews already loaded on Shopee/Lazada | Review evidence, coverage, and local/API results |
 | Prototype | Illustrative demo data | Interface demonstration |
+
+`liv` means **low informational value** and appears as **Low-value** in the
+interface. The four quality classes and the positive/neutral/negative aspect
+sentiments are separate labels.
 
 ABSA means **aspect-based sentiment analysis**. AuthentiCheck first applies this
 quality filter:
@@ -52,6 +62,50 @@ CLIP embeddings, cross-attention, gating, and aspect/sentiment heads. It has no
 quality classifier. Missing photos use zero CLIP image features and a masked
 visual path. Both models return one sentiment per detected category, rather
 than separate opinion spans.
+
+### Explain the tool in everyday language
+
+1. The extension collects the buyer reviews currently visible on a product page,
+   including each review's written text, stars, and available buyer photos.
+2. With **Use model API** enabled, it sends those reviews to AuthentiCheck's
+   local API. The API is the connection between the interface and the trained models.
+3. The quality model turns the text into four quality probabilities. CLIP supplies
+   a text/photo similarity score, and the stars supply one more number.
+4. XGBoost uses those six numbers to predict the review's quality class.
+5. For reviews predicted Authentic, a separately trained text model detects
+   product aspects and predicts positive, neutral, or negative sentiment for each.
+6. The API returns individual predictions and summary values. The extension
+   displays them as review evidence, aspect summaries, Authentic share, and an
+   authenticity-adjusted rating.
+
+For example, "Matibay ang casing pero mahal" can express positive
+`product_quality` and negative `value`. Whether that review passes the quality
+filter is a separate prediction. An Authentic prediction is a review-quality
+class; evaluation measures whether it agrees with a human label.
+
+The baseline API predicts aspects directly from text and optional photos. Its
+frontend comparison display is still pending. During a defense, describe that
+connection as remaining work until the comparison call and display are implemented.
+
+### Terms the team should know
+
+| Term | Meaning in this project |
+| --- | --- |
+| Annotation / ground truth | A human's reference answer, such as a quality label or an aspect's sentiment. |
+| Encoder | A pretrained component that turns text or a photo into numbers the model can use. AuthentiCheck uses DOST RoBERTa for text. |
+| Frozen encoder | An encoder whose learned parameters are kept unchanged while other model components are trained. |
+| Feature | A number supplied to another model. AuthentiCheck supplies six features to XGBoost. |
+| Training | Learning from labeled training reviews and saving the learned parameters. |
+| Epoch | One pass through a model's training examples. More epochs must be judged using validation results. |
+| Validation | Checking separate products while choosing the model and its settings. |
+| Final test | Measuring the selected model on reserved products after training choices are fixed. |
+| OOF | Out-of-fold probabilities: each training review is scored by a quality model trained on other products. |
+| Checkpoint / weights | Saved learned parameters. Loading them lets the model predict without training again. |
+| Detection threshold | The minimum aspect-presence probability needed to include that category in the output. It is chosen using validation data. |
+| Accuracy / F1 | Scores measured against human labels. Accuracy counts correct answers; F1 accounts for missed targets and incorrect predictions. Macro-F1 gives each class/category equal weight. |
+| Cache | Previously computed features or downloaded files kept to avoid repeating work. |
+| API | A service that accepts review inputs and sends predictions back to the interface. |
+| Baseline | The second model used for comparison on the same data and shared aspect categories. |
 
 ## 2. Set up the environments
 
@@ -237,6 +291,21 @@ device selection. Caching prepares training/validation CLIP features and photos.
 Training/validation use ground-truth Authentic reviews and their six-category
 annotations. A fresh run replaces its configured checkpoint files; use separate
 output directories in a copied config to retain experiments.
+
+### Where to change epochs
+
+| Training route | Setting |
+| --- | --- |
+| Full AuthentiCheck pipeline | Pass `--epochs 3`, or change the `--epochs` default in [pipeline.py](../pipeline.py). The value applies to each OOF fold, final quality RoBERTa, and independent ABSA. |
+| Standalone Stage 1 training scripts | Pass `--epochs`, or change `EPOCHS` in [stage1/config.py](../stage1/config.py). The full pipeline supplies its own value. |
+| Standalone ABSA training script | Pass `--epochs`, or change its CLI default in [stage2/fine_tune_absa.py](../stage2/fine_tune_absa.py). |
+| Baseline training | Change `training.epochs` in [configs/config.yaml](../baselines/clip-ca-cg/configs/config.yaml), or run baseline `main.py --epochs 5`. |
+
+XGBoost trains decision trees and has no epoch setting. Changing a default does
+not change existing weights; run a new training experiment and select its saved
+bundle/checkpoint for the API. Both APIs keep loaded models in memory, so restart
+the service when replacing its selected model. The AuthentiCheck practice bundle
+was trained for one epoch; the baseline's current training history contains five.
 
 ### When the dataset changes
 
@@ -570,42 +639,226 @@ when the user enables API mode.
 
 ## 8. File map, tests, and troubleshooting
 
-| File/directory | Purpose |
+Read this map as a directory guide, rather than a list of scripts to run.
+**Entry points** are commands you launch; **supporting files** are called by those
+commands automatically. The training commands in section 4 already coordinate
+the required supporting files.
+
+### Folder overview
+
+All paths in this table start at `Authenticheck-ThesisProject/`.
+
+| Folder | What it contains / when the team needs it |
 | --- | --- |
-| [pipeline.py](../pipeline.py) | Runs AuthentiCheck preparation, OOF fitting, training, and validation. |
-| [model_contract.py](../model_contract.py) | Shared labels, taxonomy, feature order, accepted formats, and API bundle selection. |
-| [model_data.py](../model_data.py) | CSV validation, fingerprints, and product split logic. |
-| [model_metrics.py](../model_metrics.py) | Accuracy, precision, recall, F1, and confusion matrices. |
-| [stage1/prepare_splits.py](../stage1/prepare_splits.py) | CLI for the shared split logic; either environment can invoke it from the root. |
-| [stage1/generate_oof_features.py](../stage1/generate_oof_features.py) | Five fold fits and held-fold quality probabilities. |
-| [stage1/train_roberta.py](../stage1/train_roberta.py) | Final quality text encoder. |
-| [stage1/features.py](../stage1/features.py) | Shared offline/online six-feature extraction. |
-| [stage1/extract_6d_features.py](../stage1/extract_6d_features.py) | Writes training/validation feature CSV. |
-| [stage2/train_xgboost.py](../stage2/train_xgboost.py) | Fits the final quality filter. |
-| [stage2/absa_model.py](../stage2/absa_model.py) and [fine_tune_absa.py](../stage2/fine_tune_absa.py) | Category detection, conditioned sentiment, and ABSA training. |
-| [stage2/online_inference.py](../stage2/online_inference.py) | Full prediction and aggregation. |
-| [stage2/predict_absa.py](../stage2/predict_absa.py) | ABSA-only diagnosis. |
-| [stage2/evaluate_models.py](../stage2/evaluate_models.py) | Held-out AuthentiCheck evaluation. |
-| [main.py](../main.py) | AuthentiCheck HTTP API. |
-| [baseline main.py](../baselines/clip-ca-cg/main.py) | Baseline validation/training entry point. |
-| [baseline datasets/](../baselines/clip-ca-cg/datasets/) | CSV mapping, shared manifests, cached CLIP, and photos. |
-| [baseline models/](../baselines/clip-ca-cg/models/) and [training/](../baselines/clip-ca-cg/training/) | Baseline architecture, losses, fitting, and metrics. |
-| [baseline inference.py](../baselines/clip-ca-cg/inference.py) and [predict.py](../baselines/clip-ca-cg/predict.py) | Reusable trained predictor and CLI. |
-| [baseline evaluate.py](../baselines/clip-ca-cg/evaluate.py) | Held-out baseline evaluation. |
-| [baseline api.py](../baselines/clip-ca-cg/api.py) | HTTP predictions and readiness checks. |
-| `extension/`, `prototype/` | Browser interface/extractors and standalone demonstration. |
+| [data/](../data/) | The shared input CSV, saved product splits, and generated training features. Open this for dataset work. |
+| [data/samples/](../data/samples/) | Small examples of messages exchanged by the extension and API. These are interface examples. |
+| [stage1/](../stage1/) | Quality-text training, product split preparation, and six-feature preparation. |
+| [stage2/](../stage2/) | XGBoost training, aspect/sentiment training, complete prediction, and final evaluation. The folder name is historical: XGBoost still belongs to the quality stage. |
+| [models/](../models/) | AuthentiCheck's saved learned parameters, tokenizers, settings, and training records. See section 5 for the bundle layout. |
+| [baselines/](../baselines/) | Alternative models used for comparison; currently contains the adapted CLIP-CA-CG project. |
+| [baselines/clip-ca-cg/configs/](../baselines/clip-ca-cg/configs/) | Baseline training settings and data/output paths. |
+| [baselines/clip-ca-cg/datasets/](../baselines/clip-ca-cg/datasets/) | Baseline code that reads the shared CSV and prepares text, photos, and labels. |
+| [baselines/clip-ca-cg/models/](../baselines/clip-ca-cg/models/) | Python code defining the baseline architecture. `encoders/` reads text/photos; `fusion/` combines their information. |
+| [baselines/clip-ca-cg/training/](../baselines/clip-ca-cg/training/) | Baseline learning, validation, and metric calculations. |
+| `baselines/clip-ca-cg/outputs/` | Generated baseline checkpoints, cached photos/features, predictions, and evaluation reports. Created by the relevant commands. |
+| [extension/](../extension/) | The actual Chrome/Edge tool: review extraction, settings, API connection, and result panel. |
+| [extension/extractors/](../extension/extractors/) | Rules for finding buyer reviews on Shopee and Lazada pages. |
+| [prototype/](../prototype/) | A standalone interface demonstration with illustrative data. |
+| [tests/](../tests/) | Automated AuthentiCheck checks and small browser test pages. |
+| [baselines/clip-ca-cg/tests/](../baselines/clip-ca-cg/tests/) | Automated baseline architecture/data/API checks. |
+| [scripts/](../scripts/) | An older model-bundle installation utility. It is outside the current training route. |
+| [docs/](./) | This project guide. Keep team explanations here instead of creating separate guides. |
+| `results/` | AuthentiCheck prediction and evaluation reports, created by the relevant commands. |
+| `reports/generated/` | Records of draft annotation filling and synthetic practice reviews. These describe dataset edits. |
 
-Keep `tests/`; it checks software behavior and is separate from the thesis's
-test partition. Tests do not create the team's trained bundle. The own-model
-integration test uses a temporary tiny random encoder and mocked image features;
-baseline tests also use miniature offline fixtures. Their scores are not thesis
-accuracy measurements.
+**Two folders named `models` have different jobs:** root `models/` stores
+AuthentiCheck's trained files; baseline `models/` defines how its neural network
+works. The baseline's trained files are in `outputs/checkpoints/`.
 
-From the root, run the relevant own-model/API checks:
+### Files at the project root
+
+| File | Plain-language purpose |
+| --- | --- |
+| [README.md](../README.md) | The short project overview, extension installation steps, and quick start. |
+| [pipeline.py](../pipeline.py) | AuthentiCheck training entry point. Coordinates validation, splits, OOF fitting, final quality training, XGBoost, and ABSA. |
+| [main.py](../main.py) | AuthentiCheck API entry point. Loads the selected trained bundle and answers extension requests; it does not train on those requests. |
+| [model_contract.py](../model_contract.py) | Shared rulebook: quality labels, ten aspects, accepted sentiments, six-feature order, rating/photo formats, and API bundle selection. |
+| [model_data.py](../model_data.py) | Reads and checks the CSV, identifies dataset changes, and assigns products to saved partitions/folds. |
+| [model_metrics.py](../model_metrics.py) | Compares predictions with reference labels and calculates accuracy, precision, recall, F1, and the confusion matrix. |
+| [requirements.txt](../requirements.txt) | Python libraries needed by AuthentiCheck training and its API. |
+| [.gitignore](../.gitignore) | Tells Git to leave out environments, large weights, caches, generated reports, and other local files. It does not delete them. |
+
+`model_data.py` contains the split logic; `stage1/prepare_splits.py` is the
+small command that calls it. They share one implementation. Similarly, the
+metrics helper calculates scores while evaluation scripts choose which model
+and reviews to score.
+
+### AuthentiCheck Stage 1 files
+
+| File | What it does | Used during |
+| --- | --- | --- |
+| [config.py](../stage1/config.py) | Holds Stage 1 defaults such as paths, batch size, learning rate, and epochs. | Supporting settings |
+| [prepare_splits.py](../stage1/prepare_splits.py) | Checks the CSV and creates/reuses the shared train/validation/test and five-fold assignment. | Preparation command |
+| [train_roberta.py](../stage1/train_roberta.py) | Fine-tunes DOST RoBERTa to predict four review-quality classes; also supplies the fitting code used by OOF training. | Training |
+| [generate_oof_features.py](../stage1/generate_oof_features.py) | Trains five fold models and scores each held-out training fold. Those predictions become XGBoost training inputs. | Training-feature preparation |
+| [features.py](../stage1/features.py) | Produces the same six numbers during training and prediction: four text probabilities, photo similarity, and normalized stars. Loads usable buyer photos; no usable photo gives similarity `0`. | Supporting code for training and prediction |
+| [extract_6d_features.py](../stage1/extract_6d_features.py) | Writes the training/validation feature CSV. Uses OOF probabilities for training and final RoBERTa probabilities for validation. | Training-feature preparation |
+
+The `oof/` models help build training features. The final `dost_roberta/` model
+handles new reviews. They are separate fits with separate purposes.
+
+### AuthentiCheck Stage 2 files
+
+| File | What it does | Used during |
+| --- | --- | --- |
+| [train_xgboost.py](../stage2/train_xgboost.py) | Learns the final quality decision from the six features and selects settings using validation reviews. | Training |
+| [absa_model.py](../stage2/absa_model.py) | Defines the ten-aspect detector and sentiment classifier, including how their trained weights are saved and loaded. | Supporting model code |
+| [fine_tune_absa.py](../stage2/fine_tune_absa.py) | Trains independent DOST ABSA on human-labeled Authentic training reviews; chooses the checkpoint and aspect-detection threshold using validation. | Training |
+| [online_inference.py](../stage2/online_inference.py) | Runs RoBERTa/CLIP/stars through XGBoost, sends predicted Authentic reviews to ABSA, and builds review/product summaries. The API uses this same prediction code. | New-review prediction / API |
+| [predict_absa.py](../stage2/predict_absa.py) | Runs ABSA separately for diagnosis. Can filter by an existing predicted quality label; it does not run the full quality classifier itself. | Optional prediction command |
+| [evaluate_models.py](../stage2/evaluate_models.py) | Checks model/data provenance and scores selected models on reserved test products, including ABSA with and without the predicted quality filter. | Final evaluation command |
+
+During live use, saved weights are loaded and reused. Training scripts and
+final evaluation scripts are not called every time someone analyzes a product.
+
+### Baseline entry points and settings
+
+The following paths start inside `baselines/clip-ca-cg/`. Run its commands with
+its own environment; it reads the same root dataset and split file.
+
+| File | Plain-language purpose |
+| --- | --- |
+| [main.py](../baselines/clip-ca-cg/main.py) | Baseline training entry point, or CSV/split checking with `--validate-only`. Unlike root `main.py`, this starts training. |
+| [api.py](../baselines/clip-ca-cg/api.py) | Baseline API entry point. Loads the selected checkpoint once and serves `/predict-aspects`, `/health`, and `/ready`. |
+| [predict.py](../baselines/clip-ca-cg/predict.py) | Command for predicting aspects from a new review or CSV and saving JSON. |
+| [evaluate.py](../baselines/clip-ca-cg/evaluate.py) | Final evaluation command for the selected checkpoint on shared test products. |
+| [cache_clip_features.py](../baselines/clip-ca-cg/cache_clip_features.py) | Downloads usable buyer photos and computes reusable frozen CLIP features before training/evaluation. |
+| [inference.py](../baselines/clip-ca-cg/inference.py) | Supporting predictor used by the API and command scripts. Loads trained weights and maps model outputs into aspect JSON. |
+| [runtime.py](../baselines/clip-ca-cg/runtime.py) | Reads settings, resolves file paths, chooses CPU/GPU, checks checkpoint compatibility, and saves JSON reports. |
+| [configs/config.yaml](../baselines/clip-ca-cg/configs/config.yaml) | Dataset/split paths, epochs, learning rate, image/text limits, device settings, and output destinations. |
+| [requirements.txt](../baselines/clip-ca-cg/requirements.txt) | Libraries for the baseline's separate Python environment. |
+| [setup_environment.ps1](../baselines/clip-ca-cg/setup_environment.ps1) | Installs compatible baseline dependencies, including the CPU or CUDA/Torchvision setup. |
+| [benchmark_model.py](../baselines/clip-ca-cg/benchmark_model.py) | Optional GPU-memory check with random weights/inputs. Saves a resource report; it does not produce a trained model or an accuracy result. |
+| [test_forward.py](../baselines/clip-ca-cg/test_forward.py) | Optional shortcut that launches `tests/test_adaptation.py`. It contains no additional tests and does not start normal training. |
+| [.gitignore](../baselines/clip-ca-cg/.gitignore) | Additional rules keeping baseline environments, checkpoints, and generated caches/reports out of Git. |
+
+### Baseline data, model, and training helpers
+
+These are supporting files called automatically by the baseline entry points.
+
+| File inside the baseline | Plain-language purpose |
+| --- | --- |
+| [datasets/authenticheck_data.py](../baselines/clip-ca-cg/datasets/authenticheck_data.py) | Maps the existing CSV and annotations to six baseline aspects, checks the shared split manifest, and builds training targets. |
+| [datasets/multimodal_dataset.py](../baselines/clip-ca-cg/datasets/multimodal_dataset.py) | Packages text tokens, real photos, cached CLIP vectors, and aspect labels into batches. Marks absent/padded photos so the model can ignore them. |
+| [datasets/image_store.py](../baselines/clip-ca-cg/datasets/image_store.py) | Downloads and reuses public buyer photos locally. Unavailable photos stay missing. |
+| [datasets/clip_cache.py](../baselines/clip-ca-cg/datasets/clip_cache.py) | Stores frozen text/image features keyed by review content and checks which CLIP version created them. |
+| [models/model.py](../baselines/clip-ca-cg/models/model.py) | Assembles the whole baseline network and its six-aspect/three-sentiment output heads. |
+| [models/encoders/text_encoder.py](../baselines/clip-ca-cg/models/encoders/text_encoder.py) | Uses pretrained RoBERTa and a bidirectional GRU to represent review words with surrounding context. |
+| [models/encoders/image_encoder.py](../baselines/clip-ca-cg/models/encoders/image_encoder.py) | Uses ResNet50 to represent regions of real buyer photos. Frozen by default. |
+| [models/encoders/clip_encoder.py](../baselines/clip-ca-cg/models/encoders/clip_encoder.py) | Computes frozen pretrained CLIP text/photo vectors for the cache. Supplies a zero image vector and score for missing photos. |
+| [models/fusion/cross_attention.py](../baselines/clip-ca-cg/models/fusion/cross_attention.py) | Lets text focus on relevant photo regions and photos focus on relevant words, while ignoring padding and missing photos. |
+| [models/fusion/gating.py](../baselines/clip-ca-cg/models/fusion/gating.py) | Learns how to combine text, image, and joint information for the final aspect predictions. |
+| [models/fusion/projection.py](../baselines/clip-ca-cg/models/fusion/projection.py) | Older vector-size conversion helper. The current network uses its own linear layers and does not import this file. |
+| [training/train.py](../baselines/clip-ca-cg/training/train.py) | Runs all epochs, checks validation performance, saves the best checkpoint/tokenizer, and records training history and dataset membership. |
+| [training/engine.py](../baselines/clip-ca-cg/training/engine.py) | Compares predictions with annotations and updates learned parameters in small batches. Learns aspect presence and sentiment for annotated aspects, with options that reduce GPU-memory use. |
+| [training/eval.py](../baselines/clip-ca-cg/training/eval.py) | Collects predictions, calculates aspect/sentiment metrics, and chooses the detection threshold using validation predictions. |
+| [datasets/__init__.py](../baselines/clip-ca-cg/datasets/__init__.py), [models/__init__.py](../baselines/clip-ca-cg/models/__init__.py) | Empty package markers that let Python import those folders. They contain no model logic. |
+
+Baseline flow: CSV/splits -> cached CLIP/photos -> batched inputs -> text and
+image encoders -> cross-attention and gating -> aspect/sentiment heads -> JSON.
+Training adds human targets and learning updates; prediction loads the selected
+weights and returns outputs. Full-review text is returned as context for each
+aspect; the baseline does not learn to extract opinion snippets.
+
+### Extension and prototype files
+
+The extension is the tool installed in Chrome/Edge. Its HTML defines visible
+controls, CSS defines appearance, and JavaScript supplies behavior.
+
+| File | Plain-language purpose |
+| --- | --- |
+| [extension/manifest.json](../extension/manifest.json) | Tells Chrome/Edge the extension's name, permissions, supported sites, and which scripts to load. |
+| [extension/background.js](../extension/background.js) | Handles extension messages and the AuthentiCheck API connection, including timeouts and connection errors. |
+| [extension/content.js](../extension/content.js) | Runs on the product page: collects reviews through the extractors, builds the panel, requests analysis, validates responses, and displays results. Also contains the optional local heuristic estimate. |
+| [extension/content.css](../extension/content.css) | Styles the floating badge and analysis panel. |
+| [extension/popup.html](../extension/popup.html) | The small settings window opened from the browser toolbar. |
+| [extension/popup.js](../extension/popup.js) | Loads/saves settings such as API mode and endpoint, shows page status, and requests a rescan. |
+| [extension/popup.css](../extension/popup.css) | Styles that settings window. |
+| [extension/extractors/buyer-reviews.js](../extension/extractors/buyer-reviews.js) | Shared buyer-review extraction rules, including keeping text/stars/photos together, excluding seller responses, and removing duplicate matches. |
+| [extension/extractors/shopee.js](../extension/extractors/shopee.js) | Shopee-specific product/review detection and selectors. |
+| [extension/extractors/lazada.js](../extension/extractors/lazada.js) | Lazada-specific product/review detection and selectors. |
+| [extension/extractors/common.js](../extension/extractors/common.js) | Older shared extraction helpers. The current extension manifest loads `buyer-reviews.js` instead, which supplies the shared helpers used by the adapters. |
+| [prototype/index.html](../prototype/index.html) | The standalone demo product page and interface layout. |
+| [prototype/styles.css](../prototype/styles.css) | The prototype's visual styling. |
+| [prototype/app.js](../prototype/app.js) | Demo interactions, staged analysis, and illustrative results. Real API calls still need to be connected here if this is used as the model frontend. |
+
+### Shared data and older setup files
+
+| File | Plain-language purpose |
+| --- | --- |
+| [data/test_reviews.csv](../data/test_reviews.csv) | The working review dataset for both models. The split manifest decides which rows are training, validation, or test. |
+| [data/samples/extension_api_payload.json](../data/samples/extension_api_payload.json) | Example extension request, useful for understanding/testing the message format. |
+| [data/samples/extension_api_response.json](../data/samples/extension_api_response.json) | Example AuthentiCheck response for frontend development; its values are samples. |
+| [models/manifest.json](../models/manifest.json) | Manifest for the older download-bundle layout. Each newly trained bundle has its own manifest. |
+| [scripts/setup_models.py](../scripts/setup_models.py) | Installs/verifies an older model archive according to that manifest. Current training uses `pipeline.py` instead. |
+| [docs/PROJECT_GUIDE.md](PROJECT_GUIDE.md) | This shared explanation of the models, dataset, outputs, APIs, interface, and defense terminology. |
+
+Generated split/feature files, per-epoch checkpoints, tokenizers, model
+configurations, and reports are explained in [section 5](#5-saved-files-and-new-review-prediction).
+Paths such as `data/practice_run/` or `models/practice_run/` are experiment
+destinations, rather than extra implementations of the model.
+
+### What the test files do
+
+**Software checks and final dataset evaluation answer different questions.**
+Software checks ask whether the code follows its rules, for example whether a
+review without a photo gets CLIP score `0`. Final evaluation asks how accurately
+the trained model predicts human-labeled reviews from unseen products.
+
+The two maintained test folders have separate jobs:
+
+| File in root `tests/` | What it checks |
+| --- | --- |
+| [test_own_model.py](../tests/test_own_model.py) | CSV/label rules, product separation, OOF behavior, no-image score `0`, mixed sentiments, ABSA filtering, and summary calculations. |
+| [test_own_model_integration.py](../tests/test_own_model_integration.py) | A complete miniature train/save/load/predict/evaluate round trip using a temporary tiny encoder and mocked photo features. Reuses fixtures from `test_own_model.py`. |
+| [test_api_contract.py](../tests/test_api_contract.py) | AuthentiCheck request/response format and review-count limits, using a fake predictor rather than saved thesis weights. |
+| [test_model_setup.py](../tests/test_model_setup.py) | The older download manifest and installer. Optional legacy coverage, separate from the current model-training route. |
+| [check_extension_contract.mjs](../tests/check_extension_contract.mjs) | Extension script configuration and sample API message formats. Runs with Node. |
+| [test_extension_runtime.mjs](../tests/test_extension_runtime.mjs) | Extension response validation, message handling, and API errors/timeouts in a simulated environment. Runs with Node. |
+| [extractor-fixture.html](../tests/extractor-fixture.html) | Small browser page for checking buyer text/photo extraction and seller-response exclusion. |
+| [shopee-fallback-fixture.html](../tests/shopee-fallback-fixture.html) | Checks extraction from alternative Shopee markup. |
+| [shopee-rating-only-fixture.html](../tests/shopee-rating-only-fixture.html) | Checks a review containing stars but no written text. |
+| [panel-fixture.html](../tests/panel-fixture.html) | Checks the panel, analysis payload, and displayed results using controlled reviews and a simulated API. |
+| [panel-lazy-text-fixture.html](../tests/panel-lazy-text-fixture.html) | Checks handling of review text that appears after the page first loads. |
+| [panel-invalidated-context-fixture.html](../tests/panel-invalidated-context-fixture.html) | Checks recovery when reloading/disabling an extension invalidates its page connection. |
+| [assets/review-photo.svg](../tests/assets/review-photo.svg) | Local example buyer picture for the browser fixtures. It is outside the thesis dataset. |
+
+| File in baseline `tests/` | What it checks |
+| --- | --- |
+| [test_adaptation.py](../baselines/clip-ca-cg/tests/test_adaptation.py) | Six-category targets, mixed sentiments, product separation, feature-cache reuse, missing/real photos, attention behavior, learning updates, and saved checkpoint/JSON behavior. Uses miniature offline models. |
+| [test_api.py](../baselines/clip-ca-cg/tests/test_api.py) | Baseline HTTP input/output, retained review IDs, predictor reuse, missing-model/cache errors, and allowed frontend origins. Uses a fake predictor. |
+
+**Recommendation: keep both test folders in Git and leave them collapsed during
+normal dataset/model work.** Normal training and APIs do not import them, so
+removing them would not remove a trained model; it would remove these checks.
+The tiny models exist only to run checks quickly, and temporary learned files
+are cleaned up. Test logs can show one epoch or poor miniature-model scores;
+those are software exercises and are not the real training results.
+
+The redundant `baselines/clip-ca-cg/test_forward.py` launcher can be removed
+without losing coverage when the discovery command below is used.
+`tests/test_model_setup.py` is optional if the older installer is retired.
+The other test files cover current behavior. Keep `test_own_model.py` if keeping
+its integration test, because that integration test imports its sample-data helper.
+
+For defense preparation, groupmates should explain the model flow and outputs;
+the person maintaining the code can run these checks after relevant changes.
+They do not need to run before every new review prediction.
+
+From the root, run all Python checks, including the optional legacy setup checks:
 
 ```powershell
-.\.venv\Scripts\python.exe -m unittest discover -s tests -p "test_own_model*.py" -v
-.\.venv\Scripts\python.exe -m unittest discover -s tests -p test_api_contract.py -v
+.\.venv\Scripts\python.exe -m unittest discover -s tests -p "test*.py" -v
 ```
 
 From `baselines/clip-ca-cg`, run baseline/API checks:
@@ -620,6 +873,34 @@ Extension checks, when Node is installed, run from the root:
 node tests/check_extension_contract.mjs
 node tests/test_extension_runtime.mjs
 ```
+
+The HTML fixtures are separate browser checks. Serve the project root, then open
+the desired page under `/tests/`; its page title/result indicates PASS or FAIL:
+
+```powershell
+.\.venv\Scripts\python.exe -m http.server 5501 --bind 127.0.0.1
+```
+
+For example, open `http://127.0.0.1:5501/tests/extractor-fixture.html`.
+These controlled pages do not establish that extraction works on every current
+marketplace page; check the actual page diagnostics too.
+
+### Local tool folders and navigation
+
+| Item | Meaning |
+| --- | --- |
+| `.venv/` in each model project | Installed Python and libraries. Use its interpreter, but keep the folder collapsed. |
+| `__pycache__/` | Automatically generated Python bytecode. It can be regenerated and is ignored by Git. |
+| `.git/` | Git's repository history and bookkeeping. Leave it managed by Git. |
+| `.vscode/` | Local editor settings. It is outside the model's learned behavior. |
+| `debug.log`, other logs | Local diagnostics, not saved model weights or final accuracy reports. |
+
+Open `Authenticheck-ThesisProject/` as the VS Code project when working on this
+repository. Keep `.venv`, caches, saved weights, and tests collapsed, and open the
+folder relevant to the current task. Baseline source is in `baselines/clip-ca-cg/`.
+The generated output folders are not additional source folders to maintain.
+
+### Troubleshooting
 
 | Problem | Check |
 | --- | --- |
