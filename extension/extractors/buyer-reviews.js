@@ -123,16 +123,40 @@
     const nonReviewTextSelectors = [
       ...exclusionSelectors,
       ...ratingSelectors,
-      "script", "style", "button", "svg", "img", "video",
+      "script", "style", "button", "svg", "img", "video", "time", "[hidden]", "[aria-hidden='true']",
       "[aria-label*='star' i]", "[class*='star']",
       "[class*='username']", "[class*='author']", "[class*='date']", "[class*='time']",
-      "[class*='variation']", "[class*='like']", "[class*='action']"
+      "[class*='variation']", "[class*='like']", "[class*='action']",
+      ".shopee-product-rating__author-name", ".shopee-product-rating__time",
+      "[class*='video-duration']", "[class*='media-duration']"
     ];
+    // Detached clones lack rendered innerText. Preserve DOM block boundaries
+    // instead of flattening adjacent fields with textContent.
+    const bodyText = clone => {
+      const read = node => {
+        if (node.nodeType === 3) return node.textContent || "";
+        const value = [...node.childNodes].map(read).join("");
+        return /^(DIV|P|SECTION|ARTICLE|LI|BR|DT|DD|HEADER|FOOTER)$/.test(node.nodeName)
+          ? `\n${value}\n` : value;
+      };
+      const lines = read(clone).split(/\n+/).map(cleanText).filter(Boolean);
+      // Marketplace headers may combine masked usernames, timestamps and
+      // variations in a single row. Keep buyer prose and aspect field values.
+      return lines.filter(line =>
+        !/^[\w.*-]*\*{2,}[\w.*-]*$/.test(line)
+        && !/^[\w.*-]*\*{2,}[\w.*-]*\s*20\d{2}[-/.]/.test(line)
+        && !/^20\d{2}[-/.]\d{1,2}[-/.]\d{1,2}(?:\s+\d{1,2}:\d{2})?(?:\s*\|.*)?$/.test(line)
+        && !/^(?:variation|variant)\s*:/i.test(line)
+        && !/^(?:\d{1,2}:\d{2}\s*)+$/.test(line)
+        && !/^(?:helpful|report|like|reply)(?:\s*\d+)?$/i.test(line)
+        && !/^\d+$/.test(line)
+      ).join(" ");
+    };
     const textFromElement = element => {
       const clone = element.cloneNode(true);
       findSellerResponseElements(clone, exclusionSelectors).forEach(excluded => excluded.remove());
       nonReviewTextSelectors.forEach(selector => clone.querySelectorAll(selector).forEach(child => child.remove()));
-      return cleanText(clone.innerText || clone.textContent || "");
+      return bodyText(clone);
     };
 
     const candidates = [];
@@ -146,23 +170,7 @@
       });
     });
     if (!candidates.length) {
-      const clone = root.cloneNode(true);
-      findSellerResponseElements(clone, exclusionSelectors).forEach(excluded => excluded.remove());
-      nonReviewTextSelectors.forEach(selector => clone.querySelectorAll(selector).forEach(child => child.remove()));
-      const lines = String(clone.innerText || clone.textContent || "")
-        .split(/\n+/)
-        .map(cleanText)
-        .filter(Boolean);
-      const dateIndex = lines.findIndex(hasReviewDate);
-      const likelyBody = (dateIndex >= 0 ? lines.slice(dateIndex + 1) : lines)
-        .filter(line => {
-          return !hasReviewDate(line)
-            && !/^(?:variation|color|size|model|product quality|video quality|best feature)\s*:/i.test(line)
-            && !/^(?:helpful|report|like|reply)\b/i.test(line)
-            && !SELLER_REPLY_PATTERN.test(line)
-            && !/^\d+$/.test(line);
-        })
-        .sort((a, b) => b.length - a.length)[0];
+      const likelyBody = textFromElement(root);
       if (likelyBody?.length) candidates.push(likelyBody);
     }
     return candidates

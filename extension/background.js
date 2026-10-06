@@ -19,13 +19,6 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     return true;
   }
 
-  if (message?.type === "AUTHENTICHECK_COMPARE") {
-    compareWithConfiguredService(message.payload)
-      .then(result => sendResponse({ ok: true, result }))
-      .catch(error => sendResponse({ ok: false, error: error.message }));
-    return true;
-  }
-
   if (message?.type === "AUTHENTICHECK_RESCAN") {
     chrome.tabs.sendMessage(message.tabId, { type: "AUTHENTICHECK_RESCAN" }).catch(() => {});
     sendResponse({ ok: true });
@@ -52,51 +45,28 @@ async function analyzeWithConfiguredService(payload) {
       body: JSON.stringify(payload),
       signal: controller.signal
     });
-  } catch (error) {
-    if (error?.name === "AbortError") throw new Error("The model API timed out. Check that the local inference service is running.");
-    throw new Error("The model API could not be reached. Check the endpoint and local inference service.");
-  } finally {
-    clearTimeout(timeout);
-  }
-
-  if (!response.ok) {
-    const problem = await response.json().catch(() => null);
-    const detail = typeof problem?.detail === "string" ? ` ${problem.detail}` : "";
-    throw new Error(`Model API returned HTTP ${response.status}.${detail}`);
-  }
-  const result = await response.json().catch(() => { throw new Error("The model API did not return valid JSON."); });
-  if (!result || typeof result !== "object" || Array.isArray(result)) {
-    throw new Error("The model API returned an invalid result object.");
-  }
-  if (result.schemaVersion !== "1.0") {
-    throw new Error("The model API returned an unsupported response schema.");
-  }
-  return result;
-}
-
-async function compareWithConfiguredService(payload) {
-  const settings = await chrome.storage.sync.get(DEFAULTS);
-  if (!settings.useApi) throw new Error("Enable the model API in extension settings to compare models.");
-  const configured = new URL(settings.apiEndpoint);
-  if (configured.protocol !== "http:" || !["127.0.0.1", "localhost"].includes(configured.hostname)) {
-    throw new Error("Comparison requires a local HTTP AuthentiCheck API endpoint.");
-  }
-  const endpoint = new URL("/api/compare/lu-et-al", configured.origin);
-  const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), 180000);
-  try {
-    const response = await fetch(endpoint.href, {
-      method: "POST",
-      headers: { "Content-Type": "application/json", "Accept": "application/json" },
-      body: JSON.stringify(payload),
-      signal: controller.signal
+    if (!response.ok) {
+      const problem = await response.json().catch(error => {
+        if (controller.signal.aborted) throw error;
+        return null;
+      });
+      const detail = typeof problem?.detail === "string" ? ` ${problem.detail}` : "";
+      throw new Error(`Model API returned HTTP ${response.status}.${detail}`);
+    }
+    const result = await response.json().catch(error => {
+      if (controller.signal.aborted) throw error;
+      throw new Error("The model API did not return valid JSON.");
     });
-    if (!response.ok) throw new Error(`Comparison API returned HTTP ${response.status}.`);
-    const result = await response.json();
-    if (!result?.engines || !Array.isArray(result?.taxonomy)) throw new Error("Comparison API returned an invalid result.");
+    if (!result || typeof result !== "object" || Array.isArray(result)) {
+      throw new Error("The model API returned an invalid result object.");
+    }
+    if (result.schemaVersion !== "1.0") {
+      throw new Error("The model API returned an unsupported response schema.");
+    }
     return result;
   } catch (error) {
-    if (error?.name === "AbortError") throw new Error("Comparison timed out. Check the local inference service.");
+    if (controller.signal.aborted || error?.name === "AbortError") throw new Error("The model API timed out. Check that the local inference service is running.");
+    if (!response) throw new Error("The model API could not be reached. Check the endpoint and local inference service.");
     throw error;
   } finally {
     clearTimeout(timeout);

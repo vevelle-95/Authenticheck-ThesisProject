@@ -2,7 +2,7 @@
 
 The following ten categories are the agreed AuthentiCheck taxonomy, as specified by the research team. This supersedes the earlier five-category taxonomy in the supplied proposal for future implementation and annotation. The thesis paper must be updated to describe this same taxonomy.
 
-Our updated Stage 1/Stage 2 code imports this taxonomy from `model_contract.py`. Existing model weights and comparison adapters are not certified as implementing it; the category model requires new training.
+Our updated Stage 1/Stage 2 code imports this taxonomy from `model_contract.py`. Older model weights are not certified as implementing it; the category model requires new training.
 
 ## Categories and order
 
@@ -79,14 +79,14 @@ Whether the received product matches what was advertised, as stated by the revie
 ## Implementation implications
 
 - A category-based ABSA detector needs ten outputs corresponding to the order above, with independent category probabilities. Its sentiment component needs a polarity prediction conditioned on the target category.
-- Training, inference, comparison adapters, evaluation, and displayed results must use the same category identifiers and definitions.
+- Training, inference, evaluation, and displayed results must use the same category identifiers and definitions.
 - Preserve annotation evidence separately from the category identifier; an extracted phrase is not itself a fixed category prediction.
 - Persist taxonomy version/order and selected thresholds with newly trained artifacts. Existing phrase-based weights must not be relabeled as a ten-category model merely by changing configuration metadata.
 - Validation and final testing should evaluate category detection and per-category polarity separately. For paired sentiment-model comparisons, provide the same ground-truth target category to both models.
 
 ## Existing implementation status when adopted
 
-The original `stage2/absa_model.py` was a BIO phrase extractor. It has now been replaced with ten-category detection and category-conditioned sentiment. The new code preserves old weights and saves newly trained artifacts separately. `backend/services/taxonomy.py` still contains the old six-category keyword projection; comparison work is intentionally deferred.
+The original `stage2/absa_model.py` was a BIO phrase extractor. It has now been replaced with ten-category detection and category-conditioned sentiment. The new code preserves old weights and saves newly trained artifacts separately.
 
 A review can contain different sentiments for the same category, for example
 positive fragrance and negative texture under `sensory_experience`. Preserve

@@ -111,7 +111,7 @@ test set suitable for tuning and then reporting unbiased final performance.
 ## Work still deferred
 
 - Training and measuring performance on the finalized real dataset.
-- Lu et al. comparison adapters/routes and their older category projection.
+- Integration and evaluation of an external comparison model.
 - Formal statistical tests and annotation agreement measurements.
 - Reviewed synthetic augmentation; the pipeline does not generate it.
 - Empirical validation of Tagalog/Taglish CLIP alignment.
