@@ -5,20 +5,16 @@ reviews classified as Authentic.
 
 ## Start here
 
-The team is currently collecting and annotating the dataset. Start with
-[ModelNavigation.md](docs/ModelNavigation.md) for a plain-language explanation of
-the model, each Python file, commands, and output directories. Training examples
-there are for when annotations are ready.
+The team is currently collecting and annotating the dataset. Use the single
+[project guide](docs/PROJECT_GUIDE.md) for both models, dataset annotations,
+training, saved outputs, APIs, frontend comparison, and browser extraction.
+This README is the project overview and quick start.
 
-| Document | Read it when |
-| --- | --- |
-| [ModelNavigation.md](docs/ModelNavigation.md) | You want to understand or run our model. |
-| [ASPECT_TAXONOMY.md](docs/ASPECT_TAXONOMY.md) | You are assigning aspect labels. |
-| [models/README.md](models/README.md) | You want to identify saved model files. |
-| [OWN_MODEL_CHANGES.md](docs/OWN_MODEL_CHANGES.md) | You need experiment settings or implementation constraints. |
-| [EXTRACTION_CONTRACT.md](docs/EXTRACTION_CONTRACT.md) | You are working on browser review extraction. |
-
-The rest of this README covers the browser extension, API, and prototype.
+AuthentiCheck and CLIP-CA-CG have trained local practice bundles and working APIs.
+The extension connects to AuthentiCheck; baseline comparison rendering is still
+pending frontend integration. Environments, weights, caches, and generated
+reports are ignored by Git. Another machine must set up and train or restore
+compatible models using the guide.
 
 A dependency-free Manifest V3 browser extension plus a standalone frontend prototype. The extension injects a floating review-analysis panel into Shopee Philippines and Lazada Philippines product pages. It follows the AuthentiCheck thesis pipeline: review-quality classification first, then aspect sentiment using only reviews classified as authentic.
 
@@ -141,12 +137,35 @@ python pipeline.py --data data/reviews.csv
 uvicorn main:app --host 127.0.0.1 --port 8000
 ```
 
-`pipeline.py` validates the finalized dataset, persists product-disjoint partitions, generates five-fold out-of-fold RoBERTa probabilities, trains final RoBERTa and XGBoost, and independently trains fixed ten-category ABSA. It selects models and thresholds using validation data. The backend defaults to `models/own_model_v2/`; existing weights are preserved and require retraining for the new architecture. See [ModelNavigation.md](docs/ModelNavigation.md) for the CSV schema and separate held-out test command. Check `http://127.0.0.1:8000/health` for the server and `/ready` for model readiness.
+`pipeline.py` validates the finalized dataset, persists product-disjoint partitions, generates five-fold out-of-fold RoBERTa probabilities, trains final RoBERTa and XGBoost, and independently trains fixed ten-category ABSA. It selects models and thresholds using validation data. Training and the backend default to `models/own_model_v2/`. See the [training and evaluation guide](docs/PROJECT_GUIDE.md#4-train-validate-and-test) for the CSV workflow and separate held-out test command.
 
-The existing `scripts/setup_models.py` installs/verifies the older download manifest and is not a substitute for preparing the new training bundle.
+To use an existing compatible bundle, set `AUTHENTICHECK_MODEL_BUNDLE` before
+starting the API. For the current practice models, run these commands from
+`Authenticheck-ThesisProject`:
+
+```powershell
+.\.venv\Scripts\Activate.ps1
+$env:AUTHENTICHECK_MODEL_BUNDLE = "models/practice_run"
+python -m uvicorn main:app --host 127.0.0.1 --port 8000
+```
+
+Relative bundle paths are resolved from the project root. The selected folder
+must contain `dost_roberta/`, `xgboost_meta_classifier.json` with its metadata,
+and `absa_model/`. The API checks their compatibility before accepting analysis
+requests. This setting affects API inference; training still saves to
+`models/own_model_v2/` unless you pass `--output` to `pipeline.py`.
+
+Restart the API after changing the setting. It applies to the current PowerShell
+session; without it, the API uses the default bundle. Check
+`http://127.0.0.1:8000/health` for the server and `/ready` for model readiness.
+
+The existing `scripts/setup_models.py` installs/verifies the older download manifest and is not a substitute for preparing a compatible training bundle.
 
 The backend processes review photos in memory and discards their bytes after M-CLIP feature extraction; it does not create a permanent review-image store.
 
 `data/test_reviews.csv` is used for dataset-format testing and includes review IDs. Assistant-added draft annotations are recorded in `reports/generated/csv_annotation_fill.json`; review those drafts before thesis evaluation. Missing buyer images produce a CLIP score of 0.
 
-The exact browser extraction boundary is documented in `docs/EXTRACTION_CONTRACT.md`.
+For baseline API startup and the frontend developer handoff, see
+[run the APIs and connect the frontend](docs/PROJECT_GUIDE.md#6-run-the-apis-and-connect-the-frontend).
+The [browser extraction rules](docs/PROJECT_GUIDE.md#7-browser-extraction-and-interface-behavior)
+are in the same guide.

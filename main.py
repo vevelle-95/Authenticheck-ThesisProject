@@ -44,13 +44,14 @@ class AnalyzeRequest(BaseModel):
 
 @lru_cache(maxsize=1)
 def _pipeline():
-    from stage2.absa_model import DEFAULT_ABSA_MODEL_DIR, STAGE1_MODEL_DIR
-    from stage2.online_inference import DEFAULT_XGB_PATH, OnlineInference
+    from model_contract import get_inference_bundle
+    from stage2.online_inference import OnlineInference
 
+    bundle = get_inference_bundle()
     return OnlineInference(
-        roberta_model=STAGE1_MODEL_DIR,
-        xgb_path=DEFAULT_XGB_PATH,
-        absa_dir=DEFAULT_ABSA_MODEL_DIR,
+        roberta_model=bundle / "dost_roberta",
+        xgb_path=bundle / "xgboost_meta_classifier.json",
+        absa_dir=bundle / "absa_model",
     )
 
 

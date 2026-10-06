@@ -20,34 +20,52 @@ def format_aspects(review_text, aspect_probabilities, sentiment_probabilities, t
     ]
 
 
+class BaselinePredictor:
+    """Load a trained checkpoint once and reuse it across prediction requests."""
+
+    def __init__(self, checkpoint_path, *, tokenizer=None, model=None):
+        self.checkpoint = load_checkpoint(checkpoint_path)
+        self.config = self.checkpoint["config"]
+        self.cache = ClipFeatureCache(self.config)
+        if self.cache.metadata is not None:
+            self.validate_cache()
+        self.device = select_device(self.config)
+        if tokenizer is None:
+            tokenizer_path = resolve_path(self.config["output"]["checkpoint_dir"]) / "tokenizer"
+            tokenizer = AutoTokenizer.from_pretrained(tokenizer_path, local_files_only=True)
+        self.tokenizer = tokenizer
+        if model is None:
+            model = CLIPCACG(self.config, self.checkpoint["clip_dimension"], pretrained=False,
+                            text_config=self.checkpoint["text_backbone_config"])
+        model.load_state_dict(self.checkpoint["model_state_dict"])
+        self.model = model.to(self.device).eval()
+
+    def validate_cache(self):
+        if self.cache.metadata is None:
+            raise FileNotFoundError("Missing CLIP encoder metadata; restore outputs/clip_cache/encoder.json or prepare CLIP features before starting the API")
+        expected = self.checkpoint["training_metadata"]["clip_encoder"]
+        if self.cache.metadata != expected:
+            raise ValueError("Prediction CLIP cache must use the exact encoder revision/configuration used for training")
+
+    def predict(self, frame, prepare_cache=False):
+        if prepare_cache:
+            self.cache.prepare(frame)
+        self.validate_cache()
+        loader = DataLoader(MultiModalDataset(frame, self.tokenizer, self.cache, self.config),
+                            batch_size=self.config["training"]["batch_size"], shuffle=False,
+                            num_workers=self.config["training"]["num_workers"],
+                            collate_fn=multimodal_collate_fn)
+        raw = collect_predictions(self.model, loader, self.device)
+        rows = [
+            {"id": row["review_id"], "aspects": format_aspects(
+                row["review_text"], raw["aspect_probabilities"][index],
+                raw["sentiment_probabilities"][index], self.checkpoint["threshold"],
+            )}
+            for index, row in enumerate(frame.to_dict("records"))
+        ]
+        return {"reviews": rows}, raw, self.checkpoint
+
+
 def predict_frame(frame, checkpoint_path, prepare_cache=False, *, tokenizer=None, model=None):
-    checkpoint = load_checkpoint(checkpoint_path)
-    config = checkpoint["config"]
-    cache = ClipFeatureCache(config)
-    if prepare_cache:
-        cache.prepare(frame)
-    expected = checkpoint["training_metadata"]["clip_encoder"]
-    if cache.metadata != expected:
-        raise ValueError("Prediction CLIP cache must use the exact encoder revision/configuration used for training")
-    device = select_device(config)
-    if tokenizer is None:
-        tokenizer_path = resolve_path(config["output"]["checkpoint_dir"]) / "tokenizer"
-        tokenizer = AutoTokenizer.from_pretrained(tokenizer_path, local_files_only=True)
-    if model is None:
-        model = CLIPCACG(config, checkpoint["clip_dimension"], pretrained=False,
-                        text_config=checkpoint["text_backbone_config"])
-    model.load_state_dict(checkpoint["model_state_dict"])
-    model.to(device).eval()
-    loader = DataLoader(MultiModalDataset(frame, tokenizer, cache, config),
-                        batch_size=config["training"]["batch_size"], shuffle=False,
-                        num_workers=config["training"]["num_workers"],
-                        collate_fn=multimodal_collate_fn)
-    raw = collect_predictions(model, loader, device)
-    rows = [
-        {"id": row["review_id"], "aspects": format_aspects(
-            row["review_text"], raw["aspect_probabilities"][index],
-            raw["sentiment_probabilities"][index], checkpoint["threshold"],
-        )}
-        for index, row in enumerate(frame.to_dict("records"))
-    ]
-    return {"reviews": rows}, raw, checkpoint
+    predictor = BaselinePredictor(checkpoint_path, tokenizer=tokenizer, model=model)
+    return predictor.predict(frame, prepare_cache=prepare_cache)
