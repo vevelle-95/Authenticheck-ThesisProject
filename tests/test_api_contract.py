@@ -68,5 +68,16 @@ class ApiContractTests(unittest.TestCase):
             backend.AnalyzeRequest.model_validate(payload)
 
 
+    def test_request_requires_integer_stars(self):
+        payload = json.loads((ROOT / "data" / "samples" / "extension_api_payload.json").read_text(encoding="utf-8"))
+        for rating in (None, 0, 6, 4.5):
+            with self.subTest(rating=rating), self.assertRaises(ValueError):
+                backend.AnalyzeRequest.model_validate(payload | {"reviews": [payload["reviews"][0] | {"rating": rating}]})
+        review = payload["reviews"][0].copy()
+        del review["rating"]
+        with self.assertRaises(ValueError):
+            backend.AnalyzeRequest.model_validate(payload | {"reviews": [review]})
+
+
 if __name__ == "__main__":
     unittest.main()

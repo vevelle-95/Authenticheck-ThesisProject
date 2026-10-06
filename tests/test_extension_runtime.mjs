@@ -17,6 +17,13 @@ const request = JSON.parse(read("data/samples/extension_api_payload.json"));
 const response = JSON.parse(read("data/samples/extension_api_response.json"));
 const payload = { ...request, reviews: request.reviews.map(review => ({ ...review, analysisEligible: true })) };
 assert.equal(context.check.normalizeApiResult(response, payload).mode, "api");
+const unratedPayload = { ...payload, reviews: [...payload.reviews,
+  { id: "unrated", text: "Detailed feedback without stars", rating: null,
+    analysisEligible: false, missingFields: ["rating", "image"] }] };
+const unrated = context.check.normalizeApiResult(response, unratedPayload).reviews[1];
+assert.equal(unrated.label, "unavailable");
+assert.match(unrated.signals[0], /missing rating/);
+assert.doesNotMatch(unrated.signals[0], /image/);
 for (const value of [null, "", false, "100", -1, 101]) {
   assert.throws(() => context.check.normalizeApiResult({ ...response, authenticShare: value }, payload));
 }

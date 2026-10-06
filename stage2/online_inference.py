@@ -21,13 +21,16 @@ API_CLASS_NAMES = list(CLASS_NAMES)
 
 
 class OnlineInference:
-    def __init__(self, roberta_model, xgb_path, absa_dir, threshold=None):
+    def __init__(self, roberta_model, xgb_path, absa_dir, threshold=None, *, development_mode=False):
         self.roberta_model = Path(roberta_model)
         self.xgb_path = Path(xgb_path)
         self.absa_dir = Path(absa_dir)
         self.threshold = threshold
+        self.development_mode = development_mode
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         self.extractor = FeatureExtractor(self.roberta_model)
+        if development_mode:
+            self.extractor.image_loader = lambda _url: None
         self._xgb = self._absa = self._absa_tokenizer = None
 
     def check_artifacts(self):
@@ -59,7 +62,8 @@ class OnlineInference:
     def preload(self):
         self.check_artifacts()
         self.extractor.load_text()
-        self.extractor.load_clip()
+        if not self.development_mode:
+            self.extractor.load_clip()
         self._load_xgb()
         self._load_absa()
 
@@ -109,7 +113,8 @@ class OnlineInference:
                 "confidence": round(max(probabilities), 4),
                 "probabilities": dict(zip(CLASS_NAMES, (round(value, 4) for value in probabilities))),
                 "features": {"p_text": dict(zip(CLASS_NAMES, p_text)), "s_clip": similarity, "r_star": rating},
-                "signals": ["DOST-RoBERTa review-text evidence",
+                "signals": ["Compact development encoder review-text evidence" if self.development_mode else "RoBERTa review-text evidence",
+                            "Buyer images omitted in development mode; CLIP score is 0" if self.development_mode else
                             "M-CLIP matched buyer-image similarity" if best else "No usable buyer image; CLIP score is 0",
                             "Normalized star rating"],
                 "bestImageUrl": best,

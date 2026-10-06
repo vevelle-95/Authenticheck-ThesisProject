@@ -15,7 +15,7 @@ class ReviewRequest(BaseModel):
 
     id: str = Field(min_length=1, max_length=200)
     text: str = Field(min_length=1, max_length=2000)
-    rating: float | None = Field(default=None, ge=1, le=5)
+    rating: int = Field(ge=1, le=5)
     hasImage: bool = False
     imageUrls: list[HttpUrl] = Field(default_factory=list, max_length=5)
 
