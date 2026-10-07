@@ -7,9 +7,11 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 import pandas as pd
-from stage1 import config
 from stage1.features import FeatureExtractor
-from model_contract import FEATURE_COLUMNS, INPUT_VERSION, quality_input_text
+from model_contract import (
+    DEFAULT_DATA_PATH, DEFAULT_FEATURES_PATH, DEFAULT_OOF_PATH, DEFAULT_ROBERTA_DIR,
+    DEFAULT_SPLITS_PATH, FEATURE_COLUMNS, INPUT_VERSION, quality_input_text,
+)
 from model_data import fingerprint, load_reviews, read_splits
 
 
@@ -73,11 +75,11 @@ def build_features(assigned, oof_path, output, model_dir, extractor=None):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--data", default=str(config.DATA_PATH))
-    parser.add_argument("--splits", default=str(config.SPLITS_PATH))
-    parser.add_argument("--oof", default=str(config.DATA_DIR / "oof_probabilities.csv"))
-    parser.add_argument("--output", default=str(config.FEATURES_PATH))
-    parser.add_argument("--model", default=str(config.MODEL_DIR))
+    parser.add_argument("--data", default=str(DEFAULT_DATA_PATH))
+    parser.add_argument("--splits", default=str(DEFAULT_SPLITS_PATH))
+    parser.add_argument("--oof", default=str(DEFAULT_OOF_PATH))
+    parser.add_argument("--output", default=str(DEFAULT_FEATURES_PATH))
+    parser.add_argument("--model", default=str(DEFAULT_ROBERTA_DIR))
     args = parser.parse_args()
     assigned = read_splits(load_reviews(args.data), args.splits)
     result = build_features(assigned, args.oof, args.output, args.model)

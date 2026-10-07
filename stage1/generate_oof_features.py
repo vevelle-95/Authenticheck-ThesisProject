@@ -9,14 +9,16 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 import numpy as np
 import pandas as pd
-from stage1 import config
 from stage1.train_roberta import fit_roberta, predict_probabilities
-from model_contract import FEATURE_COLUMNS, INPUT_VERSION, SEED
+from model_contract import (
+    BASE_MODEL, BATCH_SIZE, DEFAULT_BUNDLE, DEFAULT_DATA_PATH, DEFAULT_OOF_PATH,
+    DEFAULT_SPLITS_PATH, EPOCHS, FEATURE_COLUMNS, INPUT_VERSION, MAX_LENGTH, SEED,
+)
 from model_data import fingerprint, load_reviews, read_splits
 
 
-def generate_oof(assigned, output, fold_dir, *, base_model=config.BASE_MODEL,
-                 epochs=config.EPOCHS, batch_size=config.BATCH_SIZE, max_length=config.MAX_LENGTH,
+def generate_oof(assigned, output, fold_dir, *, base_model=BASE_MODEL,
+                 epochs=EPOCHS, batch_size=BATCH_SIZE, max_length=MAX_LENGTH,
                  fit=fit_roberta, predict=predict_probabilities):
     training = assigned[assigned.partition.eq("train")].copy()
     if set(training.fold) != set(range(5)):
@@ -64,14 +66,14 @@ def generate_oof(assigned, output, fold_dir, *, base_model=config.BASE_MODEL,
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--data", default=str(config.DATA_PATH))
-    parser.add_argument("--splits", default=str(config.SPLITS_PATH))
-    parser.add_argument("--output", default=str(config.DATA_DIR / "oof_probabilities.csv"))
-    parser.add_argument("--fold-dir", default=str(config.MODEL_DIR.parent / "oof"))
-    parser.add_argument("--base-model", default=config.BASE_MODEL)
-    parser.add_argument("--epochs", type=int, default=config.EPOCHS)
-    parser.add_argument("--batch-size", type=int, default=config.BATCH_SIZE)
-    parser.add_argument("--max-length", type=int, default=config.MAX_LENGTH)
+    parser.add_argument("--data", default=str(DEFAULT_DATA_PATH))
+    parser.add_argument("--splits", default=str(DEFAULT_SPLITS_PATH))
+    parser.add_argument("--output", default=str(DEFAULT_OOF_PATH))
+    parser.add_argument("--fold-dir", default=str(DEFAULT_BUNDLE / "oof"))
+    parser.add_argument("--base-model", default=BASE_MODEL)
+    parser.add_argument("--epochs", type=int, default=EPOCHS)
+    parser.add_argument("--batch-size", type=int, default=BATCH_SIZE)
+    parser.add_argument("--max-length", type=int, default=MAX_LENGTH)
     args = parser.parse_args()
     assigned = read_splits(load_reviews(args.data), args.splits)
     generate_oof(assigned, args.output, args.fold_dir, base_model=args.base_model,

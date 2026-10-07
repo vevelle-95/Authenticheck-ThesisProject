@@ -6,14 +6,14 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
-from stage1 import config
+from model_contract import DEFAULT_DATA_PATH, DEFAULT_SPLITS_PATH
 from model_data import load_reviews, prepare_splits
 
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--data", default=str(config.DATA_PATH))
-    parser.add_argument("--splits", default=str(config.SPLITS_PATH))
+    parser.add_argument("--data", default=str(DEFAULT_DATA_PATH))
+    parser.add_argument("--splits", default=str(DEFAULT_SPLITS_PATH))
     parser.add_argument("--validate-only", action="store_true")
     args = parser.parse_args()
     frame = load_reviews(args.data, require_annotations=True)

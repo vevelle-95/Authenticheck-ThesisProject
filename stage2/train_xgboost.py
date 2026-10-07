@@ -10,7 +10,10 @@ import numpy as np
 import pandas as pd
 import xgboost as xgb
 from sklearn.utils.class_weight import compute_sample_weight
-from model_contract import CLASS_NAMES, DEFAULT_BUNDLE, FEATURE_COLUMNS, INPUT_VERSION
+from model_contract import (
+    CLASS_NAMES, DEFAULT_BUNDLE, DEFAULT_DATA_PATH, DEFAULT_FEATURES_PATH,
+    DEFAULT_SPLITS_PATH, FEATURE_COLUMNS, INPUT_VERSION,
+)
 from model_data import fingerprint, load_reviews, read_splits
 from model_metrics import classification_metrics
 
@@ -79,9 +82,9 @@ def train_classifier(features, assigned, output):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--data", default="data/test_reviews.csv")
-    parser.add_argument("--splits", default="data/splits.json")
-    parser.add_argument("--features", default="data/6d_features.csv")
+    parser.add_argument("--data", default=str(DEFAULT_DATA_PATH))
+    parser.add_argument("--splits", default=str(DEFAULT_SPLITS_PATH))
+    parser.add_argument("--features", default=str(DEFAULT_FEATURES_PATH))
     parser.add_argument("--output", default=str(DEFAULT_BUNDLE / "xgboost_meta_classifier.json"))
     args = parser.parse_args()
     assigned = read_splits(load_reviews(args.data), args.splits)

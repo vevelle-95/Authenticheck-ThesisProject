@@ -13,7 +13,10 @@ from torch.utils.data import DataLoader, TensorDataset
 from transformers import AutoTokenizer, set_seed
 
 from stage2 import absa_model
-from model_contract import ASPECTS, BASE_MODEL, SEED, SENSORY_POLICY, SENTIMENT_TARGET_POLICY
+from model_contract import (
+    ASPECTS, BASE_MODEL, BATCH_SIZE, DEFAULT_DATA_PATH, DEFAULT_SPLITS_PATH,
+    EPOCHS, LEARNING_RATE, SEED, SENSORY_POLICY, SENTIMENT_TARGET_POLICY,
+)
 from model_data import fingerprint, load_reviews, read_splits
 from model_metrics import classification_metrics
 
@@ -89,8 +92,8 @@ def evaluate_loader(model, loader, device, tune=False):
     }
 
 
-def train_absa(assigned, output, *, encoder=BASE_MODEL, epochs=3, batch_size=2,
-               learning_rate=2e-5, max_length=absa_model.ABSA_MAX_LENGTH):
+def train_absa(assigned, output, *, encoder=BASE_MODEL, epochs=EPOCHS, batch_size=BATCH_SIZE,
+               learning_rate=LEARNING_RATE, max_length=absa_model.ABSA_MAX_LENGTH):
     if epochs < 1 or batch_size < 1:
         raise ValueError("epochs and batch_size must be positive")
     training = assigned[assigned.partition.eq("train") & assigned.label.eq(0)]
@@ -146,12 +149,12 @@ def train_absa(assigned, output, *, encoder=BASE_MODEL, epochs=3, batch_size=2,
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--data", default=str(absa_model.DEFAULT_DATA_PATH))
-    parser.add_argument("--splits", default="data/splits.json")
+    parser.add_argument("--data", default=str(DEFAULT_DATA_PATH))
+    parser.add_argument("--splits", default=str(DEFAULT_SPLITS_PATH))
     parser.add_argument("--encoder", default=BASE_MODEL, help="Independent pretrained encoder, not the Stage 1 classifier")
     parser.add_argument("--output", default=str(absa_model.DEFAULT_ABSA_MODEL_DIR))
-    parser.add_argument("--epochs", type=int, default=3)
-    parser.add_argument("--batch-size", type=int, default=2)
+    parser.add_argument("--epochs", type=int, default=EPOCHS)
+    parser.add_argument("--batch-size", type=int, default=BATCH_SIZE)
     parser.add_argument("--max-length", type=int, default=absa_model.ABSA_MAX_LENGTH)
     parser.add_argument("--authentic-only", action="store_true", help="Accepted for compatibility; ABSA always trains on ground-truth Authentic reviews")
     parser.add_argument("--eval-only", action="store_true", help="Evaluate validation only; final testing uses evaluate_models.py")

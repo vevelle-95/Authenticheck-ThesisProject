@@ -7,7 +7,11 @@ import subprocess
 import sys
 from pathlib import Path
 
-from model_contract import ASPECTS, BASE_MODEL, DEFAULT_BUNDLE, INPUT_VERSION, MODEL_VERSION, SENSORY_POLICY, SENTIMENT_TARGET_POLICY, TAXONOMY_VERSION
+from model_contract import (
+    ASPECTS, BASE_MODEL, BATCH_SIZE, DEFAULT_BUNDLE, DEFAULT_DATA_PATH,
+    DEFAULT_SPLITS_PATH, DEFAULT_WORK_DIR, EPOCHS, INPUT_VERSION, MAX_LENGTH,
+    MODEL_VERSION, SENSORY_POLICY, SENTIMENT_TARGET_POLICY, TAXONOMY_VERSION,
+)
 from model_data import load_reviews, prepare_splits
 
 ROOT = Path(__file__).resolve().parent
@@ -19,14 +23,14 @@ def run_script(script, *arguments):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--data", default=str(ROOT / "data" / "test_reviews.csv"))
-    parser.add_argument("--splits", default=str(ROOT / "data" / "splits.json"))
+    parser.add_argument("--data", default=str(DEFAULT_DATA_PATH))
+    parser.add_argument("--splits", default=str(DEFAULT_SPLITS_PATH))
     parser.add_argument("--output", default=str(DEFAULT_BUNDLE))
-    parser.add_argument("--work-dir", default=str(ROOT / "data" / "training_v2"))
+    parser.add_argument("--work-dir", default=str(DEFAULT_WORK_DIR))
     parser.add_argument("--base-model", default=BASE_MODEL)
-    parser.add_argument("--epochs", type=int, default=3)
-    parser.add_argument("--batch-size", type=int, default=2)
-    parser.add_argument("--max-length", type=int, default=128)
+    parser.add_argument("--epochs", type=int, default=EPOCHS)
+    parser.add_argument("--batch-size", type=int, default=BATCH_SIZE)
+    parser.add_argument("--max-length", type=int, default=MAX_LENGTH)
     parser.add_argument("--prepare-only", action="store_true")
     parser.add_argument("--validate-only", action="store_true")
     args = parser.parse_args()

@@ -21,7 +21,7 @@ training:
 
 data:
   csv: ../../data/test_reviews.csv
-  splits: ../../data/splits.json
+  splits: ../../data/splits_real_v2.json
   max_length: 128
   image_size: 224
   max_images: 5

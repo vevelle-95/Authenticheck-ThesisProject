@@ -6,19 +6,22 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
-from stage1 import config
-from model_contract import CLASS_NAMES, INPUT_VERSION, SEED, quality_input_text
+from model_contract import (
+    BASE_MODEL, BATCH_SIZE, CLASS_NAMES, DEFAULT_DATA_PATH, DEFAULT_ROBERTA_DIR,
+    DEFAULT_SPLITS_PATH, EPOCHS, INPUT_VERSION, LEARNING_RATE, MAX_LENGTH, SEED,
+    quality_input_text,
+)
 from model_data import fingerprint, load_reviews, read_splits
 from model_metrics import classification_metrics
 
 
-def tokenize_reviews(tokenizer, texts, max_length=config.MAX_LENGTH, **kwargs):
+def tokenize_reviews(tokenizer, texts, max_length=MAX_LENGTH, **kwargs):
     return tokenizer(list(texts), padding="max_length", truncation=True, max_length=max_length, **kwargs)
 
 
-def fit_roberta(train_frame, validation_frame, output, *, base_model=config.BASE_MODEL,
-                epochs=config.EPOCHS, batch_size=config.BATCH_SIZE, learning_rate=config.LEARNING_RATE,
-                max_length=config.MAX_LENGTH, seed=SEED):
+def fit_roberta(train_frame, validation_frame, output, *, base_model=BASE_MODEL,
+                epochs=EPOCHS, batch_size=BATCH_SIZE, learning_rate=LEARNING_RATE,
+                max_length=MAX_LENGTH, seed=SEED):
     import torch
     from datasets import Dataset
     from transformers import AutoModelForSequenceClassification, AutoTokenizer, Trainer, TrainingArguments, set_seed
@@ -101,13 +104,13 @@ def predict_probabilities(model, tokenizer, frame, batch_size=16, max_length=Non
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--data", default=str(config.DATA_PATH))
-    parser.add_argument("--splits", default=str(config.SPLITS_PATH))
-    parser.add_argument("--output", default=str(config.MODEL_DIR))
-    parser.add_argument("--base-model", default=config.BASE_MODEL)
-    parser.add_argument("--epochs", type=int, default=config.EPOCHS)
-    parser.add_argument("--batch-size", type=int, default=config.BATCH_SIZE)
-    parser.add_argument("--max-length", type=int, default=config.MAX_LENGTH)
+    parser.add_argument("--data", default=str(DEFAULT_DATA_PATH))
+    parser.add_argument("--splits", default=str(DEFAULT_SPLITS_PATH))
+    parser.add_argument("--output", default=str(DEFAULT_ROBERTA_DIR))
+    parser.add_argument("--base-model", default=BASE_MODEL)
+    parser.add_argument("--epochs", type=int, default=EPOCHS)
+    parser.add_argument("--batch-size", type=int, default=BATCH_SIZE)
+    parser.add_argument("--max-length", type=int, default=MAX_LENGTH)
     args = parser.parse_args()
     assigned = read_splits(load_reviews(args.data), args.splits)
     fit_roberta(

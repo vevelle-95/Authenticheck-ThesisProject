@@ -1,4 +1,4 @@
-"""Contracts shared by our training and inference code (no comparison adapters)."""
+"""AuthentiCheck settings and contracts shared by training and inference."""
 
 import json
 import math
@@ -7,15 +7,28 @@ from pathlib import Path
 
 PROJECT_ROOT = Path(__file__).resolve().parent
 DATA_DIR = PROJECT_ROOT / "data"
+DEFAULT_DATA_PATH = DATA_DIR / "test_reviews.csv"
+DEFAULT_SPLITS_PATH = DATA_DIR / "splits_real_v2.json"
 DEFAULT_BUNDLE = PROJECT_ROOT / "models" / "own_model_v2"
+DEFAULT_ROBERTA_DIR = DEFAULT_BUNDLE / "dost_roberta"
+DEFAULT_OOF_PATH = DATA_DIR / "oof_probabilities.csv"
+DEFAULT_FEATURES_PATH = DATA_DIR / "6d_features.csv"
+DEFAULT_WORK_DIR = DATA_DIR / "training_v2"
+
+# Training defaults: CLI options override these for an individual experiment.
 BASE_MODEL = "dost-asti/RoBERTa-tl-cased"
+EPOCHS = 3
+BATCH_SIZE = 2
+LEARNING_RATE = 2e-5
+MAX_LENGTH = 128
+SEED = 42
+
+# Shared label, feature, and artifact compatibility contracts.
 INPUT_VERSION = "product-context-six-features-v3-missing-image-zero"
 MODEL_VERSION = "authenticheck-2.1"
 TAXONOMY_VERSION = "fixed-ten-v1"
 SENSORY_POLICY = "annotation-guidelines-only"
 SENTIMENT_TARGET_POLICY = "category-polarity-distribution-v1"
-MAX_LENGTH = 128
-SEED = 42
 CLASS_NAMES = ("authentic", "deceptive", "liv", "irrelevant")
 POLARITIES = ("Negative", "Neutral", "Positive")
 ASPECTS = (

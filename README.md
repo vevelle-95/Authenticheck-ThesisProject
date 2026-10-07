@@ -141,7 +141,12 @@ python pipeline.py --data data/test_reviews.csv
 uvicorn main:app --host 127.0.0.1 --port 8000
 ```
 
-`pipeline.py` validates the finalized dataset, persists product-disjoint partitions, generates five-fold out-of-fold RoBERTa probabilities, trains final RoBERTa and XGBoost, and independently trains fixed ten-category ABSA. It selects models and thresholds using validation data. Training and the backend default to `models/own_model_v2/`. See the [training and evaluation guide](docs/PROJECT_GUIDE.md#4-train-validate-and-test) for the CSV workflow and separate held-out test command.
+`pipeline.py` validates the finalized dataset, persists product-disjoint partitions, generates five-fold out-of-fold RoBERTa probabilities, trains final RoBERTa and XGBoost, and independently trains fixed ten-category ABSA. It selects models and thresholds using validation data. Both models default to the shared `data/splits_real_v2.json` manifest. Training and the backend default to `models/own_model_v2/`. See the [training and evaluation guide](docs/PROJECT_GUIDE.md#4-train-validate-and-test) for the CSV workflow and separate held-out test command.
+
+AuthentiCheck's paths and training defaults are in [model_contract.py](model_contract.py).
+Edit `EPOCHS`, `BATCH_SIZE`, `LEARNING_RATE`, or `MAX_LENGTH` there; training CLI
+options can override the exposed settings for an individual run. The baseline
+keeps its separate `baselines/clip-ca-cg/configs/config.yaml`.
 
 To use an existing compatible bundle, set `AUTHENTICHECK_MODEL_BUNDLE` before
 starting the API. To rebuild for the combined input and select a separate bundle,
@@ -149,7 +154,7 @@ run these commands from `Authenticheck-ThesisProject`:
 
 ```powershell
 .\.venv\Scripts\Activate.ps1
-python pipeline.py --data data/test_reviews.csv --splits data/splits.json --work-dir data/context_run/features --output models/context_run --epochs 3
+python pipeline.py --data data/test_reviews.csv --splits data/splits_real_v2.json --work-dir data/context_run/features --output models/context_run --epochs 3
 $env:AUTHENTICHECK_MODEL_BUNDLE = "models/context_run"
 python -m uvicorn main:app --host 127.0.0.1 --port 8000
 ```

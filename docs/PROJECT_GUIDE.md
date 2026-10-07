@@ -253,10 +253,10 @@ Run from the project root:
 
 ```powershell
 .\.venv\Scripts\python.exe pipeline.py --data data/test_reviews.csv --validate-only
-.\.venv\Scripts\python.exe stage1/prepare_splits.py --data data/test_reviews.csv --splits data/splits.json
+.\.venv\Scripts\python.exe stage1/prepare_splits.py --data data/test_reviews.csv --splits data/splits_real_v2.json
 ```
 
-These commands validate the CSV and create/reuse `data/splits.json`; they do not
+These commands validate the CSV and create/reuse `data/splits_real_v2.json`; they do not
 train weights. The baseline environment can run the same preparation script
 from the root using `baselines\clip-ca-cg\.venv\Scripts\python.exe`.
 
@@ -270,8 +270,16 @@ suitable groups cannot be formed, it fails instead of allowing product or text
 leakage. AuthentiCheck ABSA also requires all three sentiments among Authentic
 training reviews.
 
+The active shared manifest is `data/splits_real_v2.json`. All AuthentiCheck
+training/evaluation commands use `DEFAULT_SPLITS_PATH` in
+[model_contract.py](../model_contract.py).
+Baseline training, caching, CSV prediction, and evaluation use `data.splits` in
+[configs/config.yaml](../baselines/clip-ca-cg/configs/config.yaml). Both defaults
+select the same file. An explicit `--splits` overrides the default for a different
+experiment; renaming a manifest alone does not update command defaults.
+
 For a changed real-review dataset, preserve the old manifest and prepare a new
-one, for example `--splits data/splits_real_v2.json`. Use that same manifest for
+one, for example `--splits data/splits_real_v3.json`. Use that same manifest for
 both models. Establish the real partitions before LLM augmentation; generated
 variants must remain in training and inherit their source product's OOF fold.
 Automatic training-only augmentation and source-lineage assignment are not yet
@@ -288,7 +296,7 @@ RoBERTa, and normal prediction does not load them.
 Run from the project root:
 
 ```powershell
-.\.venv\Scripts\python.exe pipeline.py --data data/test_reviews.csv --splits data/splits.json --epochs 3 --batch-size 2
+.\.venv\Scripts\python.exe pipeline.py --data data/test_reviews.csv --splits data/splits_real_v2.json --epochs 3 --batch-size 2
 ```
 
 The pipeline generates OOF probabilities, trains final RoBERTa, extracts six
@@ -313,7 +321,7 @@ and are rejected by the current API. Renaming them or editing their version tags
 does not retrain them. Use a fresh destination while retaining the shared splits:
 
 ```powershell
-.\.venv\Scripts\python.exe pipeline.py --data data/test_reviews.csv --splits data/splits.json --work-dir data/context_run/features --output models/context_run --epochs 3 --batch-size 2
+.\.venv\Scripts\python.exe pipeline.py --data data/test_reviews.csv --splits data/splits_real_v2.json --work-dir data/context_run/features --output models/context_run --epochs 3 --batch-size 2
 ```
 
 This runs new OOF fits, final quality RoBERTa, six-feature extraction, XGBoost,
@@ -334,7 +342,7 @@ Run from `baselines/clip-ca-cg` after preparing the shared splits:
 ```
 
 [configs/config.yaml](../baselines/clip-ca-cg/configs/config.yaml) points to
-`../../data/test_reviews.csv` and `../../data/splits.json`. It defaults to five
+`../../data/test_reviews.csv` and `../../data/splits_real_v2.json`. It defaults to five
 epochs, batch size 2, maximum text length 128, up to five photos, and automatic
 device selection. Caching prepares training/validation CLIP features and photos.
 Training/validation use ground-truth Authentic reviews and their six-category
@@ -345,10 +353,26 @@ output directories in a copied config to retain experiments.
 
 | Training route | Setting |
 | --- | --- |
-| Full AuthentiCheck pipeline | Pass `--epochs 3`, or change the `--epochs` default in [pipeline.py](../pipeline.py). The value applies to each OOF fold, final quality RoBERTa, and independent ABSA. |
-| Standalone Stage 1 training scripts | Pass `--epochs`, or change `EPOCHS` in [stage1/config.py](../stage1/config.py). The full pipeline supplies its own value. |
-| Standalone ABSA training script | Pass `--epochs`, or change its CLI default in [stage2/fine_tune_absa.py](../stage2/fine_tune_absa.py). |
+| Full AuthentiCheck pipeline | Pass `--epochs 3`, or change `EPOCHS` in [model_contract.py](../model_contract.py). The value applies to each OOF fold, final quality RoBERTa, and independent ABSA. |
+| Standalone Stage 1 training scripts | Pass `--epochs`, or change the same shared `EPOCHS` default. The full pipeline supplies its selected value. |
+| Standalone ABSA training script | Pass `--epochs`, or change the same shared `EPOCHS` default. |
 | Baseline training | Change `training.epochs` in [configs/config.yaml](../baselines/clip-ca-cg/configs/config.yaml), or run baseline `main.py --epochs 5`. |
+
+AuthentiCheck paths and training defaults are together near the top of
+[model_contract.py](../model_contract.py). The former separate Stage 1 settings
+file has been removed. The shared training settings are:
+
+```python
+EPOCHS = 3
+BATCH_SIZE = 2
+LEARNING_RATE = 2e-5
+MAX_LENGTH = 128
+```
+
+`--epochs`, `--batch-size`, and `--max-length` override these defaults for one
+training run. The learning-rate default is shared by quality RoBERTa and ABSA;
+CLIP remains frozen and XGBoost has its own tree settings. Baseline settings stay
+in its separate YAML file. Restart a training command after editing defaults.
 
 XGBoost trains decision trees and has no epoch setting. Changing a default does
 not change existing weights; run a new training experiment and select its saved
@@ -364,11 +388,11 @@ Manifests contain a dataset fingerprint. Editing CSV content invalidates the old
 manifest. Create a new version from the project root:
 
 ```powershell
-.\.venv\Scripts\python.exe stage1/prepare_splits.py --data data/test_reviews.csv --splits data/splits_v2.json
+.\.venv\Scripts\python.exe stage1/prepare_splits.py --data data/test_reviews.csv --splits data/splits_real_v3.json
 ```
 
-Use `--splits data/splits_v2.json` for AuthentiCheck. Set baseline `data.splits`
-to `../../data/splits_v2.json` and train against the same snapshot. Preserve the
+Use `--splits data/splits_real_v3.json` for AuthentiCheck. Set baseline `data.splits`
+to `../../data/splits_real_v3.json` and train against the same snapshot. Preserve the
 old CSV/splits/models if retaining that experiment. Development splits can stay
 ignored while annotation changes; archive the frozen experiment for final work.
 
@@ -377,7 +401,7 @@ ignored while annotation changes; archive the frozen experiment for final work.
 For the default AuthentiCheck bundle, run from the project root:
 
 ```powershell
-.\.venv\Scripts\python.exe stage2/evaluate_models.py --data data/test_reviews.csv --splits data/splits.json --bundle models/own_model_v2 --output results/own_model_test.json
+.\.venv\Scripts\python.exe stage2/evaluate_models.py --data data/test_reviews.csv --splits data/splits_real_v2.json --bundle models/own_model_v2 --output results/own_model_test.json
 ```
 
 For a current input-compatible experiment, pass its matching `--bundle`,
@@ -410,7 +434,7 @@ no general paired-comparison CLI or completed formal statistical protocol yet.
 
 | Location, relative to the project root | Contents |
 | --- | --- |
-| `data/splits.json` | Shared review/product partitions and OOF folds |
+| `data/splits_real_v2.json` | Active shared review/product partitions and OOF folds |
 | `data/training_v2/oof_probabilities.csv` | OOF probabilities for training reviews |
 | `data/training_v2/6d_features.csv` | Training/validation features for XGBoost |
 | `models/own_model_v2/dost_roberta/` | Final quality encoder, tokenizer, configuration, and metadata |
@@ -743,7 +767,7 @@ works. The baseline's trained files are in `outputs/checkpoints/`.
 | [README.md](../README.md) | The short project overview, extension installation steps, and quick start. |
 | [pipeline.py](../pipeline.py) | AuthentiCheck training entry point. Coordinates validation, splits, OOF fitting, final quality training, XGBoost, and ABSA. |
 | [main.py](../main.py) | AuthentiCheck API entry point. Loads the selected trained bundle and answers extension requests; it does not train on those requests. |
-| [model_contract.py](../model_contract.py) | Shared rulebook: quality labels, ten aspects, sentiments, six-feature order, combined quality-text builder, input version, rating/photo formats, and API bundle selection. |
+| [model_contract.py](../model_contract.py) | Shared settings and rulebook: dataset/model paths, epochs, batch size, learning rate, quality labels, ten aspects, sentiments, six-feature order, combined quality-text builder, input version, rating/photo formats, and API bundle selection. |
 | [model_data.py](../model_data.py) | Reads and checks the CSV, identifies dataset changes, and assigns products to saved partitions/folds. |
 | [model_metrics.py](../model_metrics.py) | Compares predictions with reference labels and calculates accuracy, precision, recall, F1, and the confusion matrix. |
 | [requirements.txt](../requirements.txt) | Python libraries needed by AuthentiCheck training and its API. |
@@ -758,7 +782,6 @@ and reviews to score.
 
 | File | What it does | Used during |
 | --- | --- | --- |
-| [config.py](../stage1/config.py) | Holds Stage 1 defaults such as paths, batch size, learning rate, and epochs. | Supporting settings |
 | [prepare_splits.py](../stage1/prepare_splits.py) | Checks the CSV and creates/reuses the shared train/validation/test and five-fold assignment. | Preparation command |
 | [train_roberta.py](../stage1/train_roberta.py) | Fine-tunes DOST RoBERTa on title + description + buyer review to predict four quality classes; OOF fitting uses the same code. | Training |
 | [generate_oof_features.py](../stage1/generate_oof_features.py) | Trains five fold models and scores each held-out training fold. Those predictions become XGBoost training inputs. | Training-feature preparation |

@@ -8,7 +8,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 import numpy as np
 
-from model_contract import ASPECTS, CLASS_NAMES, DEFAULT_BUNDLE, POLARITIES, SENSORY_POLICY, SENTIMENT_TARGET_POLICY, quality_input_text
+from model_contract import ASPECTS, CLASS_NAMES, DEFAULT_BUNDLE, DEFAULT_SPLITS_PATH, POLARITIES, SENSORY_POLICY, SENTIMENT_TARGET_POLICY, quality_input_text
 from model_data import fingerprint, load_reviews, read_splits
 from model_metrics import classification_metrics
 from stage2.fine_tune_absa import detection_metrics
@@ -120,7 +120,7 @@ def evaluate_own_models(test, pipe):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--data", required=True)
-    parser.add_argument("--splits", default="data/splits.json")
+    parser.add_argument("--splits", default=str(DEFAULT_SPLITS_PATH))
     parser.add_argument("--bundle", default=str(DEFAULT_BUNDLE))
     parser.add_argument("--output", default="results/own_model_test.json")
     args = parser.parse_args()
