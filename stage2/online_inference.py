@@ -95,16 +95,31 @@ class OnlineInference:
 
     def run(self, df):
         self.check_artifacts()
+
+        title_col = "product_title" if "product_title" in df else "prod_title"
+        description_col = "product_description" if "product_description" in df else "prod_description"
         text_col = "review_text" if "review_text" in df else "text"
-        if text_col not in df:
-            raise ValueError("review_text/text is required")
+
+        if not all(c in df.columns for c in (title_col, description_col, text_col)):
+            raise ValueError("product title, description and review cols are ALL required!")
+
         results, verdicts = [], []
         for row in df.to_dict("records"):
-            text = row[text_col]
+            title = row[title_col]
+            description = row[description_col]
+            review_text = row[text_col]
+
+            text = " ".join(
+                str(v).strip() for v in (title, description, review_text)
+                if v is not None and str(v).strip()
+            )
+
             urls = row.get("review_image_urls", row.get("image_urls", row.get("image_url")))
+
             features, p_text, similarity, rating, best = self.extract_features(
                 row.get("product_description", ""), text, urls, row.get("star_rating"),
             )
+
             verdict, probabilities = self.classify(features)
             entry = {
                 "id": str(row.get("review_id", row.get("id", ""))),
@@ -121,8 +136,10 @@ class OnlineInference:
             }
             if verdict == 0:
                 entry["aspectSentiment"] = self.aspect_sentiment(text)
+
             results.append(entry)
             verdicts.append(CLASS_NAMES[verdict])
+
         return {**build_summary(df, verdicts, results), "reviews": results}
 
 
@@ -177,11 +194,16 @@ def build_summary(df, verdicts, results=None):
     aspect_count = sum(row["aspectCount"] for row in product_summaries)
     overall = (sum(row["aggregateSentiment"] * row["aspectCount"] for row in product_summaries
                    if row["aggregateSentiment"] is not None) / aspect_count) if aspect_count else None
+
     return {
-        "reviewCount": len(df), "authenticShare": 100 * counts["authentic"] / len(df) if len(df) else 0,
+        "reviewCount": len(df), 
+        "authenticShare": 100 * counts["authentic"] / len(df) if len(df) else 0,
         "verifiedRating": sum(authentic_ratings) / len(authentic_ratings) if authentic_ratings else None,
-        "counts": counts, "sentimentCounts": sentiments, "aspects": aspects,
-        "aggregateSentiment": overall, "perProduct": product_summaries,
+        "counts": counts, 
+        "sentimentCounts": sentiments, 
+        "aspects": aspects,
+        "aggregateSentiment": overall, 
+        "perProduct": product_summaries,
     }
 
 

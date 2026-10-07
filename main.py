@@ -140,6 +140,7 @@ def analyze(request: AnalyzeRequest):
             "star_rating": review.rating,
             "image_urls": [str(url) for url in review.imageUrls],
             "product_description": request.productDescription,
+            "product_title": request.productTitle,
             "product_id": str(request.url),
         }
         for review in request.reviews
