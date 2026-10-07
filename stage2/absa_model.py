@@ -1,6 +1,7 @@
 """Fixed ten-category detection and category-conditioned three-way sentiment."""
 
 import json
+import re
 import sys
 from pathlib import Path
 
@@ -25,6 +26,48 @@ MODEL_VERSION = "fixed-category-v2"
 POLARITY_LABELS = list(POLARITIES)
 SENTIMENT_IGNORE = -100
 polarity_index = map_polarity
+SENTENCE_BOUNDARY = re.compile(r"(?<=[.!?…])\s+|\n+")
+CLAUSE_CONNECTOR = re.compile(
+    r"\s+(?:pero|kaso|ngunit|subalit|but|however|yet|although|though|while|kasi|dahil|because|since)\b",
+    re.IGNORECASE,
+)
+CLAUSE_DELIMITER = re.compile(r"\s*[;|]\s*")
+CLAUSE_COMMA = re.compile(r"\s*,\s*")
+SHORT_CLAUSE_WORDS = 20
+
+
+def _cut(sentence, pattern, at_end):
+    cuts = sorted({match.end() if at_end else match.start() for match in pattern.finditer(sentence)})
+    pieces = []
+    start = 0
+    for cut in cuts:
+        if not 0 < cut < len(sentence):
+            continue
+        piece = sentence[start:cut].strip()
+        if piece:
+            pieces.append(piece)
+        start = cut
+    tail = sentence[start:].strip()
+    if tail:
+        pieces.append(tail)
+    return pieces
+
+
+def split_evidence_segments(text):
+    """Review text cut into sentence segments, then clause pieces for run-on text."""
+    segments = []
+    for sentence in SENTENCE_BOUNDARY.split(str(text)):
+        sentence = sentence.strip()
+        if not sentence:
+            continue
+        clauses = _cut(sentence, CLAUSE_CONNECTOR, at_end=False)
+        for clause in clauses:
+            for delimited in _cut(clause, CLAUSE_DELIMITER, at_end=True):
+                if len(delimited.split()) > SHORT_CLAUSE_WORDS:
+                    segments.extend(_cut(delimited, CLAUSE_COMMA, at_end=True))
+                else:
+                    segments.append(delimited)
+    return segments or [str(text).strip()]
 
 
 def resolve_encoder():
@@ -97,6 +140,22 @@ class ABSAHeadModel(nn.Module):
         return outputs
 
     @torch.inference_mode()
+    def aspect_scores(self, texts, tokenizer, batch_size=16):
+        self.eval()
+        if isinstance(texts, str):
+            texts = [texts]
+        if not texts:
+            return torch.zeros((0, len(ASPECTS)))
+        device = next(self.parameters()).device
+        batches = []
+        for start in range(0, len(texts), batch_size):
+            enc = tokenize_detection(tokenizer, texts[start:start + batch_size], self.max_length).to(device)
+            batches.append(torch.sigmoid(self.aspect_head(self._pooled(
+                enc["input_ids"], enc["attention_mask"],
+            ))).cpu())
+        return torch.cat(batches, dim=0)
+
+    @torch.inference_mode()
     def predict(self, texts, tokenizer, product_categories=None, threshold=None, batch_size=16):
         # Legacy metadata is accepted but never used to suppress a category.
         self.eval()
@@ -105,27 +164,57 @@ class ABSAHeadModel(nn.Module):
         threshold = self.threshold if threshold is None else threshold
         if not 0 < threshold < 1:
             raise ValueError("Aspect threshold must lie strictly between 0 and 1")
-        device = next(self.parameters()).device
         results = []
         for start in range(0, len(texts), batch_size):
             batch = texts[start:start + batch_size]
-            enc = tokenize_detection(tokenizer, batch, self.max_length).to(device)
-            detection = torch.sigmoid(self.aspect_head(self._pooled(
-                enc["input_ids"], enc["attention_mask"],
-            ))).cpu()
+            detection = self.aspect_scores(batch, tokenizer, batch_size)
             candidates = []
             rows = [[] for _ in batch]
             for row, scores in enumerate(detection):
                 for index, category in enumerate(ASPECTS):
                     if float(scores[index]) >= threshold:
                         candidates.append((row, category, float(scores[index])))
+            segments, offsets = {}, {}
+            cursor = 0
+            for row in sorted({item[0] for item in candidates}):
+                segments[row] = split_evidence_segments(batch[row])
+                offsets[row] = cursor
+                cursor += len(segments[row])
+            segment_texts = [segment for row in sorted(segments) for segment in segments[row]]
+            segment_scores = self.aspect_scores(segment_texts, tokenizer, batch_size) if segment_texts else None
             probabilities = self.predict_sentiment(
                 [batch[row] for row, _, _ in candidates],
                 [category for _, category, _ in candidates], tokenizer, batch_size,
             )
-            for (row, category, confidence), values in zip(candidates, probabilities):
+            aspect_indices = [ASPECTS.index(category) for _, category, _ in candidates]
+            accepted_rows, evidence_texts, evidence_categories = [], [], []
+            for (row, category, _), aspect_index in zip(candidates, aspect_indices):
+                scores = segment_scores[offsets[row]:offsets[row] + len(segments[row]), aspect_index]
+                ranked = sorted(range(len(segments[row])), key=lambda index: float(scores[index]), reverse=True)
+                accepted = [index for index in ranked if float(scores[index]) >= threshold] or ranked[:1]
+                accepted_rows.append(accepted)
+                evidence_texts.extend(segments[row][index] for index in accepted)
+                evidence_categories.extend([category] * len(accepted))
+            evidence_probabilities = self.predict_sentiment(
+                evidence_texts, evidence_categories, tokenizer, batch_size,
+            ) if evidence_texts else []
+            evidence_cursor = 0
+            for position, ((row, category, confidence), values) in enumerate(zip(candidates, probabilities)):
                 polarity = max(range(3), key=lambda index: values[index])
+                accepted = accepted_rows[position]
+                review_segments = segments[row]
+                scores = segment_scores[offsets[row]:offsets[row] + len(review_segments), aspect_indices[position]]
+                agreeing = [
+                    local for local in range(len(accepted))
+                    if max(range(3), key=lambda option: evidence_probabilities[evidence_cursor + local][option]) == polarity
+                ]
+                evidence_cursor += len(accepted)
+                selection = agreeing or list(range(len(accepted)))
+                chosen = review_segments[accepted[max(
+                    selection, key=lambda local: float(scores[accepted[local]]),
+                )]]
                 rows[row].append({
+                    "text": chosen,
                     "category": category, "aspect": category, "sentiment": POLARITIES[polarity],
                     "aspect_confidence": round(confidence, 4),
                     "sentiment_confidence": round(values[polarity], 4),

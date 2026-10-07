@@ -20,7 +20,7 @@ from model_data import fingerprint, load_reviews, prepare_splits, read_splits
 from stage1.generate_oof_features import generate_oof
 from stage1.train_roberta import predict_probabilities
 from stage1.features import FeatureExtractor
-from stage2.absa_model import ABSAHeadModel, tokenize_sentiment
+from stage2.absa_model import ABSAHeadModel, split_evidence_segments, tokenize_sentiment
 from stage2.fine_tune_absa import batch_forward, build_targets, detection_metrics, select_threshold
 from stage2.online_inference import OnlineInference, aggregate_products, build_summary
 from stage2.train_xgboost import validate_features
@@ -333,6 +333,63 @@ class AbsaTests(unittest.TestCase):
         self.assertLessEqual(selected, 0.4)
         self.assertGreater(detection_metrics(targets, probabilities, eligible, selected)["macro_f1"],
                            detection_metrics(targets, probabilities, eligible, 0.5)["macro_f1"])
+
+
+    def test_evidence_text_is_a_matching_review_span(self):
+        model = ABSAHeadModel(encoder=FakeEncoder(), dropout=0)
+        model.aspect_head.weight.data.zero_()
+        model.aspect_head.bias.data.fill_(10)
+        model.sentiment_head.weight.data.zero_()
+        model.sentiment_head.bias.data.copy_(torch.tensor([3.0, 0.0, -3.0]))
+        review = "Matibay ang build quality at maganda ang finish. Pero mabilis ma-drain ang battery."
+        results = model.predict([review], FakeTokenizer())
+        self.assertTrue(results[0])
+        for item in results[0]:
+            self.assertIn(item["text"], review)
+            self.assertLess(len(item["text"]), len(review))
+            self.assertEqual(item["sentiment"], "Negative")
+
+    def test_evidence_span_follows_the_matching_category_clause(self):
+        review = "Maganda ang design ng casing. Sira agad ang battery after one week."
+        model = ABSAHeadModel(encoder=FakeEncoder(), dropout=0)
+
+        def fake_scores(texts, tokenizer, batch_size=16):
+            scores = torch.full((len(texts), len(ASPECTS)), 0.1)
+            for index, text in enumerate(texts):
+                if "battery" in text:
+                    scores[index, ASPECTS.index("performance")] = 0.9
+                if "design" in text:
+                    scores[index, ASPECTS.index("design")] = 0.8
+            return scores
+
+        def fake_sentiment(texts, categories, tokenizer, batch_size=16):
+            return [[0.9, 0.05, 0.05] if "battery" in text else [0.05, 0.05, 0.9] for text in texts]
+
+        model.aspect_scores = fake_scores
+        model.predict_sentiment = fake_sentiment
+        results = model.predict([review], FakeTokenizer())
+        by_category = {item["category"]: item for item in results[0]}
+        self.assertEqual(by_category["design"]["text"], "Maganda ang design ng casing.")
+        self.assertEqual(by_category["performance"]["text"], "Sira agad ang battery after one week.")
+        self.assertEqual(by_category["performance"]["sentiment"], "Negative")
+        self.assertTrue(all(item["text"] in review for item in results[0]))
+
+    def test_run_on_review_splits_into_clause_segments(self):
+        review = "Mura ang presyo pero mabilis masira ang produkto; hindi sulit ang bayad"
+        segments = split_evidence_segments(review)
+        self.assertEqual(len(segments), 3)
+        self.assertTrue(all(segment in review for segment in segments))
+        self.assertTrue(all(segment != review for segment in segments))
+
+    def test_long_run_on_review_splits_on_commas(self):
+        review = ("sobrang ganda ng produkto, mura pa siya kumpara sa ibang tindahan, "
+                  "matibay ang ginawa kahit matagal na gamit, at nagamit ko na ito ng ilang buwan na")
+        segments = split_evidence_segments(review)
+        self.assertGreater(len(segments), 1)
+        self.assertTrue(all(segment in review for segment in segments))
+
+    def test_review_without_boundaries_keeps_the_whole_text(self):
+        self.assertEqual(split_evidence_segments("  sobrang ganda at mura pa  "), ["sobrang ganda at mura pa"])
 
 
 class InferenceTests(unittest.TestCase):
