@@ -1,0 +1,17 @@
+{
+  "purpose": "Assistant-authored diagnostic examples; expected labels require human review. Not a thesis benchmark.",
+  "cases": [
+    {"id":"detail-en","capability":"Detailed feedback / English","text":"After three hours of listening, the headphones remain comfortable and voices sound clear.","rating":5,"expectedLabel":"authentic","expectedAspects":{"design":"positive","performance":"positive"}},
+    {"id":"detail-tl","capability":"Detailed feedback / Tagalog","text":"Pagkatapos ng tatlong oras na pakikinig, komportable pa rin ang headphone at malinaw ang mga boses.","rating":5,"expectedLabel":"authentic","expectedAspects":{"design":"positive","performance":"positive"}},
+    {"id":"detail-mixed","capability":"Detailed feedback / Taglish","text":"After three hours gamitin, comfortable pa rin ang headphones at clear ang voices.","rating":5,"expectedLabel":"authentic","expectedAspects":{"design":"positive","performance":"positive"}},
+    {"id":"brief-ok","capability":"Low information","text":"Okay","rating":5,"expectedLabel":"liv","expectedAspects":{}},
+    {"id":"brief-nice","capability":"Low information","text":"Nice product!","rating":5,"expectedLabel":"liv","expectedAspects":{}},
+    {"id":"logistics","capability":"Logistics-only feedback","text":"Mabilis dumating ang parcel at mabait ang rider.","rating":5,"expectedLabel":"irrelevant","expectedAspects":{}},
+    {"id":"unrelated","capability":"Unrelated content","text":"Please subscribe to my cooking channel for new recipes every Sunday.","rating":5,"expectedLabel":"irrelevant","expectedAspects":{}},
+    {"id":"conflict-high","capability":"Rating/text conflict proxy","text":"Sira ang headphones at hindi gumagana ang kaliwang speaker kahit bagong charge.","rating":5,"expectedLabel":"deceptive","expectedAspects":{}},
+    {"id":"conflict-low","capability":"Rating/text conflict proxy","text":"Excellent headphones, clear sound and comfortable pads even after hours of use.","rating":1,"expectedLabel":"deceptive","expectedAspects":{}},
+    {"id":"mixed-aspects","capability":"Different sentiments across aspects","text":"Matibay ang casing pero mahal para sa mga features na kasama.","rating":3,"expectedLabel":"authentic","expectedAspects":{"product_quality":"positive","value":"negative"}},
+    {"id":"negative-detail","capability":"Detailed negative feedback","text":"The battery lasts only one hour and the audio crackles whenever I increase the volume.","rating":1,"expectedLabel":"authentic","expectedAspects":{"performance":"negative"}},
+    {"id":"missing-stars","capability":"Missing star rating","text":"The battery lasts six hours during calls and the microphone records my voice clearly.","rating":null,"expectedLabel":"authentic","expectedAspects":{"performance":"positive"}}
+  ]
+}

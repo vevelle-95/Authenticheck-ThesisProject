@@ -56,9 +56,8 @@ pnpm-debug.log*
 /runs/
 /wandb/
 
-# Track model documentation and small configuration files only
+# Track small model configuration files only
 /models/*
-!/models/README.md
 !/models/manifest.json
 !/models/config/
 !/models/config/**

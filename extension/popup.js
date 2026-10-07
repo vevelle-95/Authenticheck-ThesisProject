@@ -30,7 +30,7 @@ async function initialize() {
   const activeProduct = Boolean(pageStatus?.productPage);
   state.className = `support ${activeProduct ? "ok" : "unsupported"}`;
   const reviewStatus = pageStatus?.reviewCount
-    ? `${pageStatus.reviewCount} visible · ${pageStatus.analyzableCount} with text`
+    ? `${pageStatus.reviewCount} visible · ${pageStatus.analyzableCount} eligible`
     : pageStatus?.candidateCount
       ? `0 accepted · ${pageStatus.candidateCount} candidate elements`
       : "0 visible reviews";

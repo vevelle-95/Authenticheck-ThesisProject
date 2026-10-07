@@ -167,7 +167,7 @@
   function classifyReview(review) {
     const text = String(review.text || "").toLowerCase();
     if (!review.analysisEligible || !text) {
-      const missing = review.missingFields?.length ? review.missingFields.join(", ") : "written text";
+      const missing = review.missingFields?.length ? review.missingFields.filter(field => field !== "image").join(", ") : "text or integer star rating";
       return {
         ...review,
         label: "unavailable",
@@ -341,7 +341,7 @@
     }
     const apiReviews = payload.reviews.map(source => {
       if (!source.analysisEligible || !source.text.trim()) {
-        const missing = source.missingFields?.length ? source.missingFields.join(", ") : "written text";
+        const missing = source.missingFields?.length ? source.missingFields.filter(field => field !== "image").join(", ") : "text or integer star rating";
         return { ...source, label: "unavailable", sentiment: null, signals: [`Not sent to the model; missing ${missing}`] };
       }
       const review = responseById.get(String(source.id));
@@ -486,14 +486,17 @@
     root.querySelector(".ac-results").classList.remove("hidden");
     root.querySelector(".ac-export").disabled = false;
     root.querySelector(".ac-status-text").textContent = `${total} of ${payload.reviews.length} visible review${payload.reviews.length === 1 ? "" : "s"} analyzed`;
-    root.querySelector(".ac-mode").textContent = result.mode === "api" ? "Model API" : result.mode === "coverage" ? "Input coverage" : "Local estimate";
+    const developmentModel = result.mode === "api" && String(result.modelVersion || "").startsWith("development-");
+    root.querySelector(".ac-mode").textContent = developmentModel ? "Development model" : result.mode === "api" ? "Model API" : result.mode === "coverage" ? "Input coverage" : "Local estimate";
     root.querySelector(".ac-ring").style.setProperty("--score", confidence);
     root.querySelector(".ac-ring strong").textContent = total ? confidence : "—";
     root.querySelector(".ac-score-copy h2").textContent = status;
-    root.querySelector(".ac-score-copy p").textContent = result.mode === "api"
+    root.querySelector(".ac-score-copy p").textContent = developmentModel
+      ? "Compact test model trained on draft/synthetic reviews. Uses text and stars; photos are omitted. Software testing only."
+      : result.mode === "api"
       ? "Model results combine review text, ratings, and available buyer media."
       : result.mode === "coverage"
-        ? "Visible buyer reviews are listed, but written text is required for classification and ABSA sentiment."
+        ? "Visible buyer reviews are listed, but written text and an integer star rating are required for classification and ABSA sentiment."
         : "Preliminary signals from visible text, ratings, and buyer media. Connect the model API for research-grade results.";
     root.querySelector(".ac-market-rating").innerHTML = Number.isFinite(marketplace) ? `${marketplace.toFixed(1)} <em>★</em>` : "Not found";
     root.querySelector(".ac-verified-rating").innerHTML = Number.isFinite(verified) ? `${verified.toFixed(1)} <em>★</em>` : "—";
@@ -514,7 +517,7 @@
     const neutral = sentimentPercent(result, "neutral");
     const negative = sentimentPercent(result, "negative");
     root.querySelector('[data-page="overview"]').innerHTML = `
-      <div class="ac-title"><div><h3>Review quality</h3><p>How visible reviews with written text were classified</p></div><span class="ac-lang">Tagalog + Taglish</span></div>
+      <div class="ac-title"><div><h3>Review quality</h3><p>How eligible visible reviews were classified</p></div><span class="ac-lang">Tagalog + Taglish</span></div>
       <div class="ac-card"><div class="ac-quality-total"><div><strong>${result.counts.authentic || 0}</strong><span>Authentic reviews</span></div><b>${p("authentic")}%</b></div>
         <div class="ac-stack"><i class="ac-q-auth" style="width:${p("authentic")}%"></i><i class="ac-q-liv" style="width:${p("liv")}%"></i><i class="ac-q-irrel" style="width:${p("irrelevant")}%"></i><i class="ac-q-decep" style="width:${p("deceptive")}%"></i></div>
         <div class="ac-quality-grid">
@@ -534,7 +537,7 @@
       <div class="ac-title" style="margin-top:16px"><div><h3>Authentic sentiment</h3><p>Based on reviews classified as authentic</p></div></div>
       <div class="ac-card ac-sentiment"><div class="ac-donut" style="--positive:${positive};--neutral:${neutral}"><div><strong>${positive}%</strong><span>positive</span></div></div><div class="ac-legend"><div><i class="positive"></i><strong>Positive</strong><b>${positive}%</b></div><div><i class="neutral"></i><strong>Neutral</strong><b>${neutral}%</b></div><div><i class="negative"></i><strong>Negative</strong><b>${negative}%</b></div></div></div>
       <div class="ac-title" style="margin-top:16px"><div><h3>Input coverage</h3><p>Data prepared for the analysis pipeline</p></div></div>
-      <div class="ac-card ac-coverage"><div><strong>${payload.reviews.length}</strong><span>Visible reviews</span></div><div><strong>${payload.reviews.filter(review => review.analysisEligible).length}</strong><span>With written text</span></div><div><strong>${payload.reviews.filter(review => review.rating).length}</strong><span>With ratings</span></div><div><strong>${payload.reviews.filter(review => review.imageUrls?.length).length}</strong><span>With buyer media</span></div></div>
+      <div class="ac-card ac-coverage"><div><strong>${payload.reviews.length}</strong><span>Visible reviews</span></div><div><strong>${payload.reviews.filter(review => review.text?.trim()).length}</strong><span>With written text</span></div><div><strong>${payload.reviews.filter(review => review.rating).length}</strong><span>With ratings</span></div><div><strong>${payload.reviews.filter(review => review.imageUrls?.length).length}</strong><span>With buyer media</span></div></div>
       <div class="ac-note">${shield}<p><strong>${result.mode === "api" ? "Model-connected analysis." : result.mode === "coverage" ? "Input coverage only." : "Preliminary local estimate."}</strong> Only content already visible in your browser is read. No account, seller-response, or checkout information is collected.</p></div>`;
   }
 

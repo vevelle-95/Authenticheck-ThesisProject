@@ -2,6 +2,7 @@
 
 import json
 import math
+import os
 from pathlib import Path
 
 PROJECT_ROOT = Path(__file__).resolve().parent
@@ -40,6 +41,15 @@ QUALITY_ALIASES = {name: i for i, name in enumerate(CLASS_NAMES)}
 QUALITY_ALIASES.update({name: 2 for name in (
     "vague", "low informational value", "low_informational_value", "low-value", "low_value",
 )})
+
+
+def get_inference_bundle():
+    """Select the API bundle without changing the default training destination."""
+    configured = os.getenv("AUTHENTICHECK_MODEL_BUNDLE", "").strip()
+    bundle = Path(configured).expanduser() if configured else DEFAULT_BUNDLE
+    if not bundle.is_absolute():
+        bundle = PROJECT_ROOT / bundle
+    return bundle.resolve()
 
 
 def _label(value, names, aliases):

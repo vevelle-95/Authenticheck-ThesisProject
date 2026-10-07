@@ -16,8 +16,9 @@ from transformers import BatchEncoding, CLIPConfig, CLIPModel, RobertaConfig, Ro
 
 from datasets.authenticheck_data import ASPECTS, build_targets, fingerprint, parse_annotations, read_splits
 from datasets.clip_cache import ClipFeatureCache
+from datasets.image_store import ImageStore
 from datasets.multimodal_dataset import MultiModalDataset, multimodal_collate_fn
-from inference import format_aspects, predict_frame
+from inference import BaselinePredictor, format_aspects, predict_frame
 from models.encoders.clip_encoder import FrozenCLIPEncoder
 from models.encoders.text_encoder import TextEncoder
 from models.fusion.cross_attention import CrossAttention
@@ -97,6 +98,16 @@ def fixture_frame():
 
 
 class AdaptationTests(unittest.TestCase):
+    def test_image_downloads_do_not_contact_private_addresses(self):
+        with tempfile.TemporaryDirectory() as directory:
+            images = ImageStore(Path(directory))
+            addresses = [(2, 1, 6, '', ('127.0.0.1', 80))]
+            with patch('datasets.image_store.socket.getaddrinfo', return_value=addresses), \
+                 patch('datasets.image_store.requests.get') as download:
+                self.assertIsNone(images.load('http://127.0.0.1/private.jpg'))
+                self.assertIsNone(images.load('https://example.com/private.jpg'))
+                download.assert_not_called()
+
     def test_mixed_polarities_are_preserved_and_absence_is_not_neutral(self):
         annotations = parse_annotations(json.dumps([
             {'category': 'design', 'text': 'comfortable', 'sentiment': 'positive'},
@@ -243,6 +254,12 @@ class AdaptationTests(unittest.TestCase):
             selected = frame[frame.partition.eq('test')].drop(columns=['annotations', 'label', 'ground_truth'])
             output, raw, _ = predict_frame(selected, checkpoint_path, tokenizer=TinyTokenizer(), model=tiny_model(config))
             self.assertEqual(len(output['reviews']), len(selected))
+            predictor = BaselinePredictor(checkpoint_path, tokenizer=TinyTokenizer(), model=tiny_model(config))
+            with patch('inference.load_checkpoint', side_effect=AssertionError('Requests must reuse loaded weights')):
+                first, _, _ = predictor.predict(selected)
+                second, _, _ = predictor.predict(selected)
+            self.assertEqual(first, output)
+            self.assertEqual(second, first)
             forced = format_aspects('unseen context', np.ones(6), raw['sentiment_probabilities'][0], 0.5)
             self.assertEqual(len(forced), 6)
             self.assertEqual(set(forced[0]), {'category', 'text', 'sentiment'})

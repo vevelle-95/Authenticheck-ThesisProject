@@ -323,6 +323,11 @@ class InferenceTests(unittest.TestCase):
         self.assertEqual(result["authenticShare"], 25)
         self.assertEqual(result["aggregateSentiment"], 1)
         self.assertEqual([row["id"] for row in result["reviews"]], ["a", "b", "c", "d"])
+        pipe.development_mode = True
+        pipe.verdicts = iter([0, 1, 2, 3])
+        development = pipe.run(frame)
+        self.assertIn("Compact development encoder", development["reviews"][0]["signals"][0])
+        self.assertIn("images omitted", development["reviews"][0]["signals"][1])
 
     def test_aggregation_uses_polarity_and_preserves_undefined_products(self):
         rows = [

@@ -303,7 +303,7 @@
         rating,
         hasImage: imageUrls.length > 0,
         imageUrls,
-        analysisEligible: Boolean(text),
+        analysisEligible: Boolean(text) && Number.isInteger(rating) && rating >= 1 && rating <= 5,
         missingFields
       });
     });
