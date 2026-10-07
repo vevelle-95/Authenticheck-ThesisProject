@@ -57,7 +57,8 @@ def evaluate_own_models(test, pipe):
         gold.append({
             "id": record["review_id"], "product_id": record["product_id"], "label": CLASS_NAMES[record["label"]],
             "aspectSentiment": [
-                {"category": annotation["category"], "sentiment": POLARITIES[annotation["sentiment"]]}
+                {"category": annotation["category"], "sentiment": POLARITIES[annotation["sentiment"]],
+                 "text": " ".join(dict.fromkeys(annotation["evidence"]))}
                 for annotation in record["annotations"]
             ] if record["label"] == 0 else [],
         })
