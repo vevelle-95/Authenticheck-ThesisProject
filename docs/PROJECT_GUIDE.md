@@ -173,6 +173,15 @@ make every row a test example; the saved split manifest determines partitions.
 | `text_label` | Source metadata; never a training target |
 | `aspects`, `aspect_text`, `sentiment` | May remain in the CSV, but training reads `aspect_annotations` |
 
+Legitimate repeated review text is allowed; every row still needs a unique
+`review_id`. For splitting, text is compared ignoring case and whitespace
+differences. Products connected by matching review text stay together in one
+partition and, when used for training, one OOF fold. Connections are transitive:
+if products A/B share one review and B/C share another, all three stay together.
+The source reviews and their labels are preserved. Saved splits that separate
+matching text are rejected by both models. This checks repeated text, not
+semantic similarity or paraphrases.
+
 `product_category` is not required. Annotators use product context to apply the
 sensory definition; the model does not automatically suppress sensory predictions
 for non-beauty products. Unknown or missing photos produce a CLIP score of `0`.
@@ -252,12 +261,21 @@ train weights. The baseline environment can run the same preparation script
 from the root using `baselines\clip-ca-cg\.venv\Scripts\python.exe`.
 
 The approximate split is 70% train, 15% validation, and 15% test, with each product
-entirely in one partition. Training also has five product-disjoint OOF folds.
-The splitter requires all four quality classes in each partition, at least five
-training products per class, and all fitting classes in every OOF run. It fails
-if suitable groups cannot be formed; it does not silently use overlapping
-product partitions. AuthentiCheck ABSA also requires all three sentiments among
-Authentic training reviews.
+and its connected duplicate-text products entirely in one partition. Training
+also has five OOF folds that keep those groups together. The splitter requires
+all four quality classes in each partition, at least five independent training
+groups per class, and all fitting classes in every OOF run. Duplicate links can
+reduce the number of independent groups and make proportions less exact. If
+suitable groups cannot be formed, it fails instead of allowing product or text
+leakage. AuthentiCheck ABSA also requires all three sentiments among Authentic
+training reviews.
+
+For a changed real-review dataset, preserve the old manifest and prepare a new
+one, for example `--splits data/splits_real_v2.json`. Use that same manifest for
+both models. Establish the real partitions before LLM augmentation; generated
+variants must remain in training and inherit their source product's OOF fold.
+Automatic training-only augmentation and source-lineage assignment are not yet
+implemented; adding generated rows to the CSV alone does not enforce these rules.
 
 OOF means **out-of-fold**: each training review receives quality probabilities
 from a RoBERTa model fitted on the other four folds. Those probabilities train

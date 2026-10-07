@@ -14,7 +14,7 @@ from PIL import Image
 from torch import nn
 from transformers import BatchEncoding, CLIPConfig, CLIPModel, RobertaConfig, RobertaModel
 
-from datasets.authenticheck_data import ASPECTS, build_targets, fingerprint, parse_annotations, read_splits
+from datasets.authenticheck_data import ASPECTS, build_targets, fingerprint, load_reviews, parse_annotations, read_splits
 from datasets.clip_cache import ClipFeatureCache
 from datasets.image_store import ImageStore
 from datasets.multimodal_dataset import MultiModalDataset, multimodal_collate_fn
@@ -98,6 +98,48 @@ def fixture_frame():
 
 
 class AdaptationTests(unittest.TestCase):
+    def test_loader_preserves_duplicate_reviews_and_requires_unique_ids(self):
+        with tempfile.TemporaryDirectory() as directory:
+            frame = fixture_frame()
+            frame['aspect_annotations'] = '[]'
+            frame.loc[4, 'review_text'] = frame.loc[0, 'review_text']
+            path = Path(directory) / 'reviews.csv'
+            frame.drop(columns=['annotations', 'label', 'image_urls', 'partition', 'fold']).to_csv(path, index=False)
+            loaded = load_reviews(path, require_annotations=True)
+            self.assertEqual(len(loaded), len(frame))
+            self.assertEqual(loaded.loc[0, 'review_text'], loaded.loc[4, 'review_text'])
+            frame.loc[4, 'review_id'] = frame.loc[0, 'review_id']
+            frame.to_csv(path, index=False)
+            with self.assertRaisesRegex(ValueError, 'unique'):
+                load_reviews(path, require_annotations=True)
+
+    def test_duplicate_text_must_stay_in_one_partition_and_oof_fold(self):
+        rows = []
+        for product in range(9):
+            partition = 'train' if product < 7 else 'validation' if product == 7 else 'test'
+            fold = product % 5 if partition == 'train' else -1
+            rows.append({'review_id': f'r{product}', 'product_id': f'p{product}',
+                         'review_text': f'Unique opinion {product}', 'partition': partition, 'fold': fold})
+        base = pd.DataFrame(rows)
+        # Different products in the same fold may legitimately share review text.
+        base.loc[5, 'review_text'] = 'UNIQUE  opinion\n0'
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / 'splits.json'
+            for leak in (None, 'partitions', 'OOF folds'):
+                with self.subTest(leak=leak):
+                    frame = base.copy()
+                    if leak is not None:
+                        frame.loc[7 if leak == 'partitions' else 1, 'review_text'] = 'unique\topinion 0'
+                    payload = {'version': 'product-70-15-15-oof5-v1', 'dataset_sha256': fingerprint(frame),
+                               'records': frame[['review_id', 'product_id', 'partition', 'fold']].to_dict('records')}
+                    path.write_text(json.dumps(payload), encoding='utf-8')
+                    raw = frame.drop(columns=['partition', 'fold'])
+                    if leak is None:
+                        self.assertEqual(len(read_splits(raw, path)), len(frame))
+                    else:
+                        with self.assertRaisesRegex(ValueError, 'Duplicate review text leakage between ' + leak):
+                            read_splits(raw, path)
+
     def test_image_downloads_do_not_contact_private_addresses(self):
         with tempfile.TemporaryDirectory() as directory:
             images = ImageStore(Path(directory))

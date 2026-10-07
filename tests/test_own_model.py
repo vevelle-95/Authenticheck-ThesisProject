@@ -198,8 +198,94 @@ class ContractTests(unittest.TestCase):
             self.assertEqual(loaded.loc[0, "image_urls"], [])
             self.assertEqual(loaded.loc[1, "image_urls"], [])
 
+    def test_duplicate_text_keeps_records_but_ids_must_still_be_unique(self):
+        with tempfile.TemporaryDirectory() as directory:
+            frame = fixture_frame(2)
+            frame.loc[4, "review_text"] = frame.loc[0, "review_text"]
+            path = Path(directory) / "data.csv"
+            frame.to_csv(path, index=False)
+            loaded = load_reviews(path, require_annotations=True)
+            self.assertEqual(len(loaded), len(frame))
+            self.assertEqual(loaded.loc[0, "review_text"], loaded.loc[4, "review_text"])
+            frame.loc[4, "review_id"] = frame.loc[0, "review_id"]
+            frame.to_csv(path, index=False)
+            with self.assertRaisesRegex(ValueError, "uniquely"):
+                load_reviews(path)
+
 
 class SplitAndOofTests(unittest.TestCase):
+    def test_duplicate_links_and_transitive_products_stay_together(self):
+        with tempfile.TemporaryDirectory() as directory:
+            source = fixture_frame(30)
+            for product in range(0, 30, 2):
+                source.loc[product * 4, "review_text"] = f"Shared review {product}"
+                source.loc[(product + 1) * 4, "review_text"] = f"SHARED  review\n{product}"
+            # Products 0/1 and 2/3 are also linked through a different review.
+            source.loc[5, "review_text"] = "another shared opinion"
+            source.loc[9, "review_text"] = "Another\tshared opinion"
+            csv_path = Path(directory) / "reviews.csv"
+            source.to_csv(csv_path, index=False)
+            frame = load_reviews(csv_path, require_annotations=True)
+            path = Path(directory) / "splits.json"
+            assigned = prepare_splits(frame, path)
+            self.assertEqual(len(assigned), len(source))
+            linked = assigned[assigned.product_id.isin(["p0", "p1", "p2", "p3"])]
+            self.assertEqual(linked.partition.nunique(), 1)
+            self.assertEqual(linked.fold.nunique(), 1)
+            keys = assigned.review_text.map(lambda text: " ".join(text.split()).casefold())
+            self.assertEqual(assigned.groupby(keys).partition.nunique().max(), 1)
+            training = assigned[assigned.partition.eq("train")]
+            self.assertTrue(keys.loc[training.index].duplicated().any())
+            self.assertEqual(training.groupby(keys.loc[training.index]).fold.nunique().max(), 1)
+            pd.testing.assert_frame_equal(
+                assigned.sort_values("review_id").reset_index(drop=True),
+                read_splits(frame.sample(frac=1), path).sort_values("review_id").reset_index(drop=True),
+            )
+
+            def fit(fitting, validation, output, **kwargs):
+                return set(" ".join(text.split()).casefold() for text in fitting.review_text), None
+
+            def predict(seen_text, tokenizer, held):
+                held_text = {" ".join(text.split()).casefold() for text in held.review_text}
+                self.assertFalse(seen_text & held_text)
+                return np.tile([0.4, 0.3, 0.2, 0.1], (len(held), 1))
+
+            result = generate_oof(assigned, Path(directory) / "oof.csv", Path(directory) / "folds",
+                                  fit=fit, predict=predict)
+            self.assertEqual(set(result.review_id), set(training.review_id))
+
+    def test_saved_splits_reject_duplicate_text_across_partitions_or_folds(self):
+        with tempfile.TemporaryDirectory() as directory:
+            base = validated_fixture(directory)
+            initial = prepare_splits(base, Path(directory) / "initial.json")
+            for leak in ("partitions", "OOF folds"):
+                with self.subTest(leak=leak):
+                    assigned = initial.copy()
+                    training = assigned[assigned.partition.eq("train")]
+                    first = training.index[0]
+                    if leak == "partitions":
+                        second = assigned.index[assigned.partition.eq("validation")][0]
+                    else:
+                        second = training.index[training.fold.ne(assigned.loc[first, "fold"])][0]
+                    assigned.loc[second, "review_text"] = "  " + assigned.loc[first, "review_text"].upper() + "  "
+                    payload = {
+                        "version": "product-70-15-15-oof5-v1", "dataset_sha256": fingerprint(assigned),
+                        "records": assigned[["review_id", "product_id", "partition", "fold"]].to_dict("records"),
+                    }
+                    path = Path(directory) / "leaking.json"
+                    path.write_text(json.dumps(payload), encoding="utf-8")
+                    with self.assertRaisesRegex(ValueError, "Duplicate review text leakage between " + leak):
+                        read_splits(assigned.drop(columns=["partition", "fold"]), path)
+
+    def test_duplicate_links_cannot_fall_back_to_row_splitting(self):
+        with tempfile.TemporaryDirectory() as directory:
+            frame = validated_fixture(directory)
+            frame.loc[frame.label.eq(0), "review_text"] = "same opinion across every product"
+            path = Path(directory) / "invalid.json"
+            with self.assertRaisesRegex(ValueError, "independent product/duplicate-text groups"):
+                prepare_splits(frame, path)
+            self.assertFalse(path.exists())
+
     def test_persisted_partitions_and_folds_are_product_disjoint(self):
         with tempfile.TemporaryDirectory() as directory:
             frame = validated_fixture(directory)

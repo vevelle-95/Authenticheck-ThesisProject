@@ -1,0 +1,7878 @@
+{
+  "version": "product-70-15-15-oof5-v1",
+  "seed": 42,
+  "dataset_sha256": "ebbe00ad3e8a435c5647ee81d85bd9179787488863954311dbae8ae19da5b0dd",
+  "records": [
+    {
+      "review_id": "review_00001",
+      "product_id": "prod_01",
+      "partition": "train",
+      "fold": 2
+    },
+    {
+      "review_id": "review_00002",
+      "product_id": "prod_01",
+      "partition": "train",
+      "fold": 2
+    },
+    {
+      "review_id": "review_00003",
+      "product_id": "prod_01",
+      "partition": "train",
+      "fold": 2
+    },
+    {
+      "review_id": "review_00004",
+      "product_id": "prod_01",
+      "partition": "train",
+      "fold": 2
+    },
+    {
+      "review_id": "review_00005",
+      "product_id": "prod_01",
+      "partition": "train",
+      "fold": 2
+    },
+    {
+      "review_id": "review_00006",
+      "product_id": "prod_01",
+      "partition": "train",
+      "fold": 2
+    },
+    {
+      "review_id": "review_00007",
+      "product_id": "prod_01",
+      "partition": "train",
+      "fold": 2
+    },
+    {
+      "review_id": "review_00008",
+      "product_id": "prod_01",
+      "partition": "train",
+      "fold": 2
+    },
+    {
+      "review_id": "review_00009",
+      "product_id": "prod_01",
+      "partition": "train",
+      "fold": 2
+    },
+    {
+      "review_id": "review_00010",
+      "product_id": "prod_01",
+      "partition": "train",
+      "fold": 2
+    },
+    {
+      "review_id": "review_00011",
+      "product_id": "prod_01",
+      "partition": "train",
+      "fold": 2
+    },
+    {
+      "review_id": "review_00012",
+      "product_id": "prod_01",
+      "partition": "train",
+      "fold": 2
+    },
+    {
+      "review_id": "review_00013",
+      "product_id": "prod_01",
+      "partition": "train",
+      "fold": 2
+    },
+    {
+      "review_id": "review_00014",
+      "product_id": "prod_01",
+      "partition": "train",
+      "fold": 2
+    },
+    {
+      "review_id": "review_00015",
+      "product_id": "prod_01",
+      "partition": "train",
+      "fold": 2
+    },
+    {
+      "review_id": "review_00016",
+      "product_id": "prod_01",
+      "partition": "train",
+      "fold": 2
+    },
+    {
+      "review_id": "review_00017",
+      "product_id": "prod_01",
+      "partition": "train",
+      "fold": 2
+    },
+    {
+      "review_id": "review_00018",
+      "product_id": "prod_01",
+      "partition": "train",
+      "fold": 2
+    },
+    {
+      "review_id": "review_00019",
+      "product_id": "prod_01",
+      "partition": "train",
+      "fold": 2
+    },
+    {
+      "review_id": "review_00020",
+      "product_id": "prod_01",
+      "partition": "train",
+      "fold": 2
+    },
+    {
+      "review_id": "review_00021",
+      "product_id": "prod_01",
+      "partition": "train",
+      "fold": 2
+    },
+    {
+      "review_id": "review_00022",
+      "product_id": "prod_01",
+      "partition": "train",
+      "fold": 2
+    },
+    {
+      "review_id": "review_00023",
+      "product_id": "prod_01",
+      "partition": "train",
+      "fold": 2
+    },
+    {
+      "review_id": "review_00024",
+      "product_id": "prod_01",
+      "partition": "train",
+      "fold": 2
+    },
+    {
+      "review_id": "review_00025",
+      "product_id": "prod_01",
+      "partition": "train",
+      "fold": 2
+    },
+    {
+      "review_id": "review_00026",
+      "product_id": "prod_01",
+      "partition": "train",
+      "fold": 2
+    },
+    {
+      "review_id": "review_00027",
+      "product_id": "prod_01",
+      "partition": "train",
+      "fold": 2
+    },
+    {
+      "review_id": "review_00028",
+      "product_id": "prod_01",
+      "partition": "train",
+      "fold": 2
+    },
+    {
+      "review_id": "review_00029",
+      "product_id": "prod_01",
+      "partition": "train",
+      "fold": 2
+    },
+    {
+      "review_id": "review_00030",
+      "product_id": "prod_01",
+      "partition": "train",
+      "fold": 2
+    },
+    {
+      "review_id": "review_00031",
+      "product_id": "prod_01",
+      "partition": "train",
+      "fold": 2
+    },
+    {
+      "review_id": "review_00032",
+      "product_id": "prod_01",
+      "partition": "train",
+      "fold": 2
+    },
+    {
+      "review_id": "review_00033",
+      "product_id": "prod_01",
+      "partition": "train",
+      "fold": 2
+    },
+    {
+      "review_id": "review_00034",
+      "product_id": "prod_01",
+      "partition": "train",
+      "fold": 2
+    },
+    {
+      "review_id": "review_00035",
+      "product_id": "prod_01",
+      "partition": "train",
+      "fold": 2
+    },
+    {
+      "review_id": "review_00036",
+      "product_id": "prod_01",
+      "partition": "train",
+      "fold": 2
+    },
+    {
+      "review_id": "review_00037",
+      "product_id": "prod_01",
+      "partition": "train",
+      "fold": 2
+    },
+    {
+      "review_id": "review_00038",
+      "product_id": "prod_01",
+      "partition": "train",
+      "fold": 2
+    },
+    {
+      "review_id": "review_00039",
+      "product_id": "prod_01",
+      "partition": "train",
+      "fold": 2
+    },
+    {
+      "review_id": "review_00040",
+      "product_id": "prod_01",
+      "partition": "train",
+      "fold": 2
+    },
+    {
+      "review_id": "review_00041",
+      "product_id": "prod_01",
+      "partition": "train",
+      "fold": 2
+    },
+    {
+      "review_id": "review_00042",
+      "product_id": "prod_01",
+      "partition": "train",
+      "fold": 2
+    },
+    {
+      "review_id": "review_00043",
+      "product_id": "prod_01",
+      "partition": "train",
+      "fold": 2
+    },
+    {
+      "review_id": "review_00044",
+      "product_id": "prod_01",
+      "partition": "train",
+      "fold": 2
+    },
+    {
+      "review_id": "review_00045",
+      "product_id": "prod_01",
+      "partition": "train",
+      "fold": 2
+    },
+    {
+      "review_id": "review_00046",
+      "product_id": "prod_01",
+      "partition": "train",
+      "fold": 2
+    },
+    {
+      "review_id": "review_00047",
+      "product_id": "prod_01",
+      "partition": "train",
+      "fold": 2
+    },
+    {
+      "review_id": "review_00048",
+      "product_id": "prod_01",
+      "partition": "train",
+      "fold": 2
+    },
+    {
+      "review_id": "review_00049",
+      "product_id": "prod_01",
+      "partition": "train",
+      "fold": 2
+    },
+    {
+      "review_id": "review_00050",
+      "product_id": "prod_01",
+      "partition": "train",
+      "fold": 2
+    },
+    {
+      "review_id": "review_00051",
+      "product_id": "prod_01",
+      "partition": "train",
+      "fold": 2
+    },
+    {
+      "review_id": "review_00052",
+      "product_id": "prod_01",
+      "partition": "train",
+      "fold": 2
+    },
+    {
+      "review_id": "review_00053",
+      "product_id": "prod_01",
+      "partition": "train",
+      "fold": 2
+    },
+    {
+      "review_id": "review_00054",
+      "product_id": "prod_01",
+      "partition": "train",
+      "fold": 2
+    },
+    {
+      "review_id": "review_00055",
+      "product_id": "prod_01",
+      "partition": "train",
+      "fold": 2
+    },
+    {
+      "review_id": "review_00056",
+      "product_id": "prod_01",
+      "partition": "train",
+      "fold": 2
+    },
+    {
+      "review_id": "review_00057",
+      "product_id": "prod_01",
+      "partition": "train",
+      "fold": 2
+    },
+    {
+      "review_id": "review_00058",
+      "product_id": "prod_01",
+      "partition": "train",
+      "fold": 2
+    },
+    {
+      "review_id": "review_00059",
+      "product_id": "prod_01",
+      "partition": "train",
+      "fold": 2
+    },
+    {
+      "review_id": "review_00060",
+      "product_id": "prod_01",
+      "partition": "train",
+      "fold": 2
+    },
+    {
+      "review_id": "review_00061",
+      "product_id": "prod_02",
+      "partition": "train",
+      "fold": 3
+    },
+    {
+      "review_id": "review_00062",
+      "product_id": "prod_02",
+      "partition": "train",
+      "fold": 3
+    },
+    {
+      "review_id": "review_00063",
+      "product_id": "prod_02",
+      "partition": "train",
+      "fold": 3
+    },
+    {
+      "review_id": "review_00064",
+      "product_id": "prod_02",
+      "partition": "train",
+      "fold": 3
+    },
+    {
+      "review_id": "review_00065",
+      "product_id": "prod_02",
+      "partition": "train",
+      "fold": 3
+    },
+    {
+      "review_id": "review_00066",
+      "product_id": "prod_02",
+      "partition": "train",
+      "fold": 3
+    },
+    {
+      "review_id": "review_00067",
+      "product_id": "prod_02",
+      "partition": "train",
+      "fold": 3
+    },
+    {
+      "review_id": "review_00068",
+      "product_id": "prod_02",
+      "partition": "train",
+      "fold": 3
+    },
+    {
+      "review_id": "review_00069",
+      "product_id": "prod_02",
+      "partition": "train",
+      "fold": 3
+    },
+    {
+      "review_id": "review_00070",
+      "product_id": "prod_02",
+      "partition": "train",
+      "fold": 3
+    },
+    {
+      "review_id": "review_00071",
+      "product_id": "prod_02",
+      "partition": "train",
+      "fold": 3
+    },
+    {
+      "review_id": "review_00072",
+      "product_id": "prod_02",
+      "partition": "train",
+      "fold": 3
+    },
+    {
+      "review_id": "review_00073",
+      "product_id": "prod_02",
+      "partition": "train",
+      "fold": 3
+    },
+    {
+      "review_id": "review_00074",
+      "product_id": "prod_02",
+      "partition": "train",
+      "fold": 3
+    },
+    {
+      "review_id": "review_00075",
+      "product_id": "prod_02",
+      "partition": "train",
+      "fold": 3
+    },
+    {
+      "review_id": "review_00076",
+      "product_id": "prod_02",
+      "partition": "train",
+      "fold": 3
+    },
+    {
+      "review_id": "review_00077",
+      "product_id": "prod_02",
+      "partition": "train",
+      "fold": 3
+    },
+    {
+      "review_id": "review_00078",
+      "product_id": "prod_02",
+      "partition": "train",
+      "fold": 3
+    },
+    {
+      "review_id": "review_00079",
+      "product_id": "prod_02",
+      "partition": "train",
+      "fold": 3
+    },
+    {
+      "review_id": "review_00080",
+      "product_id": "prod_02",
+      "partition": "train",
+      "fold": 3
+    },
+    {
+      "review_id": "review_00081",
+      "product_id": "prod_02",
+      "partition": "train",
+      "fold": 3
+    },
+    {
+      "review_id": "review_00082",
+      "product_id": "prod_02",
+      "partition": "train",
+      "fold": 3
+    },
+    {
+      "review_id": "review_00083",
+      "product_id": "prod_02",
+      "partition": "train",
+      "fold": 3
+    },
+    {
+      "review_id": "review_00084",
+      "product_id": "prod_02",
+      "partition": "train",
+      "fold": 3
+    },
+    {
+      "review_id": "review_00085",
+      "product_id": "prod_02",
+      "partition": "train",
+      "fold": 3
+    },
+    {
+      "review_id": "review_00086",
+      "product_id": "prod_02",
+      "partition": "train",
+      "fold": 3
+    },
+    {
+      "review_id": "review_00087",
+      "product_id": "prod_02",
+      "partition": "train",
+      "fold": 3
+    },
+    {
+      "review_id": "review_00088",
+      "product_id": "prod_02",
+      "partition": "train",
+      "fold": 3
+    },
+    {
+      "review_id": "review_00089",
+      "product_id": "prod_02",
+      "partition": "train",
+      "fold": 3
+    },
+    {
+      "review_id": "review_00090",
+      "product_id": "prod_02",
+      "partition": "train",
+      "fold": 3
+    },
+    {
+      "review_id": "review_00091",
+      "product_id": "prod_02",
+      "partition": "train",
+      "fold": 3
+    },
+    {
+      "review_id": "review_00092",
+      "product_id": "prod_02",
+      "partition": "train",
+      "fold": 3
+    },
+    {
+      "review_id": "review_00093",
+      "product_id": "prod_02",
+      "partition": "train",
+      "fold": 3
+    },
+    {
+      "review_id": "review_00094",
+      "product_id": "prod_02",
+      "partition": "train",
+      "fold": 3
+    },
+    {
+      "review_id": "review_00095",
+      "product_id": "prod_02",
+      "partition": "train",
+      "fold": 3
+    },
+    {
+      "review_id": "review_00096",
+      "product_id": "prod_02",
+      "partition": "train",
+      "fold": 3
+    },
+    {
+      "review_id": "review_00097",
+      "product_id": "prod_02",
+      "partition": "train",
+      "fold": 3
+    },
+    {
+      "review_id": "review_00098",
+      "product_id": "prod_02",
+      "partition": "train",
+      "fold": 3
+    },
+    {
+      "review_id": "review_00099",
+      "product_id": "prod_02",
+      "partition": "train",
+      "fold": 3
+    },
+    {
+      "review_id": "review_00100",
+      "product_id": "prod_02",
+      "partition": "train",
+      "fold": 3
+    },
+    {
+      "review_id": "review_00101",
+      "product_id": "prod_02",
+      "partition": "train",
+      "fold": 3
+    },
+    {
+      "review_id": "review_00102",
+      "product_id": "prod_02",
+      "partition": "train",
+      "fold": 3
+    },
+    {
+      "review_id": "review_00103",
+      "product_id": "prod_02",
+      "partition": "train",
+      "fold": 3
+    },
+    {
+      "review_id": "review_00104",
+      "product_id": "prod_02",
+      "partition": "train",
+      "fold": 3
+    },
+    {
+      "review_id": "review_00105",
+      "product_id": "prod_02",
+      "partition": "train",
+      "fold": 3
+    },
+    {
+      "review_id": "review_00106",
+      "product_id": "prod_02",
+      "partition": "train",
+      "fold": 3
+    },
+    {
+      "review_id": "review_00107",
+      "product_id": "prod_02",
+      "partition": "train",
+      "fold": 3
+    },
+    {
+      "review_id": "review_00108",
+      "product_id": "prod_02",
+      "partition": "train",
+      "fold": 3
+    },
+    {
+      "review_id": "review_00109",
+      "product_id": "prod_02",
+      "partition": "train",
+      "fold": 3
+    },
+    {
+      "review_id": "review_00110",
+      "product_id": "prod_02",
+      "partition": "train",
+      "fold": 3
+    },
+    {
+      "review_id": "review_00111",
+      "product_id": "prod_02",
+      "partition": "train",
+      "fold": 3
+    },
+    {
+      "review_id": "review_00112",
+      "product_id": "prod_02",
+      "partition": "train",
+      "fold": 3
+    },
+    {
+      "review_id": "review_00113",
+      "product_id": "prod_02",
+      "partition": "train",
+      "fold": 3
+    },
+    {
+      "review_id": "review_00114",
+      "product_id": "prod_02",
+      "partition": "train",
+      "fold": 3
+    },
+    {
+      "review_id": "review_00115",
+      "product_id": "prod_02",
+      "partition": "train",
+      "fold": 3
+    },
+    {
+      "review_id": "review_00116",
+      "product_id": "prod_02",
+      "partition": "train",
+      "fold": 3
+    },
+    {
+      "review_id": "review_00117",
+      "product_id": "prod_02",
+      "partition": "train",
+      "fold": 3
+    },
+    {
+      "review_id": "review_00118",
+      "product_id": "prod_03",
+      "partition": "train",
+      "fold": 0
+    },
+    {
+      "review_id": "review_00119",
+      "product_id": "prod_03",
+      "partition": "train",
+      "fold": 0
+    },
+    {
+      "review_id": "review_00120",
+      "product_id": "prod_03",
+      "partition": "train",
+      "fold": 0
+    },
+    {
+      "review_id": "review_00121",
+      "product_id": "prod_03",
+      "partition": "train",
+      "fold": 0
+    },
+    {
+      "review_id": "review_00122",
+      "product_id": "prod_03",
+      "partition": "train",
+      "fold": 0
+    },
+    {
+      "review_id": "review_00123",
+      "product_id": "prod_03",
+      "partition": "train",
+      "fold": 0
+    },
+    {
+      "review_id": "review_00124",
+      "product_id": "prod_03",
+      "partition": "train",
+      "fold": 0
+    },
+    {
+      "review_id": "review_00125",
+      "product_id": "prod_03",
+      "partition": "train",
+      "fold": 0
+    },
+    {
+      "review_id": "review_00126",
+      "product_id": "prod_03",
+      "partition": "train",
+      "fold": 0
+    },
+    {
+      "review_id": "review_00127",
+      "product_id": "prod_03",
+      "partition": "train",
+      "fold": 0
+    },
+    {
+      "review_id": "review_00128",
+      "product_id": "prod_03",
+      "partition": "train",
+      "fold": 0
+    },
+    {
+      "review_id": "review_00129",
+      "product_id": "prod_03",
+      "partition": "train",
+      "fold": 0
+    },
+    {
+      "review_id": "review_00130",
+      "product_id": "prod_03",
+      "partition": "train",
+      "fold": 0
+    },
+    {
+      "review_id": "review_00131",
+      "product_id": "prod_03",
+      "partition": "train",
+      "fold": 0
+    },
+    {
+      "review_id": "review_00132",
+      "product_id": "prod_03",
+      "partition": "train",
+      "fold": 0
+    },
+    {
+      "review_id": "review_00133",
+      "product_id": "prod_03",
+      "partition": "train",
+      "fold": 0
+    },
+    {
+      "review_id": "review_00134",
+      "product_id": "prod_03",
+      "partition": "train",
+      "fold": 0
+    },
+    {
+      "review_id": "review_00135",
+      "product_id": "prod_03",
+      "partition": "train",
+      "fold": 0
+    },
+    {
+      "review_id": "review_00136",
+      "product_id": "prod_03",
+      "partition": "train",
+      "fold": 0
+    },
+    {
+      "review_id": "review_00137",
+      "product_id": "prod_03",
+      "partition": "train",
+      "fold": 0
+    },
+    {
+      "review_id": "review_00138",
+      "product_id": "prod_03",
+      "partition": "train",
+      "fold": 0
+    },
+    {
+      "review_id": "review_00139",
+      "product_id": "prod_03",
+      "partition": "train",
+      "fold": 0
+    },
+    {
+      "review_id": "review_00140",
+      "product_id": "prod_03",
+      "partition": "train",
+      "fold": 0
+    },
+    {
+      "review_id": "review_00141",
+      "product_id": "prod_03",
+      "partition": "train",
+      "fold": 0
+    },
+    {
+      "review_id": "review_00142",
+      "product_id": "prod_03",
+      "partition": "train",
+      "fold": 0
+    },
+    {
+      "review_id": "review_00143",
+      "product_id": "prod_03",
+      "partition": "train",
+      "fold": 0
+    },
+    {
+      "review_id": "review_00144",
+      "product_id": "prod_03",
+      "partition": "train",
+      "fold": 0
+    },
+    {
+      "review_id": "review_00145",
+      "product_id": "prod_03",
+      "partition": "train",
+      "fold": 0
+    },
+    {
+      "review_id": "review_00146",
+      "product_id": "prod_03",
+      "partition": "train",
+      "fold": 0
+    },
+    {
+      "review_id": "review_00147",
+      "product_id": "prod_03",
+      "partition": "train",
+      "fold": 0
+    },
+    {
+      "review_id": "review_00148",
+      "product_id": "prod_03",
+      "partition": "train",
+      "fold": 0
+    },
+    {
+      "review_id": "review_00149",
+      "product_id": "prod_03",
+      "partition": "train",
+      "fold": 0
+    },
+    {
+      "review_id": "review_00150",
+      "product_id": "prod_03",
+      "partition": "train",
+      "fold": 0
+    },
+    {
+      "review_id": "review_00151",
+      "product_id": "prod_03",
+      "partition": "train",
+      "fold": 0
+    },
+    {
+      "review_id": "review_00152",
+      "product_id": "prod_03",
+      "partition": "train",
+      "fold": 0
+    },
+    {
+      "review_id": "review_00153",
+      "product_id": "prod_03",
+      "partition": "train",
+      "fold": 0
+    },
+    {
+      "review_id": "review_00154",
+      "product_id": "prod_03",
+      "partition": "train",
+      "fold": 0
+    },
+    {
+      "review_id": "review_00155",
+      "product_id": "prod_03",
+      "partition": "train",
+      "fold": 0
+    },
+    {
+      "review_id": "review_00156",
+      "product_id": "prod_03",
+      "partition": "train",
+      "fold": 0
+    },
+    {
+      "review_id": "review_00157",
+      "product_id": "prod_03",
+      "partition": "train",
+      "fold": 0
+    },
+    {
+      "review_id": "review_00158",
+      "product_id": "prod_03",
+      "partition": "train",
+      "fold": 0
+    },
+    {
+      "review_id": "review_00159",
+      "product_id": "prod_03",
+      "partition": "train",
+      "fold": 0
+    },
+    {
+      "review_id": "review_00160",
+      "product_id": "prod_03",
+      "partition": "train",
+      "fold": 0
+    },
+    {
+      "review_id": "review_00161",
+      "product_id": "prod_03",
+      "partition": "train",
+      "fold": 0
+    },
+    {
+      "review_id": "review_00162",
+      "product_id": "prod_03",
+      "partition": "train",
+      "fold": 0
+    },
+    {
+      "review_id": "review_00163",
+      "product_id": "prod_03",
+      "partition": "train",
+      "fold": 0
+    },
+    {
+      "review_id": "review_00164",
+      "product_id": "prod_03",
+      "partition": "train",
+      "fold": 0
+    },
+    {
+      "review_id": "review_00165",
+      "product_id": "prod_03",
+      "partition": "train",
+      "fold": 0
+    },
+    {
+      "review_id": "review_00166",
+      "product_id": "prod_03",
+      "partition": "train",
+      "fold": 0
+    },
+    {
+      "review_id": "review_00167",
+      "product_id": "prod_03",
+      "partition": "train",
+      "fold": 0
+    },
+    {
+      "review_id": "review_00168",
+      "product_id": "prod_03",
+      "partition": "train",
+      "fold": 0
+    },
+    {
+      "review_id": "review_00169",
+      "product_id": "prod_03",
+      "partition": "train",
+      "fold": 0
+    },
+    {
+      "review_id": "review_00170",
+      "product_id": "prod_03",
+      "partition": "train",
+      "fold": 0
+    },
+    {
+      "review_id": "review_00171",
+      "product_id": "prod_03",
+      "partition": "train",
+      "fold": 0
+    },
+    {
+      "review_id": "review_00172",
+      "product_id": "prod_03",
+      "partition": "train",
+      "fold": 0
+    },
+    {
+      "review_id": "review_00173",
+      "product_id": "prod_03",
+      "partition": "train",
+      "fold": 0
+    },
+    {
+      "review_id": "review_00174",
+      "product_id": "prod_03",
+      "partition": "train",
+      "fold": 0
+    },
+    {
+      "review_id": "review_00175",
+      "product_id": "prod_03",
+      "partition": "train",
+      "fold": 0
+    },
+    {
+      "review_id": "review_00176",
+      "product_id": "prod_03",
+      "partition": "train",
+      "fold": 0
+    },
+    {
+      "review_id": "review_00177",
+      "product_id": "prod_03",
+      "partition": "train",
+      "fold": 0
+    },
+    {
+      "review_id": "review_00178",
+      "product_id": "prod_04",
+      "partition": "train",
+      "fold": 1
+    },
+    {
+      "review_id": "review_00179",
+      "product_id": "prod_04",
+      "partition": "train",
+      "fold": 1
+    },
+    {
+      "review_id": "review_00180",
+      "product_id": "prod_04",
+      "partition": "train",
+      "fold": 1
+    },
+    {
+      "review_id": "review_00181",
+      "product_id": "prod_04",
+      "partition": "train",
+      "fold": 1
+    },
+    {
+      "review_id": "review_00182",
+      "product_id": "prod_04",
+      "partition": "train",
+      "fold": 1
+    },
+    {
+      "review_id": "review_00183",
+      "product_id": "prod_04",
+      "partition": "train",
+      "fold": 1
+    },
+    {
+      "review_id": "review_00184",
+      "product_id": "prod_04",
+      "partition": "train",
+      "fold": 1
+    },
+    {
+      "review_id": "review_00185",
+      "product_id": "prod_04",
+      "partition": "train",
+      "fold": 1
+    },
+    {
+      "review_id": "review_00186",
+      "product_id": "prod_04",
+      "partition": "train",
+      "fold": 1
+    },
+    {
+      "review_id": "review_00187",
+      "product_id": "prod_04",
+      "partition": "train",
+      "fold": 1
+    },
+    {
+      "review_id": "review_00188",
+      "product_id": "prod_04",
+      "partition": "train",
+      "fold": 1
+    },
+    {
+      "review_id": "review_00189",
+      "product_id": "prod_04",
+      "partition": "train",
+      "fold": 1
+    },
+    {
+      "review_id": "review_00190",
+      "product_id": "prod_04",
+      "partition": "train",
+      "fold": 1
+    },
+    {
+      "review_id": "review_00191",
+      "product_id": "prod_04",
+      "partition": "train",
+      "fold": 1
+    },
+    {
+      "review_id": "review_00192",
+      "product_id": "prod_04",
+      "partition": "train",
+      "fold": 1
+    },
+    {
+      "review_id": "review_00193",
+      "product_id": "prod_04",
+      "partition": "train",
+      "fold": 1
+    },
+    {
+      "review_id": "review_00194",
+      "product_id": "prod_04",
+      "partition": "train",
+      "fold": 1
+    },
+    {
+      "review_id": "review_00195",
+      "product_id": "prod_04",
+      "partition": "train",
+      "fold": 1
+    },
+    {
+      "review_id": "review_00196",
+      "product_id": "prod_04",
+      "partition": "train",
+      "fold": 1
+    },
+    {
+      "review_id": "review_00197",
+      "product_id": "prod_04",
+      "partition": "train",
+      "fold": 1
+    },
+    {
+      "review_id": "review_00198",
+      "product_id": "prod_04",
+      "partition": "train",
+      "fold": 1
+    },
+    {
+      "review_id": "review_00199",
+      "product_id": "prod_04",
+      "partition": "train",
+      "fold": 1
+    },
+    {
+      "review_id": "review_00200",
+      "product_id": "prod_04",
+      "partition": "train",
+      "fold": 1
+    },
+    {
+      "review_id": "review_00201",
+      "product_id": "prod_04",
+      "partition": "train",
+      "fold": 1
+    },
+    {
+      "review_id": "review_00202",
+      "product_id": "prod_04",
+      "partition": "train",
+      "fold": 1
+    },
+    {
+      "review_id": "review_00203",
+      "product_id": "prod_04",
+      "partition": "train",
+      "fold": 1
+    },
+    {
+      "review_id": "review_00204",
+      "product_id": "prod_04",
+      "partition": "train",
+      "fold": 1
+    },
+    {
+      "review_id": "review_00205",
+      "product_id": "prod_04",
+      "partition": "train",
+      "fold": 1
+    },
+    {
+      "review_id": "review_00206",
+      "product_id": "prod_04",
+      "partition": "train",
+      "fold": 1
+    },
+    {
+      "review_id": "review_00207",
+      "product_id": "prod_04",
+      "partition": "train",
+      "fold": 1
+    },
+    {
+      "review_id": "review_00208",
+      "product_id": "prod_04",
+      "partition": "train",
+      "fold": 1
+    },
+    {
+      "review_id": "review_00209",
+      "product_id": "prod_04",
+      "partition": "train",
+      "fold": 1
+    },
+    {
+      "review_id": "review_00210",
+      "product_id": "prod_04",
+      "partition": "train",
+      "fold": 1
+    },
+    {
+      "review_id": "review_00211",
+      "product_id": "prod_04",
+      "partition": "train",
+      "fold": 1
+    },
+    {
+      "review_id": "review_00212",
+      "product_id": "prod_04",
+      "partition": "train",
+      "fold": 1
+    },
+    {
+      "review_id": "review_00213",
+      "product_id": "prod_04",
+      "partition": "train",
+      "fold": 1
+    },
+    {
+      "review_id": "review_00214",
+      "product_id": "prod_04",
+      "partition": "train",
+      "fold": 1
+    },
+    {
+      "review_id": "review_00215",
+      "product_id": "prod_04",
+      "partition": "train",
+      "fold": 1
+    },
+    {
+      "review_id": "review_00216",
+      "product_id": "prod_04",
+      "partition": "train",
+      "fold": 1
+    },
+    {
+      "review_id": "review_00217",
+      "product_id": "prod_04",
+      "partition": "train",
+      "fold": 1
+    },
+    {
+      "review_id": "review_00218",
+      "product_id": "prod_04",
+      "partition": "train",
+      "fold": 1
+    },
+    {
+      "review_id": "review_00219",
+      "product_id": "prod_04",
+      "partition": "train",
+      "fold": 1
+    },
+    {
+      "review_id": "review_00220",
+      "product_id": "prod_04",
+      "partition": "train",
+      "fold": 1
+    },
+    {
+      "review_id": "review_00221",
+      "product_id": "prod_04",
+      "partition": "train",
+      "fold": 1
+    },
+    {
+      "review_id": "review_00222",
+      "product_id": "prod_04",
+      "partition": "train",
+      "fold": 1
+    },
+    {
+      "review_id": "review_00223",
+      "product_id": "prod_04",
+      "partition": "train",
+      "fold": 1
+    },
+    {
+      "review_id": "review_00224",
+      "product_id": "prod_04",
+      "partition": "train",
+      "fold": 1
+    },
+    {
+      "review_id": "review_00225",
+      "product_id": "prod_04",
+      "partition": "train",
+      "fold": 1
+    },
+    {
+      "review_id": "review_00226",
+      "product_id": "prod_04",
+      "partition": "train",
+      "fold": 1
+    },
+    {
+      "review_id": "review_00227",
+      "product_id": "prod_04",
+      "partition": "train",
+      "fold": 1
+    },
+    {
+      "review_id": "review_00228",
+      "product_id": "prod_04",
+      "partition": "train",
+      "fold": 1
+    },
+    {
+      "review_id": "review_00229",
+      "product_id": "prod_04",
+      "partition": "train",
+      "fold": 1
+    },
+    {
+      "review_id": "review_00230",
+      "product_id": "prod_04",
+      "partition": "train",
+      "fold": 1
+    },
+    {
+      "review_id": "review_00231",
+      "product_id": "prod_04",
+      "partition": "train",
+      "fold": 1
+    },
+    {
+      "review_id": "review_00232",
+      "product_id": "prod_04",
+      "partition": "train",
+      "fold": 1
+    },
+    {
+      "review_id": "review_00233",
+      "product_id": "prod_04",
+      "partition": "train",
+      "fold": 1
+    },
+    {
+      "review_id": "review_00234",
+      "product_id": "prod_04",
+      "partition": "train",
+      "fold": 1
+    },
+    {
+      "review_id": "review_00235",
+      "product_id": "prod_04",
+      "partition": "train",
+      "fold": 1
+    },
+    {
+      "review_id": "review_00236",
+      "product_id": "prod_04",
+      "partition": "train",
+      "fold": 1
+    },
+    {
+      "review_id": "review_00237",
+      "product_id": "prod_04",
+      "partition": "train",
+      "fold": 1
+    },
+    {
+      "review_id": "review_00238",
+      "product_id": "prod_05",
+      "partition": "test",
+      "fold": -1
+    },
+    {
+      "review_id": "review_00239",
+      "product_id": "prod_05",
+      "partition": "test",
+      "fold": -1
+    },
+    {
+      "review_id": "review_00240",
+      "product_id": "prod_05",
+      "partition": "test",
+      "fold": -1
+    },
+    {
+      "review_id": "review_00241",
+      "product_id": "prod_05",
+      "partition": "test",
+      "fold": -1
+    },
+    {
+      "review_id": "review_00242",
+      "product_id": "prod_05",
+      "partition": "test",
+      "fold": -1
+    },
+    {
+      "review_id": "review_00243",
+      "product_id": "prod_05",
+      "partition": "test",
+      "fold": -1
+    },
+    {
+      "review_id": "review_00244",
+      "product_id": "prod_05",
+      "partition": "test",
+      "fold": -1
+    },
+    {
+      "review_id": "review_00245",
+      "product_id": "prod_05",
+      "partition": "test",
+      "fold": -1
+    },
+    {
+      "review_id": "review_00246",
+      "product_id": "prod_05",
+      "partition": "test",
+      "fold": -1
+    },
+    {
+      "review_id": "review_00247",
+      "product_id": "prod_05",
+      "partition": "test",
+      "fold": -1
+    },
+    {
+      "review_id": "review_00248",
+      "product_id": "prod_05",
+      "partition": "test",
+      "fold": -1
+    },
+    {
+      "review_id": "review_00249",
+      "product_id": "prod_05",
+      "partition": "test",
+      "fold": -1
+    },
+    {
+      "review_id": "review_00250",
+      "product_id": "prod_05",
+      "partition": "test",
+      "fold": -1
+    },
+    {
+      "review_id": "review_00251",
+      "product_id": "prod_05",
+      "partition": "test",
+      "fold": -1
+    },
+    {
+      "review_id": "review_00252",
+      "product_id": "prod_05",
+      "partition": "test",
+      "fold": -1
+    },
+    {
+      "review_id": "review_00253",
+      "product_id": "prod_05",
+      "partition": "test",
+      "fold": -1
+    },
+    {
+      "review_id": "review_00254",
+      "product_id": "prod_05",
+      "partition": "test",
+      "fold": -1
+    },
+    {
+      "review_id": "review_00255",
+      "product_id": "prod_05",
+      "partition": "test",
+      "fold": -1
+    },
+    {
+      "review_id": "review_00256",
+      "product_id": "prod_05",
+      "partition": "test",
+      "fold": -1
+    },
+    {
+      "review_id": "review_00257",
+      "product_id": "prod_05",
+      "partition": "test",
+      "fold": -1
+    },
+    {
+      "review_id": "review_00258",
+      "product_id": "prod_05",
+      "partition": "test",
+      "fold": -1
+    },
+    {
+      "review_id": "review_00259",
+      "product_id": "prod_05",
+      "partition": "test",
+      "fold": -1
+    },
+    {
+      "review_id": "review_00260",
+      "product_id": "prod_05",
+      "partition": "test",
+      "fold": -1
+    },
+    {
+      "review_id": "review_00261",
+      "product_id": "prod_05",
+      "partition": "test",
+      "fold": -1
+    },
+    {
+      "review_id": "review_00262",
+      "product_id": "prod_05",
+      "partition": "test",
+      "fold": -1
+    },
+    {
+      "review_id": "review_00263",
+      "product_id": "prod_05",
+      "partition": "test",
+      "fold": -1
+    },
+    {
+      "review_id": "review_00264",
+      "product_id": "prod_05",
+      "partition": "test",
+      "fold": -1
+    },
+    {
+      "review_id": "review_00265",
+      "product_id": "prod_05",
+      "partition": "test",
+      "fold": -1
+    },
+    {
+      "review_id": "review_00266",
+      "product_id": "prod_05",
+      "partition": "test",
+      "fold": -1
+    },
+    {
+      "review_id": "review_00267",
+      "product_id": "prod_05",
+      "partition": "test",
+      "fold": -1
+    },
+    {
+      "review_id": "review_00268",
+      "product_id": "prod_05",
+      "partition": "test",
+      "fold": -1
+    },
+    {
+      "review_id": "review_00269",
+      "product_id": "prod_05",
+      "partition": "test",
+      "fold": -1
+    },
+    {
+      "review_id": "review_00270",
+      "product_id": "prod_05",
+      "partition": "test",
+      "fold": -1
+    },
+    {
+      "review_id": "review_00271",
+      "product_id": "prod_05",
+      "partition": "test",
+      "fold": -1
+    },
+    {
+      "review_id": "review_00272",
+      "product_id": "prod_05",
+      "partition": "test",
+      "fold": -1
+    },
+    {
+      "review_id": "review_00273",
+      "product_id": "prod_05",
+      "partition": "test",
+      "fold": -1
+    },
+    {
+      "review_id": "review_00274",
+      "product_id": "prod_05",
+      "partition": "test",
+      "fold": -1
+    },
+    {
+      "review_id": "review_00275",
+      "product_id": "prod_05",
+      "partition": "test",
+      "fold": -1
+    },
+    {
+      "review_id": "review_00276",
+      "product_id": "prod_05",
+      "partition": "test",
+      "fold": -1
+    },
+    {
+      "review_id": "review_00277",
+      "product_id": "prod_05",
+      "partition": "test",
+      "fold": -1
+    },
+    {
+      "review_id": "review_00278",
+      "product_id": "prod_05",
+      "partition": "test",
+      "fold": -1
+    },
+    {
+      "review_id": "review_00279",
+      "product_id": "prod_05",
+      "partition": "test",
+      "fold": -1
+    },
+    {
+      "review_id": "review_00280",
+      "product_id": "prod_05",
+      "partition": "test",
+      "fold": -1
+    },
+    {
+      "review_id": "review_00281",
+      "product_id": "prod_05",
+      "partition": "test",
+      "fold": -1
+    },
+    {
+      "review_id": "review_00282",
+      "product_id": "prod_05",
+      "partition": "test",
+      "fold": -1
+    },
+    {
+      "review_id": "review_00283",
+      "product_id": "prod_05",
+      "partition": "test",
+      "fold": -1
+    },
+    {
+      "review_id": "review_00284",
+      "product_id": "prod_05",
+      "partition": "test",
+      "fold": -1
+    },
+    {
+      "review_id": "review_00285",
+      "product_id": "prod_05",
+      "partition": "test",
+      "fold": -1
+    },
+    {
+      "review_id": "review_00286",
+      "product_id": "prod_05",
+      "partition": "test",
+      "fold": -1
+    },
+    {
+      "review_id": "review_00287",
+      "product_id": "prod_05",
+      "partition": "test",
+      "fold": -1
+    },
+    {
+      "review_id": "review_00288",
+      "product_id": "prod_05",
+      "partition": "test",
+      "fold": -1
+    },
+    {
+      "review_id": "review_00289",
+      "product_id": "prod_05",
+      "partition": "test",
+      "fold": -1
+    },
+    {
+      "review_id": "review_00290",
+      "product_id": "prod_05",
+      "partition": "test",
+      "fold": -1
+    },
+    {
+      "review_id": "review_00291",
+      "product_id": "prod_05",
+      "partition": "test",
+      "fold": -1
+    },
+    {
+      "review_id": "review_00292",
+      "product_id": "prod_05",
+      "partition": "test",
+      "fold": -1
+    },
+    {
+      "review_id": "review_00293",
+      "product_id": "prod_05",
+      "partition": "test",
+      "fold": -1
+    },
+    {
+      "review_id": "review_00294",
+      "product_id": "prod_05",
+      "partition": "test",
+      "fold": -1
+    },
+    {
+      "review_id": "review_00295",
+      "product_id": "prod_05",
+      "partition": "test",
+      "fold": -1
+    },
+    {
+      "review_id": "review_00296",
+      "product_id": "prod_05",
+      "partition": "test",
+      "fold": -1
+    },
+    {
+      "review_id": "review_00297",
+      "product_id": "prod_05",
+      "partition": "test",
+      "fold": -1
+    },
+    {
+      "review_id": "review_00298",
+      "product_id": "prod_06",
+      "partition": "train",
+      "fold": 2
+    },
+    {
+      "review_id": "review_00299",
+      "product_id": "prod_06",
+      "partition": "train",
+      "fold": 2
+    },
+    {
+      "review_id": "review_00300",
+      "product_id": "prod_06",
+      "partition": "train",
+      "fold": 2
+    },
+    {
+      "review_id": "review_00301",
+      "product_id": "prod_06",
+      "partition": "train",
+      "fold": 2
+    },
+    {
+      "review_id": "review_00302",
+      "product_id": "prod_06",
+      "partition": "train",
+      "fold": 2
+    },
+    {
+      "review_id": "review_00303",
+      "product_id": "prod_06",
+      "partition": "train",
+      "fold": 2
+    },
+    {
+      "review_id": "review_00304",
+      "product_id": "prod_06",
+      "partition": "train",
+      "fold": 2
+    },
+    {
+      "review_id": "review_00305",
+      "product_id": "prod_06",
+      "partition": "train",
+      "fold": 2
+    },
+    {
+      "review_id": "review_00306",
+      "product_id": "prod_06",
+      "partition": "train",
+      "fold": 2
+    },
+    {
+      "review_id": "review_00307",
+      "product_id": "prod_06",
+      "partition": "train",
+      "fold": 2
+    },
+    {
+      "review_id": "review_00308",
+      "product_id": "prod_06",
+      "partition": "train",
+      "fold": 2
+    },
+    {
+      "review_id": "review_00309",
+      "product_id": "prod_06",
+      "partition": "train",
+      "fold": 2
+    },
+    {
+      "review_id": "review_00310",
+      "product_id": "prod_06",
+      "partition": "train",
+      "fold": 2
+    },
+    {
+      "review_id": "review_00311",
+      "product_id": "prod_06",
+      "partition": "train",
+      "fold": 2
+    },
+    {
+      "review_id": "review_00312",
+      "product_id": "prod_06",
+      "partition": "train",
+      "fold": 2
+    },
+    {
+      "review_id": "review_00313",
+      "product_id": "prod_06",
+      "partition": "train",
+      "fold": 2
+    },
+    {
+      "review_id": "review_00314",
+      "product_id": "prod_06",
+      "partition": "train",
+      "fold": 2
+    },
+    {
+      "review_id": "review_00315",
+      "product_id": "prod_06",
+      "partition": "train",
+      "fold": 2
+    },
+    {
+      "review_id": "review_00316",
+      "product_id": "prod_06",
+      "partition": "train",
+      "fold": 2
+    },
+    {
+      "review_id": "review_00317",
+      "product_id": "prod_06",
+      "partition": "train",
+      "fold": 2
+    },
+    {
+      "review_id": "review_00318",
+      "product_id": "prod_06",
+      "partition": "train",
+      "fold": 2
+    },
+    {
+      "review_id": "review_00319",
+      "product_id": "prod_06",
+      "partition": "train",
+      "fold": 2
+    },
+    {
+      "review_id": "review_00320",
+      "product_id": "prod_06",
+      "partition": "train",
+      "fold": 2
+    },
+    {
+      "review_id": "review_00321",
+      "product_id": "prod_06",
+      "partition": "train",
+      "fold": 2
+    },
+    {
+      "review_id": "review_00322",
+      "product_id": "prod_06",
+      "partition": "train",
+      "fold": 2
+    },
+    {
+      "review_id": "review_00323",
+      "product_id": "prod_06",
+      "partition": "train",
+      "fold": 2
+    },
+    {
+      "review_id": "review_00324",
+      "product_id": "prod_06",
+      "partition": "train",
+      "fold": 2
+    },
+    {
+      "review_id": "review_00325",
+      "product_id": "prod_06",
+      "partition": "train",
+      "fold": 2
+    },
+    {
+      "review_id": "review_00326",
+      "product_id": "prod_06",
+      "partition": "train",
+      "fold": 2
+    },
+    {
+      "review_id": "review_00327",
+      "product_id": "prod_06",
+      "partition": "train",
+      "fold": 2
+    },
+    {
+      "review_id": "review_00328",
+      "product_id": "prod_06",
+      "partition": "train",
+      "fold": 2
+    },
+    {
+      "review_id": "review_00329",
+      "product_id": "prod_06",
+      "partition": "train",
+      "fold": 2
+    },
+    {
+      "review_id": "review_00330",
+      "product_id": "prod_06",
+      "partition": "train",
+      "fold": 2
+    },
+    {
+      "review_id": "review_00331",
+      "product_id": "prod_06",
+      "partition": "train",
+      "fold": 2
+    },
+    {
+      "review_id": "review_00332",
+      "product_id": "prod_06",
+      "partition": "train",
+      "fold": 2
+    },
+    {
+      "review_id": "review_00333",
+      "product_id": "prod_06",
+      "partition": "train",
+      "fold": 2
+    },
+    {
+      "review_id": "review_00334",
+      "product_id": "prod_06",
+      "partition": "train",
+      "fold": 2
+    },
+    {
+      "review_id": "review_00335",
+      "product_id": "prod_06",
+      "partition": "train",
+      "fold": 2
+    },
+    {
+      "review_id": "review_00336",
+      "product_id": "prod_06",
+      "partition": "train",
+      "fold": 2
+    },
+    {
+      "review_id": "review_00337",
+      "product_id": "prod_06",
+      "partition": "train",
+      "fold": 2
+    },
+    {
+      "review_id": "review_00338",
+      "product_id": "prod_06",
+      "partition": "train",
+      "fold": 2
+    },
+    {
+      "review_id": "review_00339",
+      "product_id": "prod_06",
+      "partition": "train",
+      "fold": 2
+    },
+    {
+      "review_id": "review_00340",
+      "product_id": "prod_06",
+      "partition": "train",
+      "fold": 2
+    },
+    {
+      "review_id": "review_00341",
+      "product_id": "prod_06",
+      "partition": "train",
+      "fold": 2
+    },
+    {
+      "review_id": "review_00342",
+      "product_id": "prod_06",
+      "partition": "train",
+      "fold": 2
+    },
+    {
+      "review_id": "review_00343",
+      "product_id": "prod_06",
+      "partition": "train",
+      "fold": 2
+    },
+    {
+      "review_id": "review_00344",
+      "product_id": "prod_06",
+      "partition": "train",
+      "fold": 2
+    },
+    {
+      "review_id": "review_00345",
+      "product_id": "prod_06",
+      "partition": "train",
+      "fold": 2
+    },
+    {
+      "review_id": "review_00346",
+      "product_id": "prod_06",
+      "partition": "train",
+      "fold": 2
+    },
+    {
+      "review_id": "review_00347",
+      "product_id": "prod_06",
+      "partition": "train",
+      "fold": 2
+    },
+    {
+      "review_id": "review_00348",
+      "product_id": "prod_06",
+      "partition": "train",
+      "fold": 2
+    },
+    {
+      "review_id": "review_00349",
+      "product_id": "prod_06",
+      "partition": "train",
+      "fold": 2
+    },
+    {
+      "review_id": "review_00350",
+      "product_id": "prod_06",
+      "partition": "train",
+      "fold": 2
+    },
+    {
+      "review_id": "review_00351",
+      "product_id": "prod_06",
+      "partition": "train",
+      "fold": 2
+    },
+    {
+      "review_id": "review_00352",
+      "product_id": "prod_06",
+      "partition": "train",
+      "fold": 2
+    },
+    {
+      "review_id": "review_00353",
+      "product_id": "prod_06",
+      "partition": "train",
+      "fold": 2
+    },
+    {
+      "review_id": "review_00354",
+      "product_id": "prod_06",
+      "partition": "train",
+      "fold": 2
+    },
+    {
+      "review_id": "review_00355",
+      "product_id": "prod_06",
+      "partition": "train",
+      "fold": 2
+    },
+    {
+      "review_id": "review_00356",
+      "product_id": "prod_06",
+      "partition": "train",
+      "fold": 2
+    },
+    {
+      "review_id": "review_00357",
+      "product_id": "prod_06",
+      "partition": "train",
+      "fold": 2
+    },
+    {
+      "review_id": "review_00358",
+      "product_id": "prod_07",
+      "partition": "train",
+      "fold": 4
+    },
+    {
+      "review_id": "review_00359",
+      "product_id": "prod_07",
+      "partition": "train",
+      "fold": 4
+    },
+    {
+      "review_id": "review_00360",
+      "product_id": "prod_07",
+      "partition": "train",
+      "fold": 4
+    },
+    {
+      "review_id": "review_00361",
+      "product_id": "prod_07",
+      "partition": "train",
+      "fold": 4
+    },
+    {
+      "review_id": "review_00362",
+      "product_id": "prod_07",
+      "partition": "train",
+      "fold": 4
+    },
+    {
+      "review_id": "review_00363",
+      "product_id": "prod_07",
+      "partition": "train",
+      "fold": 4
+    },
+    {
+      "review_id": "review_00364",
+      "product_id": "prod_07",
+      "partition": "train",
+      "fold": 4
+    },
+    {
+      "review_id": "review_00365",
+      "product_id": "prod_07",
+      "partition": "train",
+      "fold": 4
+    },
+    {
+      "review_id": "review_00366",
+      "product_id": "prod_07",
+      "partition": "train",
+      "fold": 4
+    },
+    {
+      "review_id": "review_00367",
+      "product_id": "prod_07",
+      "partition": "train",
+      "fold": 4
+    },
+    {
+      "review_id": "review_00368",
+      "product_id": "prod_07",
+      "partition": "train",
+      "fold": 4
+    },
+    {
+      "review_id": "review_00369",
+      "product_id": "prod_07",
+      "partition": "train",
+      "fold": 4
+    },
+    {
+      "review_id": "review_00370",
+      "product_id": "prod_07",
+      "partition": "train",
+      "fold": 4
+    },
+    {
+      "review_id": "review_00371",
+      "product_id": "prod_07",
+      "partition": "train",
+      "fold": 4
+    },
+    {
+      "review_id": "review_00372",
+      "product_id": "prod_07",
+      "partition": "train",
+      "fold": 4
+    },
+    {
+      "review_id": "review_00373",
+      "product_id": "prod_07",
+      "partition": "train",
+      "fold": 4
+    },
+    {
+      "review_id": "review_00374",
+      "product_id": "prod_07",
+      "partition": "train",
+      "fold": 4
+    },
+    {
+      "review_id": "review_00375",
+      "product_id": "prod_07",
+      "partition": "train",
+      "fold": 4
+    },
+    {
+      "review_id": "review_00376",
+      "product_id": "prod_07",
+      "partition": "train",
+      "fold": 4
+    },
+    {
+      "review_id": "review_00377",
+      "product_id": "prod_07",
+      "partition": "train",
+      "fold": 4
+    },
+    {
+      "review_id": "review_00378",
+      "product_id": "prod_07",
+      "partition": "train",
+      "fold": 4
+    },
+    {
+      "review_id": "review_00379",
+      "product_id": "prod_07",
+      "partition": "train",
+      "fold": 4
+    },
+    {
+      "review_id": "review_00380",
+      "product_id": "prod_07",
+      "partition": "train",
+      "fold": 4
+    },
+    {
+      "review_id": "review_00381",
+      "product_id": "prod_07",
+      "partition": "train",
+      "fold": 4
+    },
+    {
+      "review_id": "review_00382",
+      "product_id": "prod_07",
+      "partition": "train",
+      "fold": 4
+    },
+    {
+      "review_id": "review_00383",
+      "product_id": "prod_07",
+      "partition": "train",
+      "fold": 4
+    },
+    {
+      "review_id": "review_00384",
+      "product_id": "prod_07",
+      "partition": "train",
+      "fold": 4
+    },
+    {
+      "review_id": "review_00385",
+      "product_id": "prod_07",
+      "partition": "train",
+      "fold": 4
+    },
+    {
+      "review_id": "review_00386",
+      "product_id": "prod_07",
+      "partition": "train",
+      "fold": 4
+    },
+    {
+      "review_id": "review_00387",
+      "product_id": "prod_07",
+      "partition": "train",
+      "fold": 4
+    },
+    {
+      "review_id": "review_00388",
+      "product_id": "prod_07",
+      "partition": "train",
+      "fold": 4
+    },
+    {
+      "review_id": "review_00389",
+      "product_id": "prod_07",
+      "partition": "train",
+      "fold": 4
+    },
+    {
+      "review_id": "review_00390",
+      "product_id": "prod_07",
+      "partition": "train",
+      "fold": 4
+    },
+    {
+      "review_id": "review_00391",
+      "product_id": "prod_07",
+      "partition": "train",
+      "fold": 4
+    },
+    {
+      "review_id": "review_00392",
+      "product_id": "prod_07",
+      "partition": "train",
+      "fold": 4
+    },
+    {
+      "review_id": "review_00393",
+      "product_id": "prod_07",
+      "partition": "train",
+      "fold": 4
+    },
+    {
+      "review_id": "review_00394",
+      "product_id": "prod_07",
+      "partition": "train",
+      "fold": 4
+    },
+    {
+      "review_id": "review_00395",
+      "product_id": "prod_07",
+      "partition": "train",
+      "fold": 4
+    },
+    {
+      "review_id": "review_00396",
+      "product_id": "prod_07",
+      "partition": "train",
+      "fold": 4
+    },
+    {
+      "review_id": "review_00397",
+      "product_id": "prod_07",
+      "partition": "train",
+      "fold": 4
+    },
+    {
+      "review_id": "review_00398",
+      "product_id": "prod_07",
+      "partition": "train",
+      "fold": 4
+    },
+    {
+      "review_id": "review_00399",
+      "product_id": "prod_07",
+      "partition": "train",
+      "fold": 4
+    },
+    {
+      "review_id": "review_00400",
+      "product_id": "prod_07",
+      "partition": "train",
+      "fold": 4
+    },
+    {
+      "review_id": "review_00401",
+      "product_id": "prod_07",
+      "partition": "train",
+      "fold": 4
+    },
+    {
+      "review_id": "review_00402",
+      "product_id": "prod_07",
+      "partition": "train",
+      "fold": 4
+    },
+    {
+      "review_id": "review_00403",
+      "product_id": "prod_07",
+      "partition": "train",
+      "fold": 4
+    },
+    {
+      "review_id": "review_00404",
+      "product_id": "prod_07",
+      "partition": "train",
+      "fold": 4
+    },
+    {
+      "review_id": "review_00405",
+      "product_id": "prod_07",
+      "partition": "train",
+      "fold": 4
+    },
+    {
+      "review_id": "review_00406",
+      "product_id": "prod_07",
+      "partition": "train",
+      "fold": 4
+    },
+    {
+      "review_id": "review_00407",
+      "product_id": "prod_07",
+      "partition": "train",
+      "fold": 4
+    },
+    {
+      "review_id": "review_00408",
+      "product_id": "prod_07",
+      "partition": "train",
+      "fold": 4
+    },
+    {
+      "review_id": "review_00409",
+      "product_id": "prod_07",
+      "partition": "train",
+      "fold": 4
+    },
+    {
+      "review_id": "review_00410",
+      "product_id": "prod_07",
+      "partition": "train",
+      "fold": 4
+    },
+    {
+      "review_id": "review_00411",
+      "product_id": "prod_07",
+      "partition": "train",
+      "fold": 4
+    },
+    {
+      "review_id": "review_00412",
+      "product_id": "prod_07",
+      "partition": "train",
+      "fold": 4
+    },
+    {
+      "review_id": "review_00413",
+      "product_id": "prod_07",
+      "partition": "train",
+      "fold": 4
+    },
+    {
+      "review_id": "review_00414",
+      "product_id": "prod_07",
+      "partition": "train",
+      "fold": 4
+    },
+    {
+      "review_id": "review_00415",
+      "product_id": "prod_07",
+      "partition": "train",
+      "fold": 4
+    },
+    {
+      "review_id": "review_00416",
+      "product_id": "prod_07",
+      "partition": "train",
+      "fold": 4
+    },
+    {
+      "review_id": "review_00417",
+      "product_id": "prod_07",
+      "partition": "train",
+      "fold": 4
+    },
+    {
+      "review_id": "review_00418",
+      "product_id": "prod_08",
+      "partition": "train",
+      "fold": 1
+    },
+    {
+      "review_id": "review_00419",
+      "product_id": "prod_08",
+      "partition": "train",
+      "fold": 1
+    },
+    {
+      "review_id": "review_00420",
+      "product_id": "prod_08",
+      "partition": "train",
+      "fold": 1
+    },
+    {
+      "review_id": "review_00421",
+      "product_id": "prod_08",
+      "partition": "train",
+      "fold": 1
+    },
+    {
+      "review_id": "review_00422",
+      "product_id": "prod_08",
+      "partition": "train",
+      "fold": 1
+    },
+    {
+      "review_id": "review_00423",
+      "product_id": "prod_08",
+      "partition": "train",
+      "fold": 1
+    },
+    {
+      "review_id": "review_00424",
+      "product_id": "prod_08",
+      "partition": "train",
+      "fold": 1
+    },
+    {
+      "review_id": "review_00425",
+      "product_id": "prod_08",
+      "partition": "train",
+      "fold": 1
+    },
+    {
+      "review_id": "review_00426",
+      "product_id": "prod_08",
+      "partition": "train",
+      "fold": 1
+    },
+    {
+      "review_id": "review_00427",
+      "product_id": "prod_08",
+      "partition": "train",
+      "fold": 1
+    },
+    {
+      "review_id": "review_00428",
+      "product_id": "prod_08",
+      "partition": "train",
+      "fold": 1
+    },
+    {
+      "review_id": "review_00429",
+      "product_id": "prod_08",
+      "partition": "train",
+      "fold": 1
+    },
+    {
+      "review_id": "review_00430",
+      "product_id": "prod_08",
+      "partition": "train",
+      "fold": 1
+    },
+    {
+      "review_id": "review_00431",
+      "product_id": "prod_08",
+      "partition": "train",
+      "fold": 1
+    },
+    {
+      "review_id": "review_00432",
+      "product_id": "prod_08",
+      "partition": "train",
+      "fold": 1
+    },
+    {
+      "review_id": "review_00433",
+      "product_id": "prod_08",
+      "partition": "train",
+      "fold": 1
+    },
+    {
+      "review_id": "review_00434",
+      "product_id": "prod_08",
+      "partition": "train",
+      "fold": 1
+    },
+    {
+      "review_id": "review_00435",
+      "product_id": "prod_08",
+      "partition": "train",
+      "fold": 1
+    },
+    {
+      "review_id": "review_00436",
+      "product_id": "prod_08",
+      "partition": "train",
+      "fold": 1
+    },
+    {
+      "review_id": "review_00437",
+      "product_id": "prod_08",
+      "partition": "train",
+      "fold": 1
+    },
+    {
+      "review_id": "review_00438",
+      "product_id": "prod_08",
+      "partition": "train",
+      "fold": 1
+    },
+    {
+      "review_id": "review_00439",
+      "product_id": "prod_08",
+      "partition": "train",
+      "fold": 1
+    },
+    {
+      "review_id": "review_00440",
+      "product_id": "prod_08",
+      "partition": "train",
+      "fold": 1
+    },
+    {
+      "review_id": "review_00441",
+      "product_id": "prod_08",
+      "partition": "train",
+      "fold": 1
+    },
+    {
+      "review_id": "review_00442",
+      "product_id": "prod_08",
+      "partition": "train",
+      "fold": 1
+    },
+    {
+      "review_id": "review_00443",
+      "product_id": "prod_08",
+      "partition": "train",
+      "fold": 1
+    },
+    {
+      "review_id": "review_00444",
+      "product_id": "prod_08",
+      "partition": "train",
+      "fold": 1
+    },
+    {
+      "review_id": "review_00445",
+      "product_id": "prod_08",
+      "partition": "train",
+      "fold": 1
+    },
+    {
+      "review_id": "review_00446",
+      "product_id": "prod_08",
+      "partition": "train",
+      "fold": 1
+    },
+    {
+      "review_id": "review_00447",
+      "product_id": "prod_08",
+      "partition": "train",
+      "fold": 1
+    },
+    {
+      "review_id": "review_00448",
+      "product_id": "prod_08",
+      "partition": "train",
+      "fold": 1
+    },
+    {
+      "review_id": "review_00449",
+      "product_id": "prod_08",
+      "partition": "train",
+      "fold": 1
+    },
+    {
+      "review_id": "review_00450",
+      "product_id": "prod_08",
+      "partition": "train",
+      "fold": 1
+    },
+    {
+      "review_id": "review_00451",
+      "product_id": "prod_08",
+      "partition": "train",
+      "fold": 1
+    },
+    {
+      "review_id": "review_00452",
+      "product_id": "prod_08",
+      "partition": "train",
+      "fold": 1
+    },
+    {
+      "review_id": "review_00453",
+      "product_id": "prod_08",
+      "partition": "train",
+      "fold": 1
+    },
+    {
+      "review_id": "review_00454",
+      "product_id": "prod_08",
+      "partition": "train",
+      "fold": 1
+    },
+    {
+      "review_id": "review_00455",
+      "product_id": "prod_08",
+      "partition": "train",
+      "fold": 1
+    },
+    {
+      "review_id": "review_00456",
+      "product_id": "prod_08",
+      "partition": "train",
+      "fold": 1
+    },
+    {
+      "review_id": "review_00457",
+      "product_id": "prod_08",
+      "partition": "train",
+      "fold": 1
+    },
+    {
+      "review_id": "review_00458",
+      "product_id": "prod_08",
+      "partition": "train",
+      "fold": 1
+    },
+    {
+      "review_id": "review_00459",
+      "product_id": "prod_08",
+      "partition": "train",
+      "fold": 1
+    },
+    {
+      "review_id": "review_00460",
+      "product_id": "prod_08",
+      "partition": "train",
+      "fold": 1
+    },
+    {
+      "review_id": "review_00461",
+      "product_id": "prod_08",
+      "partition": "train",
+      "fold": 1
+    },
+    {
+      "review_id": "review_00462",
+      "product_id": "prod_08",
+      "partition": "train",
+      "fold": 1
+    },
+    {
+      "review_id": "review_00463",
+      "product_id": "prod_08",
+      "partition": "train",
+      "fold": 1
+    },
+    {
+      "review_id": "review_00464",
+      "product_id": "prod_08",
+      "partition": "train",
+      "fold": 1
+    },
+    {
+      "review_id": "review_00465",
+      "product_id": "prod_08",
+      "partition": "train",
+      "fold": 1
+    },
+    {
+      "review_id": "review_00466",
+      "product_id": "prod_08",
+      "partition": "train",
+      "fold": 1
+    },
+    {
+      "review_id": "review_00467",
+      "product_id": "prod_08",
+      "partition": "train",
+      "fold": 1
+    },
+    {
+      "review_id": "review_00468",
+      "product_id": "prod_08",
+      "partition": "train",
+      "fold": 1
+    },
+    {
+      "review_id": "review_00469",
+      "product_id": "prod_08",
+      "partition": "train",
+      "fold": 1
+    },
+    {
+      "review_id": "review_00470",
+      "product_id": "prod_08",
+      "partition": "train",
+      "fold": 1
+    },
+    {
+      "review_id": "review_00471",
+      "product_id": "prod_08",
+      "partition": "train",
+      "fold": 1
+    },
+    {
+      "review_id": "review_00472",
+      "product_id": "prod_08",
+      "partition": "train",
+      "fold": 1
+    },
+    {
+      "review_id": "review_00473",
+      "product_id": "prod_08",
+      "partition": "train",
+      "fold": 1
+    },
+    {
+      "review_id": "review_00474",
+      "product_id": "prod_08",
+      "partition": "train",
+      "fold": 1
+    },
+    {
+      "review_id": "review_00475",
+      "product_id": "prod_08",
+      "partition": "train",
+      "fold": 1
+    },
+    {
+      "review_id": "review_00476",
+      "product_id": "prod_08",
+      "partition": "train",
+      "fold": 1
+    },
+    {
+      "review_id": "review_00477",
+      "product_id": "prod_08",
+      "partition": "train",
+      "fold": 1
+    },
+    {
+      "review_id": "review_00478",
+      "product_id": "prod_09",
+      "partition": "train",
+      "fold": 2
+    },
+    {
+      "review_id": "review_00479",
+      "product_id": "prod_09",
+      "partition": "train",
+      "fold": 2
+    },
+    {
+      "review_id": "review_00480",
+      "product_id": "prod_09",
+      "partition": "train",
+      "fold": 2
+    },
+    {
+      "review_id": "review_00481",
+      "product_id": "prod_09",
+      "partition": "train",
+      "fold": 2
+    },
+    {
+      "review_id": "review_00482",
+      "product_id": "prod_09",
+      "partition": "train",
+      "fold": 2
+    },
+    {
+      "review_id": "review_00483",
+      "product_id": "prod_09",
+      "partition": "train",
+      "fold": 2
+    },
+    {
+      "review_id": "review_00484",
+      "product_id": "prod_09",
+      "partition": "train",
+      "fold": 2
+    },
+    {
+      "review_id": "review_00485",
+      "product_id": "prod_09",
+      "partition": "train",
+      "fold": 2
+    },
+    {
+      "review_id": "review_00486",
+      "product_id": "prod_09",
+      "partition": "train",
+      "fold": 2
+    },
+    {
+      "review_id": "review_00487",
+      "product_id": "prod_09",
+      "partition": "train",
+      "fold": 2
+    },
+    {
+      "review_id": "review_00488",
+      "product_id": "prod_09",
+      "partition": "train",
+      "fold": 2
+    },
+    {
+      "review_id": "review_00489",
+      "product_id": "prod_09",
+      "partition": "train",
+      "fold": 2
+    },
+    {
+      "review_id": "review_00490",
+      "product_id": "prod_09",
+      "partition": "train",
+      "fold": 2
+    },
+    {
+      "review_id": "review_00491",
+      "product_id": "prod_09",
+      "partition": "train",
+      "fold": 2
+    },
+    {
+      "review_id": "review_00492",
+      "product_id": "prod_09",
+      "partition": "train",
+      "fold": 2
+    },
+    {
+      "review_id": "review_00493",
+      "product_id": "prod_09",
+      "partition": "train",
+      "fold": 2
+    },
+    {
+      "review_id": "review_00494",
+      "product_id": "prod_09",
+      "partition": "train",
+      "fold": 2
+    },
+    {
+      "review_id": "review_00495",
+      "product_id": "prod_09",
+      "partition": "train",
+      "fold": 2
+    },
+    {
+      "review_id": "review_00496",
+      "product_id": "prod_09",
+      "partition": "train",
+      "fold": 2
+    },
+    {
+      "review_id": "review_00497",
+      "product_id": "prod_09",
+      "partition": "train",
+      "fold": 2
+    },
+    {
+      "review_id": "review_00498",
+      "product_id": "prod_09",
+      "partition": "train",
+      "fold": 2
+    },
+    {
+      "review_id": "review_00499",
+      "product_id": "prod_09",
+      "partition": "train",
+      "fold": 2
+    },
+    {
+      "review_id": "review_00500",
+      "product_id": "prod_09",
+      "partition": "train",
+      "fold": 2
+    },
+    {
+      "review_id": "review_00501",
+      "product_id": "prod_09",
+      "partition": "train",
+      "fold": 2
+    },
+    {
+      "review_id": "review_00502",
+      "product_id": "prod_09",
+      "partition": "train",
+      "fold": 2
+    },
+    {
+      "review_id": "review_00503",
+      "product_id": "prod_09",
+      "partition": "train",
+      "fold": 2
+    },
+    {
+      "review_id": "review_00504",
+      "product_id": "prod_09",
+      "partition": "train",
+      "fold": 2
+    },
+    {
+      "review_id": "review_00505",
+      "product_id": "prod_09",
+      "partition": "train",
+      "fold": 2
+    },
+    {
+      "review_id": "review_00506",
+      "product_id": "prod_09",
+      "partition": "train",
+      "fold": 2
+    },
+    {
+      "review_id": "review_00507",
+      "product_id": "prod_09",
+      "partition": "train",
+      "fold": 2
+    },
+    {
+      "review_id": "review_00508",
+      "product_id": "prod_09",
+      "partition": "train",
+      "fold": 2
+    },
+    {
+      "review_id": "review_00509",
+      "product_id": "prod_09",
+      "partition": "train",
+      "fold": 2
+    },
+    {
+      "review_id": "review_00510",
+      "product_id": "prod_09",
+      "partition": "train",
+      "fold": 2
+    },
+    {
+      "review_id": "review_00511",
+      "product_id": "prod_09",
+      "partition": "train",
+      "fold": 2
+    },
+    {
+      "review_id": "review_00512",
+      "product_id": "prod_09",
+      "partition": "train",
+      "fold": 2
+    },
+    {
+      "review_id": "review_00513",
+      "product_id": "prod_09",
+      "partition": "train",
+      "fold": 2
+    },
+    {
+      "review_id": "review_00514",
+      "product_id": "prod_09",
+      "partition": "train",
+      "fold": 2
+    },
+    {
+      "review_id": "review_00515",
+      "product_id": "prod_09",
+      "partition": "train",
+      "fold": 2
+    },
+    {
+      "review_id": "review_00516",
+      "product_id": "prod_09",
+      "partition": "train",
+      "fold": 2
+    },
+    {
+      "review_id": "review_00517",
+      "product_id": "prod_09",
+      "partition": "train",
+      "fold": 2
+    },
+    {
+      "review_id": "review_00518",
+      "product_id": "prod_09",
+      "partition": "train",
+      "fold": 2
+    },
+    {
+      "review_id": "review_00519",
+      "product_id": "prod_09",
+      "partition": "train",
+      "fold": 2
+    },
+    {
+      "review_id": "review_00520",
+      "product_id": "prod_09",
+      "partition": "train",
+      "fold": 2
+    },
+    {
+      "review_id": "review_00521",
+      "product_id": "prod_09",
+      "partition": "train",
+      "fold": 2
+    },
+    {
+      "review_id": "review_00522",
+      "product_id": "prod_09",
+      "partition": "train",
+      "fold": 2
+    },
+    {
+      "review_id": "review_00523",
+      "product_id": "prod_09",
+      "partition": "train",
+      "fold": 2
+    },
+    {
+      "review_id": "review_00524",
+      "product_id": "prod_09",
+      "partition": "train",
+      "fold": 2
+    },
+    {
+      "review_id": "review_00525",
+      "product_id": "prod_09",
+      "partition": "train",
+      "fold": 2
+    },
+    {
+      "review_id": "review_00526",
+      "product_id": "prod_09",
+      "partition": "train",
+      "fold": 2
+    },
+    {
+      "review_id": "review_00527",
+      "product_id": "prod_09",
+      "partition": "train",
+      "fold": 2
+    },
+    {
+      "review_id": "review_00528",
+      "product_id": "prod_09",
+      "partition": "train",
+      "fold": 2
+    },
+    {
+      "review_id": "review_00529",
+      "product_id": "prod_09",
+      "partition": "train",
+      "fold": 2
+    },
+    {
+      "review_id": "review_00530",
+      "product_id": "prod_09",
+      "partition": "train",
+      "fold": 2
+    },
+    {
+      "review_id": "review_00531",
+      "product_id": "prod_09",
+      "partition": "train",
+      "fold": 2
+    },
+    {
+      "review_id": "review_00532",
+      "product_id": "prod_09",
+      "partition": "train",
+      "fold": 2
+    },
+    {
+      "review_id": "review_00533",
+      "product_id": "prod_09",
+      "partition": "train",
+      "fold": 2
+    },
+    {
+      "review_id": "review_00534",
+      "product_id": "prod_09",
+      "partition": "train",
+      "fold": 2
+    },
+    {
+      "review_id": "review_00535",
+      "product_id": "prod_09",
+      "partition": "train",
+      "fold": 2
+    },
+    {
+      "review_id": "review_00536",
+      "product_id": "prod_09",
+      "partition": "train",
+      "fold": 2
+    },
+    {
+      "review_id": "review_00537",
+      "product_id": "prod_09",
+      "partition": "train",
+      "fold": 2
+    },
+    {
+      "review_id": "review_00538",
+      "product_id": "prod_10",
+      "partition": "train",
+      "fold": 0
+    },
+    {
+      "review_id": "review_00539",
+      "product_id": "prod_10",
+      "partition": "train",
+      "fold": 0
+    },
+    {
+      "review_id": "review_00540",
+      "product_id": "prod_10",
+      "partition": "train",
+      "fold": 0
+    },
+    {
+      "review_id": "review_00541",
+      "product_id": "prod_10",
+      "partition": "train",
+      "fold": 0
+    },
+    {
+      "review_id": "review_00542",
+      "product_id": "prod_10",
+      "partition": "train",
+      "fold": 0
+    },
+    {
+      "review_id": "review_00543",
+      "product_id": "prod_10",
+      "partition": "train",
+      "fold": 0
+    },
+    {
+      "review_id": "review_00544",
+      "product_id": "prod_10",
+      "partition": "train",
+      "fold": 0
+    },
+    {
+      "review_id": "review_00545",
+      "product_id": "prod_10",
+      "partition": "train",
+      "fold": 0
+    },
+    {
+      "review_id": "review_00546",
+      "product_id": "prod_10",
+      "partition": "train",
+      "fold": 0
+    },
+    {
+      "review_id": "review_00547",
+      "product_id": "prod_10",
+      "partition": "train",
+      "fold": 0
+    },
+    {
+      "review_id": "review_00548",
+      "product_id": "prod_10",
+      "partition": "train",
+      "fold": 0
+    },
+    {
+      "review_id": "review_00549",
+      "product_id": "prod_10",
+      "partition": "train",
+      "fold": 0
+    },
+    {
+      "review_id": "review_00550",
+      "product_id": "prod_10",
+      "partition": "train",
+      "fold": 0
+    },
+    {
+      "review_id": "review_00551",
+      "product_id": "prod_10",
+      "partition": "train",
+      "fold": 0
+    },
+    {
+      "review_id": "review_00552",
+      "product_id": "prod_10",
+      "partition": "train",
+      "fold": 0
+    },
+    {
+      "review_id": "review_00553",
+      "product_id": "prod_10",
+      "partition": "train",
+      "fold": 0
+    },
+    {
+      "review_id": "review_00554",
+      "product_id": "prod_10",
+      "partition": "train",
+      "fold": 0
+    },
+    {
+      "review_id": "review_00555",
+      "product_id": "prod_10",
+      "partition": "train",
+      "fold": 0
+    },
+    {
+      "review_id": "review_00556",
+      "product_id": "prod_10",
+      "partition": "train",
+      "fold": 0
+    },
+    {
+      "review_id": "review_00557",
+      "product_id": "prod_10",
+      "partition": "train",
+      "fold": 0
+    },
+    {
+      "review_id": "review_00558",
+      "product_id": "prod_10",
+      "partition": "train",
+      "fold": 0
+    },
+    {
+      "review_id": "review_00559",
+      "product_id": "prod_10",
+      "partition": "train",
+      "fold": 0
+    },
+    {
+      "review_id": "review_00560",
+      "product_id": "prod_10",
+      "partition": "train",
+      "fold": 0
+    },
+    {
+      "review_id": "review_00561",
+      "product_id": "prod_10",
+      "partition": "train",
+      "fold": 0
+    },
+    {
+      "review_id": "review_00562",
+      "product_id": "prod_10",
+      "partition": "train",
+      "fold": 0
+    },
+    {
+      "review_id": "review_00563",
+      "product_id": "prod_10",
+      "partition": "train",
+      "fold": 0
+    },
+    {
+      "review_id": "review_00564",
+      "product_id": "prod_10",
+      "partition": "train",
+      "fold": 0
+    },
+    {
+      "review_id": "review_00565",
+      "product_id": "prod_10",
+      "partition": "train",
+      "fold": 0
+    },
+    {
+      "review_id": "review_00566",
+      "product_id": "prod_10",
+      "partition": "train",
+      "fold": 0
+    },
+    {
+      "review_id": "review_00567",
+      "product_id": "prod_10",
+      "partition": "train",
+      "fold": 0
+    },
+    {
+      "review_id": "review_00568",
+      "product_id": "prod_10",
+      "partition": "train",
+      "fold": 0
+    },
+    {
+      "review_id": "review_00569",
+      "product_id": "prod_10",
+      "partition": "train",
+      "fold": 0
+    },
+    {
+      "review_id": "review_00570",
+      "product_id": "prod_10",
+      "partition": "train",
+      "fold": 0
+    },
+    {
+      "review_id": "review_00571",
+      "product_id": "prod_10",
+      "partition": "train",
+      "fold": 0
+    },
+    {
+      "review_id": "review_00572",
+      "product_id": "prod_10",
+      "partition": "train",
+      "fold": 0
+    },
+    {
+      "review_id": "review_00573",
+      "product_id": "prod_10",
+      "partition": "train",
+      "fold": 0
+    },
+    {
+      "review_id": "review_00574",
+      "product_id": "prod_10",
+      "partition": "train",
+      "fold": 0
+    },
+    {
+      "review_id": "review_00575",
+      "product_id": "prod_10",
+      "partition": "train",
+      "fold": 0
+    },
+    {
+      "review_id": "review_00576",
+      "product_id": "prod_10",
+      "partition": "train",
+      "fold": 0
+    },
+    {
+      "review_id": "review_00577",
+      "product_id": "prod_10",
+      "partition": "train",
+      "fold": 0
+    },
+    {
+      "review_id": "review_00578",
+      "product_id": "prod_10",
+      "partition": "train",
+      "fold": 0
+    },
+    {
+      "review_id": "review_00579",
+      "product_id": "prod_10",
+      "partition": "train",
+      "fold": 0
+    },
+    {
+      "review_id": "review_00580",
+      "product_id": "prod_10",
+      "partition": "train",
+      "fold": 0
+    },
+    {
+      "review_id": "review_00581",
+      "product_id": "prod_10",
+      "partition": "train",
+      "fold": 0
+    },
+    {
+      "review_id": "review_00582",
+      "product_id": "prod_10",
+      "partition": "train",
+      "fold": 0
+    },
+    {
+      "review_id": "review_00583",
+      "product_id": "prod_10",
+      "partition": "train",
+      "fold": 0
+    },
+    {
+      "review_id": "review_00584",
+      "product_id": "prod_10",
+      "partition": "train",
+      "fold": 0
+    },
+    {
+      "review_id": "review_00585",
+      "product_id": "prod_10",
+      "partition": "train",
+      "fold": 0
+    },
+    {
+      "review_id": "review_00586",
+      "product_id": "prod_10",
+      "partition": "train",
+      "fold": 0
+    },
+    {
+      "review_id": "review_00587",
+      "product_id": "prod_10",
+      "partition": "train",
+      "fold": 0
+    },
+    {
+      "review_id": "review_00588",
+      "product_id": "prod_10",
+      "partition": "train",
+      "fold": 0
+    },
+    {
+      "review_id": "review_00589",
+      "product_id": "prod_10",
+      "partition": "train",
+      "fold": 0
+    },
+    {
+      "review_id": "review_00590",
+      "product_id": "prod_10",
+      "partition": "train",
+      "fold": 0
+    },
+    {
+      "review_id": "review_00591",
+      "product_id": "prod_10",
+      "partition": "train",
+      "fold": 0
+    },
+    {
+      "review_id": "review_00592",
+      "product_id": "prod_10",
+      "partition": "train",
+      "fold": 0
+    },
+    {
+      "review_id": "review_00593",
+      "product_id": "prod_10",
+      "partition": "train",
+      "fold": 0
+    },
+    {
+      "review_id": "review_00594",
+      "product_id": "prod_10",
+      "partition": "train",
+      "fold": 0
+    },
+    {
+      "review_id": "review_00595",
+      "product_id": "prod_10",
+      "partition": "train",
+      "fold": 0
+    },
+    {
+      "review_id": "review_00596",
+      "product_id": "prod_10",
+      "partition": "train",
+      "fold": 0
+    },
+    {
+      "review_id": "review_00597",
+      "product_id": "prod_10",
+      "partition": "train",
+      "fold": 0
+    },
+    {
+      "review_id": "review_00598",
+      "product_id": "prod_11",
+      "partition": "train",
+      "fold": 4
+    },
+    {
+      "review_id": "review_00599",
+      "product_id": "prod_11",
+      "partition": "train",
+      "fold": 4
+    },
+    {
+      "review_id": "review_00600",
+      "product_id": "prod_11",
+      "partition": "train",
+      "fold": 4
+    },
+    {
+      "review_id": "review_00601",
+      "product_id": "prod_11",
+      "partition": "train",
+      "fold": 4
+    },
+    {
+      "review_id": "review_00602",
+      "product_id": "prod_11",
+      "partition": "train",
+      "fold": 4
+    },
+    {
+      "review_id": "review_00603",
+      "product_id": "prod_11",
+      "partition": "train",
+      "fold": 4
+    },
+    {
+      "review_id": "review_00604",
+      "product_id": "prod_11",
+      "partition": "train",
+      "fold": 4
+    },
+    {
+      "review_id": "review_00605",
+      "product_id": "prod_11",
+      "partition": "train",
+      "fold": 4
+    },
+    {
+      "review_id": "review_00606",
+      "product_id": "prod_11",
+      "partition": "train",
+      "fold": 4
+    },
+    {
+      "review_id": "review_00607",
+      "product_id": "prod_11",
+      "partition": "train",
+      "fold": 4
+    },
+    {
+      "review_id": "review_00608",
+      "product_id": "prod_11",
+      "partition": "train",
+      "fold": 4
+    },
+    {
+      "review_id": "review_00609",
+      "product_id": "prod_11",
+      "partition": "train",
+      "fold": 4
+    },
+    {
+      "review_id": "review_00610",
+      "product_id": "prod_11",
+      "partition": "train",
+      "fold": 4
+    },
+    {
+      "review_id": "review_00611",
+      "product_id": "prod_11",
+      "partition": "train",
+      "fold": 4
+    },
+    {
+      "review_id": "review_00612",
+      "product_id": "prod_11",
+      "partition": "train",
+      "fold": 4
+    },
+    {
+      "review_id": "review_00613",
+      "product_id": "prod_11",
+      "partition": "train",
+      "fold": 4
+    },
+    {
+      "review_id": "review_00614",
+      "product_id": "prod_11",
+      "partition": "train",
+      "fold": 4
+    },
+    {
+      "review_id": "review_00615",
+      "product_id": "prod_11",
+      "partition": "train",
+      "fold": 4
+    },
+    {
+      "review_id": "review_00616",
+      "product_id": "prod_11",
+      "partition": "train",
+      "fold": 4
+    },
+    {
+      "review_id": "review_00617",
+      "product_id": "prod_11",
+      "partition": "train",
+      "fold": 4
+    },
+    {
+      "review_id": "review_00618",
+      "product_id": "prod_11",
+      "partition": "train",
+      "fold": 4
+    },
+    {
+      "review_id": "review_00619",
+      "product_id": "prod_11",
+      "partition": "train",
+      "fold": 4
+    },
+    {
+      "review_id": "review_00620",
+      "product_id": "prod_11",
+      "partition": "train",
+      "fold": 4
+    },
+    {
+      "review_id": "review_00621",
+      "product_id": "prod_11",
+      "partition": "train",
+      "fold": 4
+    },
+    {
+      "review_id": "review_00622",
+      "product_id": "prod_11",
+      "partition": "train",
+      "fold": 4
+    },
+    {
+      "review_id": "review_00623",
+      "product_id": "prod_11",
+      "partition": "train",
+      "fold": 4
+    },
+    {
+      "review_id": "review_00624",
+      "product_id": "prod_11",
+      "partition": "train",
+      "fold": 4
+    },
+    {
+      "review_id": "review_00625",
+      "product_id": "prod_11",
+      "partition": "train",
+      "fold": 4
+    },
+    {
+      "review_id": "review_00626",
+      "product_id": "prod_11",
+      "partition": "train",
+      "fold": 4
+    },
+    {
+      "review_id": "review_00627",
+      "product_id": "prod_11",
+      "partition": "train",
+      "fold": 4
+    },
+    {
+      "review_id": "review_00628",
+      "product_id": "prod_11",
+      "partition": "train",
+      "fold": 4
+    },
+    {
+      "review_id": "review_00629",
+      "product_id": "prod_11",
+      "partition": "train",
+      "fold": 4
+    },
+    {
+      "review_id": "review_00630",
+      "product_id": "prod_11",
+      "partition": "train",
+      "fold": 4
+    },
+    {
+      "review_id": "review_00631",
+      "product_id": "prod_11",
+      "partition": "train",
+      "fold": 4
+    },
+    {
+      "review_id": "review_00632",
+      "product_id": "prod_11",
+      "partition": "train",
+      "fold": 4
+    },
+    {
+      "review_id": "review_00633",
+      "product_id": "prod_11",
+      "partition": "train",
+      "fold": 4
+    },
+    {
+      "review_id": "review_00634",
+      "product_id": "prod_11",
+      "partition": "train",
+      "fold": 4
+    },
+    {
+      "review_id": "review_00635",
+      "product_id": "prod_11",
+      "partition": "train",
+      "fold": 4
+    },
+    {
+      "review_id": "review_00636",
+      "product_id": "prod_11",
+      "partition": "train",
+      "fold": 4
+    },
+    {
+      "review_id": "review_00637",
+      "product_id": "prod_11",
+      "partition": "train",
+      "fold": 4
+    },
+    {
+      "review_id": "review_00638",
+      "product_id": "prod_11",
+      "partition": "train",
+      "fold": 4
+    },
+    {
+      "review_id": "review_00639",
+      "product_id": "prod_11",
+      "partition": "train",
+      "fold": 4
+    },
+    {
+      "review_id": "review_00640",
+      "product_id": "prod_11",
+      "partition": "train",
+      "fold": 4
+    },
+    {
+      "review_id": "review_00641",
+      "product_id": "prod_11",
+      "partition": "train",
+      "fold": 4
+    },
+    {
+      "review_id": "review_00642",
+      "product_id": "prod_11",
+      "partition": "train",
+      "fold": 4
+    },
+    {
+      "review_id": "review_00643",
+      "product_id": "prod_11",
+      "partition": "train",
+      "fold": 4
+    },
+    {
+      "review_id": "review_00644",
+      "product_id": "prod_11",
+      "partition": "train",
+      "fold": 4
+    },
+    {
+      "review_id": "review_00645",
+      "product_id": "prod_11",
+      "partition": "train",
+      "fold": 4
+    },
+    {
+      "review_id": "review_00646",
+      "product_id": "prod_11",
+      "partition": "train",
+      "fold": 4
+    },
+    {
+      "review_id": "review_00647",
+      "product_id": "prod_11",
+      "partition": "train",
+      "fold": 4
+    },
+    {
+      "review_id": "review_00648",
+      "product_id": "prod_11",
+      "partition": "train",
+      "fold": 4
+    },
+    {
+      "review_id": "review_00649",
+      "product_id": "prod_11",
+      "partition": "train",
+      "fold": 4
+    },
+    {
+      "review_id": "review_00650",
+      "product_id": "prod_11",
+      "partition": "train",
+      "fold": 4
+    },
+    {
+      "review_id": "review_00651",
+      "product_id": "prod_11",
+      "partition": "train",
+      "fold": 4
+    },
+    {
+      "review_id": "review_00652",
+      "product_id": "prod_11",
+      "partition": "train",
+      "fold": 4
+    },
+    {
+      "review_id": "review_00653",
+      "product_id": "prod_11",
+      "partition": "train",
+      "fold": 4
+    },
+    {
+      "review_id": "review_00654",
+      "product_id": "prod_11",
+      "partition": "train",
+      "fold": 4
+    },
+    {
+      "review_id": "review_00655",
+      "product_id": "prod_11",
+      "partition": "train",
+      "fold": 4
+    },
+    {
+      "review_id": "review_00656",
+      "product_id": "prod_11",
+      "partition": "train",
+      "fold": 4
+    },
+    {
+      "review_id": "review_00657",
+      "product_id": "prod_11",
+      "partition": "train",
+      "fold": 4
+    },
+    {
+      "review_id": "review_00658",
+      "product_id": "prod_12",
+      "partition": "validation",
+      "fold": -1
+    },
+    {
+      "review_id": "review_00659",
+      "product_id": "prod_12",
+      "partition": "validation",
+      "fold": -1
+    },
+    {
+      "review_id": "review_00660",
+      "product_id": "prod_12",
+      "partition": "validation",
+      "fold": -1
+    },
+    {
+      "review_id": "review_00661",
+      "product_id": "prod_12",
+      "partition": "validation",
+      "fold": -1
+    },
+    {
+      "review_id": "review_00662",
+      "product_id": "prod_12",
+      "partition": "validation",
+      "fold": -1
+    },
+    {
+      "review_id": "review_00663",
+      "product_id": "prod_12",
+      "partition": "validation",
+      "fold": -1
+    },
+    {
+      "review_id": "review_00664",
+      "product_id": "prod_12",
+      "partition": "validation",
+      "fold": -1
+    },
+    {
+      "review_id": "review_00665",
+      "product_id": "prod_12",
+      "partition": "validation",
+      "fold": -1
+    },
+    {
+      "review_id": "review_00666",
+      "product_id": "prod_12",
+      "partition": "validation",
+      "fold": -1
+    },
+    {
+      "review_id": "review_00667",
+      "product_id": "prod_12",
+      "partition": "validation",
+      "fold": -1
+    },
+    {
+      "review_id": "review_00668",
+      "product_id": "prod_12",
+      "partition": "validation",
+      "fold": -1
+    },
+    {
+      "review_id": "review_00669",
+      "product_id": "prod_12",
+      "partition": "validation",
+      "fold": -1
+    },
+    {
+      "review_id": "review_00670",
+      "product_id": "prod_12",
+      "partition": "validation",
+      "fold": -1
+    },
+    {
+      "review_id": "review_00671",
+      "product_id": "prod_12",
+      "partition": "validation",
+      "fold": -1
+    },
+    {
+      "review_id": "review_00672",
+      "product_id": "prod_12",
+      "partition": "validation",
+      "fold": -1
+    },
+    {
+      "review_id": "review_00673",
+      "product_id": "prod_12",
+      "partition": "validation",
+      "fold": -1
+    },
+    {
+      "review_id": "review_00674",
+      "product_id": "prod_12",
+      "partition": "validation",
+      "fold": -1
+    },
+    {
+      "review_id": "review_00675",
+      "product_id": "prod_12",
+      "partition": "validation",
+      "fold": -1
+    },
+    {
+      "review_id": "review_00676",
+      "product_id": "prod_12",
+      "partition": "validation",
+      "fold": -1
+    },
+    {
+      "review_id": "review_00677",
+      "product_id": "prod_12",
+      "partition": "validation",
+      "fold": -1
+    },
+    {
+      "review_id": "review_00678",
+      "product_id": "prod_12",
+      "partition": "validation",
+      "fold": -1
+    },
+    {
+      "review_id": "review_00679",
+      "product_id": "prod_12",
+      "partition": "validation",
+      "fold": -1
+    },
+    {
+      "review_id": "review_00680",
+      "product_id": "prod_12",
+      "partition": "validation",
+      "fold": -1
+    },
+    {
+      "review_id": "review_00681",
+      "product_id": "prod_12",
+      "partition": "validation",
+      "fold": -1
+    },
+    {
+      "review_id": "review_00682",
+      "product_id": "prod_12",
+      "partition": "validation",
+      "fold": -1
+    },
+    {
+      "review_id": "review_00683",
+      "product_id": "prod_12",
+      "partition": "validation",
+      "fold": -1
+    },
+    {
+      "review_id": "review_00684",
+      "product_id": "prod_12",
+      "partition": "validation",
+      "fold": -1
+    },
+    {
+      "review_id": "review_00685",
+      "product_id": "prod_12",
+      "partition": "validation",
+      "fold": -1
+    },
+    {
+      "review_id": "review_00686",
+      "product_id": "prod_12",
+      "partition": "validation",
+      "fold": -1
+    },
+    {
+      "review_id": "review_00687",
+      "product_id": "prod_12",
+      "partition": "validation",
+      "fold": -1
+    },
+    {
+      "review_id": "review_00688",
+      "product_id": "prod_12",
+      "partition": "validation",
+      "fold": -1
+    },
+    {
+      "review_id": "review_00689",
+      "product_id": "prod_12",
+      "partition": "validation",
+      "fold": -1
+    },
+    {
+      "review_id": "review_00690",
+      "product_id": "prod_12",
+      "partition": "validation",
+      "fold": -1
+    },
+    {
+      "review_id": "review_00691",
+      "product_id": "prod_12",
+      "partition": "validation",
+      "fold": -1
+    },
+    {
+      "review_id": "review_00692",
+      "product_id": "prod_12",
+      "partition": "validation",
+      "fold": -1
+    },
+    {
+      "review_id": "review_00693",
+      "product_id": "prod_12",
+      "partition": "validation",
+      "fold": -1
+    },
+    {
+      "review_id": "review_00694",
+      "product_id": "prod_12",
+      "partition": "validation",
+      "fold": -1
+    },
+    {
+      "review_id": "review_00695",
+      "product_id": "prod_12",
+      "partition": "validation",
+      "fold": -1
+    },
+    {
+      "review_id": "review_00696",
+      "product_id": "prod_12",
+      "partition": "validation",
+      "fold": -1
+    },
+    {
+      "review_id": "review_00697",
+      "product_id": "prod_12",
+      "partition": "validation",
+      "fold": -1
+    },
+    {
+      "review_id": "review_00698",
+      "product_id": "prod_12",
+      "partition": "validation",
+      "fold": -1
+    },
+    {
+      "review_id": "review_00699",
+      "product_id": "prod_12",
+      "partition": "validation",
+      "fold": -1
+    },
+    {
+      "review_id": "review_00700",
+      "product_id": "prod_12",
+      "partition": "validation",
+      "fold": -1
+    },
+    {
+      "review_id": "review_00701",
+      "product_id": "prod_12",
+      "partition": "validation",
+      "fold": -1
+    },
+    {
+      "review_id": "review_00702",
+      "product_id": "prod_12",
+      "partition": "validation",
+      "fold": -1
+    },
+    {
+      "review_id": "review_00703",
+      "product_id": "prod_12",
+      "partition": "validation",
+      "fold": -1
+    },
+    {
+      "review_id": "review_00704",
+      "product_id": "prod_12",
+      "partition": "validation",
+      "fold": -1
+    },
+    {
+      "review_id": "review_00705",
+      "product_id": "prod_12",
+      "partition": "validation",
+      "fold": -1
+    },
+    {
+      "review_id": "review_00706",
+      "product_id": "prod_12",
+      "partition": "validation",
+      "fold": -1
+    },
+    {
+      "review_id": "review_00707",
+      "product_id": "prod_12",
+      "partition": "validation",
+      "fold": -1
+    },
+    {
+      "review_id": "review_00708",
+      "product_id": "prod_12",
+      "partition": "validation",
+      "fold": -1
+    },
+    {
+      "review_id": "review_00709",
+      "product_id": "prod_12",
+      "partition": "validation",
+      "fold": -1
+    },
+    {
+      "review_id": "review_00710",
+      "product_id": "prod_12",
+      "partition": "validation",
+      "fold": -1
+    },
+    {
+      "review_id": "review_00711",
+      "product_id": "prod_12",
+      "partition": "validation",
+      "fold": -1
+    },
+    {
+      "review_id": "review_00712",
+      "product_id": "prod_12",
+      "partition": "validation",
+      "fold": -1
+    },
+    {
+      "review_id": "review_00713",
+      "product_id": "prod_12",
+      "partition": "validation",
+      "fold": -1
+    },
+    {
+      "review_id": "review_00714",
+      "product_id": "prod_12",
+      "partition": "validation",
+      "fold": -1
+    },
+    {
+      "review_id": "review_00715",
+      "product_id": "prod_12",
+      "partition": "validation",
+      "fold": -1
+    },
+    {
+      "review_id": "review_00716",
+      "product_id": "prod_12",
+      "partition": "validation",
+      "fold": -1
+    },
+    {
+      "review_id": "review_00717",
+      "product_id": "prod_12",
+      "partition": "validation",
+      "fold": -1
+    },
+    {
+      "review_id": "review_00718",
+      "product_id": "prod_13",
+      "partition": "train",
+      "fold": 4
+    },
+    {
+      "review_id": "review_00719",
+      "product_id": "prod_13",
+      "partition": "train",
+      "fold": 4
+    },
+    {
+      "review_id": "review_00720",
+      "product_id": "prod_13",
+      "partition": "train",
+      "fold": 4
+    },
+    {
+      "review_id": "review_00721",
+      "product_id": "prod_13",
+      "partition": "train",
+      "fold": 4
+    },
+    {
+      "review_id": "review_00722",
+      "product_id": "prod_13",
+      "partition": "train",
+      "fold": 4
+    },
+    {
+      "review_id": "review_00723",
+      "product_id": "prod_13",
+      "partition": "train",
+      "fold": 4
+    },
+    {
+      "review_id": "review_00724",
+      "product_id": "prod_13",
+      "partition": "train",
+      "fold": 4
+    },
+    {
+      "review_id": "review_00725",
+      "product_id": "prod_13",
+      "partition": "train",
+      "fold": 4
+    },
+    {
+      "review_id": "review_00726",
+      "product_id": "prod_13",
+      "partition": "train",
+      "fold": 4
+    },
+    {
+      "review_id": "review_00727",
+      "product_id": "prod_13",
+      "partition": "train",
+      "fold": 4
+    },
+    {
+      "review_id": "review_00728",
+      "product_id": "prod_13",
+      "partition": "train",
+      "fold": 4
+    },
+    {
+      "review_id": "review_00729",
+      "product_id": "prod_13",
+      "partition": "train",
+      "fold": 4
+    },
+    {
+      "review_id": "review_00730",
+      "product_id": "prod_13",
+      "partition": "train",
+      "fold": 4
+    },
+    {
+      "review_id": "review_00731",
+      "product_id": "prod_13",
+      "partition": "train",
+      "fold": 4
+    },
+    {
+      "review_id": "review_00732",
+      "product_id": "prod_13",
+      "partition": "train",
+      "fold": 4
+    },
+    {
+      "review_id": "review_00733",
+      "product_id": "prod_13",
+      "partition": "train",
+      "fold": 4
+    },
+    {
+      "review_id": "review_00734",
+      "product_id": "prod_13",
+      "partition": "train",
+      "fold": 4
+    },
+    {
+      "review_id": "review_00735",
+      "product_id": "prod_13",
+      "partition": "train",
+      "fold": 4
+    },
+    {
+      "review_id": "review_00736",
+      "product_id": "prod_13",
+      "partition": "train",
+      "fold": 4
+    },
+    {
+      "review_id": "review_00737",
+      "product_id": "prod_13",
+      "partition": "train",
+      "fold": 4
+    },
+    {
+      "review_id": "review_00738",
+      "product_id": "prod_13",
+      "partition": "train",
+      "fold": 4
+    },
+    {
+      "review_id": "review_00739",
+      "product_id": "prod_13",
+      "partition": "train",
+      "fold": 4
+    },
+    {
+      "review_id": "review_00740",
+      "product_id": "prod_13",
+      "partition": "train",
+      "fold": 4
+    },
+    {
+      "review_id": "review_00741",
+      "product_id": "prod_13",
+      "partition": "train",
+      "fold": 4
+    },
+    {
+      "review_id": "review_00742",
+      "product_id": "prod_13",
+      "partition": "train",
+      "fold": 4
+    },
+    {
+      "review_id": "review_00743",
+      "product_id": "prod_13",
+      "partition": "train",
+      "fold": 4
+    },
+    {
+      "review_id": "review_00744",
+      "product_id": "prod_13",
+      "partition": "train",
+      "fold": 4
+    },
+    {
+      "review_id": "review_00745",
+      "product_id": "prod_13",
+      "partition": "train",
+      "fold": 4
+    },
+    {
+      "review_id": "review_00746",
+      "product_id": "prod_13",
+      "partition": "train",
+      "fold": 4
+    },
+    {
+      "review_id": "review_00747",
+      "product_id": "prod_13",
+      "partition": "train",
+      "fold": 4
+    },
+    {
+      "review_id": "review_00748",
+      "product_id": "prod_13",
+      "partition": "train",
+      "fold": 4
+    },
+    {
+      "review_id": "review_00749",
+      "product_id": "prod_13",
+      "partition": "train",
+      "fold": 4
+    },
+    {
+      "review_id": "review_00750",
+      "product_id": "prod_13",
+      "partition": "train",
+      "fold": 4
+    },
+    {
+      "review_id": "review_00751",
+      "product_id": "prod_13",
+      "partition": "train",
+      "fold": 4
+    },
+    {
+      "review_id": "review_00752",
+      "product_id": "prod_13",
+      "partition": "train",
+      "fold": 4
+    },
+    {
+      "review_id": "review_00753",
+      "product_id": "prod_13",
+      "partition": "train",
+      "fold": 4
+    },
+    {
+      "review_id": "review_00754",
+      "product_id": "prod_13",
+      "partition": "train",
+      "fold": 4
+    },
+    {
+      "review_id": "review_00755",
+      "product_id": "prod_13",
+      "partition": "train",
+      "fold": 4
+    },
+    {
+      "review_id": "review_00756",
+      "product_id": "prod_13",
+      "partition": "train",
+      "fold": 4
+    },
+    {
+      "review_id": "review_00757",
+      "product_id": "prod_13",
+      "partition": "train",
+      "fold": 4
+    },
+    {
+      "review_id": "review_00758",
+      "product_id": "prod_13",
+      "partition": "train",
+      "fold": 4
+    },
+    {
+      "review_id": "review_00759",
+      "product_id": "prod_13",
+      "partition": "train",
+      "fold": 4
+    },
+    {
+      "review_id": "review_00760",
+      "product_id": "prod_13",
+      "partition": "train",
+      "fold": 4
+    },
+    {
+      "review_id": "review_00761",
+      "product_id": "prod_13",
+      "partition": "train",
+      "fold": 4
+    },
+    {
+      "review_id": "review_00762",
+      "product_id": "prod_13",
+      "partition": "train",
+      "fold": 4
+    },
+    {
+      "review_id": "review_00763",
+      "product_id": "prod_13",
+      "partition": "train",
+      "fold": 4
+    },
+    {
+      "review_id": "review_00764",
+      "product_id": "prod_13",
+      "partition": "train",
+      "fold": 4
+    },
+    {
+      "review_id": "review_00765",
+      "product_id": "prod_13",
+      "partition": "train",
+      "fold": 4
+    },
+    {
+      "review_id": "review_00766",
+      "product_id": "prod_13",
+      "partition": "train",
+      "fold": 4
+    },
+    {
+      "review_id": "review_00767",
+      "product_id": "prod_13",
+      "partition": "train",
+      "fold": 4
+    },
+    {
+      "review_id": "review_00768",
+      "product_id": "prod_13",
+      "partition": "train",
+      "fold": 4
+    },
+    {
+      "review_id": "review_00769",
+      "product_id": "prod_13",
+      "partition": "train",
+      "fold": 4
+    },
+    {
+      "review_id": "review_00770",
+      "product_id": "prod_13",
+      "partition": "train",
+      "fold": 4
+    },
+    {
+      "review_id": "review_00771",
+      "product_id": "prod_13",
+      "partition": "train",
+      "fold": 4
+    },
+    {
+      "review_id": "review_00772",
+      "product_id": "prod_13",
+      "partition": "train",
+      "fold": 4
+    },
+    {
+      "review_id": "review_00773",
+      "product_id": "prod_13",
+      "partition": "train",
+      "fold": 4
+    },
+    {
+      "review_id": "review_00774",
+      "product_id": "prod_13",
+      "partition": "train",
+      "fold": 4
+    },
+    {
+      "review_id": "review_00775",
+      "product_id": "prod_13",
+      "partition": "train",
+      "fold": 4
+    },
+    {
+      "review_id": "review_00776",
+      "product_id": "prod_13",
+      "partition": "train",
+      "fold": 4
+    },
+    {
+      "review_id": "review_00777",
+      "product_id": "prod_13",
+      "partition": "train",
+      "fold": 4
+    },
+    {
+      "review_id": "review_00778",
+      "product_id": "prod_14",
+      "partition": "validation",
+      "fold": -1
+    },
+    {
+      "review_id": "review_00779",
+      "product_id": "prod_14",
+      "partition": "validation",
+      "fold": -1
+    },
+    {
+      "review_id": "review_00780",
+      "product_id": "prod_14",
+      "partition": "validation",
+      "fold": -1
+    },
+    {
+      "review_id": "review_00781",
+      "product_id": "prod_14",
+      "partition": "validation",
+      "fold": -1
+    },
+    {
+      "review_id": "review_00782",
+      "product_id": "prod_14",
+      "partition": "validation",
+      "fold": -1
+    },
+    {
+      "review_id": "review_00783",
+      "product_id": "prod_14",
+      "partition": "validation",
+      "fold": -1
+    },
+    {
+      "review_id": "review_00784",
+      "product_id": "prod_14",
+      "partition": "validation",
+      "fold": -1
+    },
+    {
+      "review_id": "review_00785",
+      "product_id": "prod_14",
+      "partition": "validation",
+      "fold": -1
+    },
+    {
+      "review_id": "review_00786",
+      "product_id": "prod_14",
+      "partition": "validation",
+      "fold": -1
+    },
+    {
+      "review_id": "review_00787",
+      "product_id": "prod_14",
+      "partition": "validation",
+      "fold": -1
+    },
+    {
+      "review_id": "review_00788",
+      "product_id": "prod_14",
+      "partition": "validation",
+      "fold": -1
+    },
+    {
+      "review_id": "review_00789",
+      "product_id": "prod_14",
+      "partition": "validation",
+      "fold": -1
+    },
+    {
+      "review_id": "review_00790",
+      "product_id": "prod_14",
+      "partition": "validation",
+      "fold": -1
+    },
+    {
+      "review_id": "review_00791",
+      "product_id": "prod_14",
+      "partition": "validation",
+      "fold": -1
+    },
+    {
+      "review_id": "review_00792",
+      "product_id": "prod_14",
+      "partition": "validation",
+      "fold": -1
+    },
+    {
+      "review_id": "review_00793",
+      "product_id": "prod_14",
+      "partition": "validation",
+      "fold": -1
+    },
+    {
+      "review_id": "review_00794",
+      "product_id": "prod_14",
+      "partition": "validation",
+      "fold": -1
+    },
+    {
+      "review_id": "review_00795",
+      "product_id": "prod_14",
+      "partition": "validation",
+      "fold": -1
+    },
+    {
+      "review_id": "review_00796",
+      "product_id": "prod_14",
+      "partition": "validation",
+      "fold": -1
+    },
+    {
+      "review_id": "review_00797",
+      "product_id": "prod_14",
+      "partition": "validation",
+      "fold": -1
+    },
+    {
+      "review_id": "review_00798",
+      "product_id": "prod_14",
+      "partition": "validation",
+      "fold": -1
+    },
+    {
+      "review_id": "review_00799",
+      "product_id": "prod_14",
+      "partition": "validation",
+      "fold": -1
+    },
+    {
+      "review_id": "review_00800",
+      "product_id": "prod_14",
+      "partition": "validation",
+      "fold": -1
+    },
+    {
+      "review_id": "review_00801",
+      "product_id": "prod_14",
+      "partition": "validation",
+      "fold": -1
+    },
+    {
+      "review_id": "review_00802",
+      "product_id": "prod_14",
+      "partition": "validation",
+      "fold": -1
+    },
+    {
+      "review_id": "review_00803",
+      "product_id": "prod_14",
+      "partition": "validation",
+      "fold": -1
+    },
+    {
+      "review_id": "review_00804",
+      "product_id": "prod_14",
+      "partition": "validation",
+      "fold": -1
+    },
+    {
+      "review_id": "review_00805",
+      "product_id": "prod_14",
+      "partition": "validation",
+      "fold": -1
+    },
+    {
+      "review_id": "review_00806",
+      "product_id": "prod_14",
+      "partition": "validation",
+      "fold": -1
+    },
+    {
+      "review_id": "review_00807",
+      "product_id": "prod_14",
+      "partition": "validation",
+      "fold": -1
+    },
+    {
+      "review_id": "review_00808",
+      "product_id": "prod_14",
+      "partition": "validation",
+      "fold": -1
+    },
+    {
+      "review_id": "review_00809",
+      "product_id": "prod_14",
+      "partition": "validation",
+      "fold": -1
+    },
+    {
+      "review_id": "review_00810",
+      "product_id": "prod_14",
+      "partition": "validation",
+      "fold": -1
+    },
+    {
+      "review_id": "review_00811",
+      "product_id": "prod_14",
+      "partition": "validation",
+      "fold": -1
+    },
+    {
+      "review_id": "review_00812",
+      "product_id": "prod_14",
+      "partition": "validation",
+      "fold": -1
+    },
+    {
+      "review_id": "review_00813",
+      "product_id": "prod_14",
+      "partition": "validation",
+      "fold": -1
+    },
+    {
+      "review_id": "review_00814",
+      "product_id": "prod_14",
+      "partition": "validation",
+      "fold": -1
+    },
+    {
+      "review_id": "review_00815",
+      "product_id": "prod_14",
+      "partition": "validation",
+      "fold": -1
+    },
+    {
+      "review_id": "review_00816",
+      "product_id": "prod_14",
+      "partition": "validation",
+      "fold": -1
+    },
+    {
+      "review_id": "review_00817",
+      "product_id": "prod_14",
+      "partition": "validation",
+      "fold": -1
+    },
+    {
+      "review_id": "review_00818",
+      "product_id": "prod_14",
+      "partition": "validation",
+      "fold": -1
+    },
+    {
+      "review_id": "review_00819",
+      "product_id": "prod_14",
+      "partition": "validation",
+      "fold": -1
+    },
+    {
+      "review_id": "review_00820",
+      "product_id": "prod_14",
+      "partition": "validation",
+      "fold": -1
+    },
+    {
+      "review_id": "review_00821",
+      "product_id": "prod_14",
+      "partition": "validation",
+      "fold": -1
+    },
+    {
+      "review_id": "review_00822",
+      "product_id": "prod_14",
+      "partition": "validation",
+      "fold": -1
+    },
+    {
+      "review_id": "review_00823",
+      "product_id": "prod_14",
+      "partition": "validation",
+      "fold": -1
+    },
+    {
+      "review_id": "review_00824",
+      "product_id": "prod_14",
+      "partition": "validation",
+      "fold": -1
+    },
+    {
+      "review_id": "review_00825",
+      "product_id": "prod_14",
+      "partition": "validation",
+      "fold": -1
+    },
+    {
+      "review_id": "review_00826",
+      "product_id": "prod_14",
+      "partition": "validation",
+      "fold": -1
+    },
+    {
+      "review_id": "review_00827",
+      "product_id": "prod_14",
+      "partition": "validation",
+      "fold": -1
+    },
+    {
+      "review_id": "review_00828",
+      "product_id": "prod_14",
+      "partition": "validation",
+      "fold": -1
+    },
+    {
+      "review_id": "review_00829",
+      "product_id": "prod_14",
+      "partition": "validation",
+      "fold": -1
+    },
+    {
+      "review_id": "review_00830",
+      "product_id": "prod_14",
+      "partition": "validation",
+      "fold": -1
+    },
+    {
+      "review_id": "review_00831",
+      "product_id": "prod_14",
+      "partition": "validation",
+      "fold": -1
+    },
+    {
+      "review_id": "review_00832",
+      "product_id": "prod_14",
+      "partition": "validation",
+      "fold": -1
+    },
+    {
+      "review_id": "review_00833",
+      "product_id": "prod_14",
+      "partition": "validation",
+      "fold": -1
+    },
+    {
+      "review_id": "review_00834",
+      "product_id": "prod_15",
+      "partition": "test",
+      "fold": -1
+    },
+    {
+      "review_id": "review_00835",
+      "product_id": "prod_15",
+      "partition": "test",
+      "fold": -1
+    },
+    {
+      "review_id": "review_00836",
+      "product_id": "prod_15",
+      "partition": "test",
+      "fold": -1
+    },
+    {
+      "review_id": "review_00837",
+      "product_id": "prod_15",
+      "partition": "test",
+      "fold": -1
+    },
+    {
+      "review_id": "review_00838",
+      "product_id": "prod_15",
+      "partition": "test",
+      "fold": -1
+    },
+    {
+      "review_id": "review_00839",
+      "product_id": "prod_15",
+      "partition": "test",
+      "fold": -1
+    },
+    {
+      "review_id": "review_00840",
+      "product_id": "prod_15",
+      "partition": "test",
+      "fold": -1
+    },
+    {
+      "review_id": "review_00841",
+      "product_id": "prod_15",
+      "partition": "test",
+      "fold": -1
+    },
+    {
+      "review_id": "review_00842",
+      "product_id": "prod_15",
+      "partition": "test",
+      "fold": -1
+    },
+    {
+      "review_id": "review_00843",
+      "product_id": "prod_15",
+      "partition": "test",
+      "fold": -1
+    },
+    {
+      "review_id": "review_00844",
+      "product_id": "prod_15",
+      "partition": "test",
+      "fold": -1
+    },
+    {
+      "review_id": "review_00845",
+      "product_id": "prod_15",
+      "partition": "test",
+      "fold": -1
+    },
+    {
+      "review_id": "review_00846",
+      "product_id": "prod_15",
+      "partition": "test",
+      "fold": -1
+    },
+    {
+      "review_id": "review_00847",
+      "product_id": "prod_15",
+      "partition": "test",
+      "fold": -1
+    },
+    {
+      "review_id": "review_00848",
+      "product_id": "prod_15",
+      "partition": "test",
+      "fold": -1
+    },
+    {
+      "review_id": "review_00849",
+      "product_id": "prod_15",
+      "partition": "test",
+      "fold": -1
+    },
+    {
+      "review_id": "review_00850",
+      "product_id": "prod_15",
+      "partition": "test",
+      "fold": -1
+    },
+    {
+      "review_id": "review_00851",
+      "product_id": "prod_15",
+      "partition": "test",
+      "fold": -1
+    },
+    {
+      "review_id": "review_00852",
+      "product_id": "prod_15",
+      "partition": "test",
+      "fold": -1
+    },
+    {
+      "review_id": "review_00853",
+      "product_id": "prod_15",
+      "partition": "test",
+      "fold": -1
+    },
+    {
+      "review_id": "review_00854",
+      "product_id": "prod_15",
+      "partition": "test",
+      "fold": -1
+    },
+    {
+      "review_id": "review_00855",
+      "product_id": "prod_15",
+      "partition": "test",
+      "fold": -1
+    },
+    {
+      "review_id": "review_00856",
+      "product_id": "prod_15",
+      "partition": "test",
+      "fold": -1
+    },
+    {
+      "review_id": "review_00857",
+      "product_id": "prod_15",
+      "partition": "test",
+      "fold": -1
+    },
+    {
+      "review_id": "review_00858",
+      "product_id": "prod_15",
+      "partition": "test",
+      "fold": -1
+    },
+    {
+      "review_id": "review_00859",
+      "product_id": "prod_15",
+      "partition": "test",
+      "fold": -1
+    },
+    {
+      "review_id": "review_00860",
+      "product_id": "prod_15",
+      "partition": "test",
+      "fold": -1
+    },
+    {
+      "review_id": "review_00861",
+      "product_id": "prod_15",
+      "partition": "test",
+      "fold": -1
+    },
+    {
+      "review_id": "review_00862",
+      "product_id": "prod_15",
+      "partition": "test",
+      "fold": -1
+    },
+    {
+      "review_id": "review_00863",
+      "product_id": "prod_15",
+      "partition": "test",
+      "fold": -1
+    },
+    {
+      "review_id": "review_00864",
+      "product_id": "prod_15",
+      "partition": "test",
+      "fold": -1
+    },
+    {
+      "review_id": "review_00865",
+      "product_id": "prod_15",
+      "partition": "test",
+      "fold": -1
+    },
+    {
+      "review_id": "review_00866",
+      "product_id": "prod_15",
+      "partition": "test",
+      "fold": -1
+    },
+    {
+      "review_id": "review_00867",
+      "product_id": "prod_15",
+      "partition": "test",
+      "fold": -1
+    },
+    {
+      "review_id": "review_00868",
+      "product_id": "prod_15",
+      "partition": "test",
+      "fold": -1
+    },
+    {
+      "review_id": "review_00869",
+      "product_id": "prod_15",
+      "partition": "test",
+      "fold": -1
+    },
+    {
+      "review_id": "review_00870",
+      "product_id": "prod_15",
+      "partition": "test",
+      "fold": -1
+    },
+    {
+      "review_id": "review_00871",
+      "product_id": "prod_15",
+      "partition": "test",
+      "fold": -1
+    },
+    {
+      "review_id": "review_00872",
+      "product_id": "prod_15",
+      "partition": "test",
+      "fold": -1
+    },
+    {
+      "review_id": "review_00873",
+      "product_id": "prod_15",
+      "partition": "test",
+      "fold": -1
+    },
+    {
+      "review_id": "review_00874",
+      "product_id": "prod_15",
+      "partition": "test",
+      "fold": -1
+    },
+    {
+      "review_id": "review_00875",
+      "product_id": "prod_15",
+      "partition": "test",
+      "fold": -1
+    },
+    {
+      "review_id": "review_00876",
+      "product_id": "prod_15",
+      "partition": "test",
+      "fold": -1
+    },
+    {
+      "review_id": "review_00877",
+      "product_id": "prod_15",
+      "partition": "test",
+      "fold": -1
+    },
+    {
+      "review_id": "review_00878",
+      "product_id": "prod_15",
+      "partition": "test",
+      "fold": -1
+    },
+    {
+      "review_id": "review_00879",
+      "product_id": "prod_15",
+      "partition": "test",
+      "fold": -1
+    },
+    {
+      "review_id": "review_00880",
+      "product_id": "prod_15",
+      "partition": "test",
+      "fold": -1
+    },
+    {
+      "review_id": "review_00881",
+      "product_id": "prod_15",
+      "partition": "test",
+      "fold": -1
+    },
+    {
+      "review_id": "review_00882",
+      "product_id": "prod_15",
+      "partition": "test",
+      "fold": -1
+    },
+    {
+      "review_id": "review_00883",
+      "product_id": "prod_15",
+      "partition": "test",
+      "fold": -1
+    },
+    {
+      "review_id": "review_00884",
+      "product_id": "prod_15",
+      "partition": "test",
+      "fold": -1
+    },
+    {
+      "review_id": "review_00885",
+      "product_id": "prod_15",
+      "partition": "test",
+      "fold": -1
+    },
+    {
+      "review_id": "review_00886",
+      "product_id": "prod_15",
+      "partition": "test",
+      "fold": -1
+    },
+    {
+      "review_id": "review_00887",
+      "product_id": "prod_15",
+      "partition": "test",
+      "fold": -1
+    },
+    {
+      "review_id": "review_00888",
+      "product_id": "prod_15",
+      "partition": "test",
+      "fold": -1
+    },
+    {
+      "review_id": "review_00889",
+      "product_id": "prod_15",
+      "partition": "test",
+      "fold": -1
+    },
+    {
+      "review_id": "review_00890",
+      "product_id": "prod_15",
+      "partition": "test",
+      "fold": -1
+    },
+    {
+      "review_id": "review_00891",
+      "product_id": "prod_15",
+      "partition": "test",
+      "fold": -1
+    },
+    {
+      "review_id": "review_00892",
+      "product_id": "prod_15",
+      "partition": "test",
+      "fold": -1
+    },
+    {
+      "review_id": "review_00893",
+      "product_id": "prod_15",
+      "partition": "test",
+      "fold": -1
+    },
+    {
+      "review_id": "review_00894",
+      "product_id": "prod_16",
+      "partition": "train",
+      "fold": 0
+    },
+    {
+      "review_id": "review_00895",
+      "product_id": "prod_16",
+      "partition": "train",
+      "fold": 0
+    },
+    {
+      "review_id": "review_00896",
+      "product_id": "prod_16",
+      "partition": "train",
+      "fold": 0
+    },
+    {
+      "review_id": "review_00897",
+      "product_id": "prod_16",
+      "partition": "train",
+      "fold": 0
+    },
+    {
+      "review_id": "review_00898",
+      "product_id": "prod_16",
+      "partition": "train",
+      "fold": 0
+    },
+    {
+      "review_id": "review_00899",
+      "product_id": "prod_16",
+      "partition": "train",
+      "fold": 0
+    },
+    {
+      "review_id": "review_00900",
+      "product_id": "prod_16",
+      "partition": "train",
+      "fold": 0
+    },
+    {
+      "review_id": "review_00901",
+      "product_id": "prod_16",
+      "partition": "train",
+      "fold": 0
+    },
+    {
+      "review_id": "review_00902",
+      "product_id": "prod_16",
+      "partition": "train",
+      "fold": 0
+    },
+    {
+      "review_id": "review_00903",
+      "product_id": "prod_16",
+      "partition": "train",
+      "fold": 0
+    },
+    {
+      "review_id": "review_00904",
+      "product_id": "prod_16",
+      "partition": "train",
+      "fold": 0
+    },
+    {
+      "review_id": "review_00905",
+      "product_id": "prod_16",
+      "partition": "train",
+      "fold": 0
+    },
+    {
+      "review_id": "review_00906",
+      "product_id": "prod_16",
+      "partition": "train",
+      "fold": 0
+    },
+    {
+      "review_id": "review_00907",
+      "product_id": "prod_16",
+      "partition": "train",
+      "fold": 0
+    },
+    {
+      "review_id": "review_00908",
+      "product_id": "prod_16",
+      "partition": "train",
+      "fold": 0
+    },
+    {
+      "review_id": "review_00909",
+      "product_id": "prod_16",
+      "partition": "train",
+      "fold": 0
+    },
+    {
+      "review_id": "review_00910",
+      "product_id": "prod_16",
+      "partition": "train",
+      "fold": 0
+    },
+    {
+      "review_id": "review_00911",
+      "product_id": "prod_16",
+      "partition": "train",
+      "fold": 0
+    },
+    {
+      "review_id": "review_00912",
+      "product_id": "prod_16",
+      "partition": "train",
+      "fold": 0
+    },
+    {
+      "review_id": "review_00913",
+      "product_id": "prod_16",
+      "partition": "train",
+      "fold": 0
+    },
+    {
+      "review_id": "review_00914",
+      "product_id": "prod_16",
+      "partition": "train",
+      "fold": 0
+    },
+    {
+      "review_id": "review_00915",
+      "product_id": "prod_16",
+      "partition": "train",
+      "fold": 0
+    },
+    {
+      "review_id": "review_00916",
+      "product_id": "prod_16",
+      "partition": "train",
+      "fold": 0
+    },
+    {
+      "review_id": "review_00917",
+      "product_id": "prod_16",
+      "partition": "train",
+      "fold": 0
+    },
+    {
+      "review_id": "review_00918",
+      "product_id": "prod_16",
+      "partition": "train",
+      "fold": 0
+    },
+    {
+      "review_id": "review_00919",
+      "product_id": "prod_16",
+      "partition": "train",
+      "fold": 0
+    },
+    {
+      "review_id": "review_00920",
+      "product_id": "prod_16",
+      "partition": "train",
+      "fold": 0
+    },
+    {
+      "review_id": "review_00921",
+      "product_id": "prod_16",
+      "partition": "train",
+      "fold": 0
+    },
+    {
+      "review_id": "review_00922",
+      "product_id": "prod_16",
+      "partition": "train",
+      "fold": 0
+    },
+    {
+      "review_id": "review_00923",
+      "product_id": "prod_16",
+      "partition": "train",
+      "fold": 0
+    },
+    {
+      "review_id": "review_00924",
+      "product_id": "prod_16",
+      "partition": "train",
+      "fold": 0
+    },
+    {
+      "review_id": "review_00925",
+      "product_id": "prod_16",
+      "partition": "train",
+      "fold": 0
+    },
+    {
+      "review_id": "review_00926",
+      "product_id": "prod_16",
+      "partition": "train",
+      "fold": 0
+    },
+    {
+      "review_id": "review_00927",
+      "product_id": "prod_16",
+      "partition": "train",
+      "fold": 0
+    },
+    {
+      "review_id": "review_00928",
+      "product_id": "prod_16",
+      "partition": "train",
+      "fold": 0
+    },
+    {
+      "review_id": "review_00929",
+      "product_id": "prod_16",
+      "partition": "train",
+      "fold": 0
+    },
+    {
+      "review_id": "review_00930",
+      "product_id": "prod_16",
+      "partition": "train",
+      "fold": 0
+    },
+    {
+      "review_id": "review_00931",
+      "product_id": "prod_16",
+      "partition": "train",
+      "fold": 0
+    },
+    {
+      "review_id": "review_00932",
+      "product_id": "prod_16",
+      "partition": "train",
+      "fold": 0
+    },
+    {
+      "review_id": "review_00933",
+      "product_id": "prod_16",
+      "partition": "train",
+      "fold": 0
+    },
+    {
+      "review_id": "review_00934",
+      "product_id": "prod_16",
+      "partition": "train",
+      "fold": 0
+    },
+    {
+      "review_id": "review_00935",
+      "product_id": "prod_16",
+      "partition": "train",
+      "fold": 0
+    },
+    {
+      "review_id": "review_00936",
+      "product_id": "prod_16",
+      "partition": "train",
+      "fold": 0
+    },
+    {
+      "review_id": "review_00937",
+      "product_id": "prod_16",
+      "partition": "train",
+      "fold": 0
+    },
+    {
+      "review_id": "review_00938",
+      "product_id": "prod_16",
+      "partition": "train",
+      "fold": 0
+    },
+    {
+      "review_id": "review_00939",
+      "product_id": "prod_16",
+      "partition": "train",
+      "fold": 0
+    },
+    {
+      "review_id": "review_00940",
+      "product_id": "prod_16",
+      "partition": "train",
+      "fold": 0
+    },
+    {
+      "review_id": "review_00941",
+      "product_id": "prod_16",
+      "partition": "train",
+      "fold": 0
+    },
+    {
+      "review_id": "review_00942",
+      "product_id": "prod_16",
+      "partition": "train",
+      "fold": 0
+    },
+    {
+      "review_id": "review_00943",
+      "product_id": "prod_16",
+      "partition": "train",
+      "fold": 0
+    },
+    {
+      "review_id": "review_00944",
+      "product_id": "prod_16",
+      "partition": "train",
+      "fold": 0
+    },
+    {
+      "review_id": "review_00945",
+      "product_id": "prod_16",
+      "partition": "train",
+      "fold": 0
+    },
+    {
+      "review_id": "review_00946",
+      "product_id": "prod_16",
+      "partition": "train",
+      "fold": 0
+    },
+    {
+      "review_id": "review_00947",
+      "product_id": "prod_16",
+      "partition": "train",
+      "fold": 0
+    },
+    {
+      "review_id": "review_00948",
+      "product_id": "prod_16",
+      "partition": "train",
+      "fold": 0
+    },
+    {
+      "review_id": "review_00949",
+      "product_id": "prod_16",
+      "partition": "train",
+      "fold": 0
+    },
+    {
+      "review_id": "review_00950",
+      "product_id": "prod_16",
+      "partition": "train",
+      "fold": 0
+    },
+    {
+      "review_id": "review_00951",
+      "product_id": "prod_16",
+      "partition": "train",
+      "fold": 0
+    },
+    {
+      "review_id": "review_00952",
+      "product_id": "prod_16",
+      "partition": "train",
+      "fold": 0
+    },
+    {
+      "review_id": "review_00953",
+      "product_id": "prod_16",
+      "partition": "train",
+      "fold": 0
+    },
+    {
+      "review_id": "review_00954",
+      "product_id": "prod_17",
+      "partition": "validation",
+      "fold": -1
+    },
+    {
+      "review_id": "review_00955",
+      "product_id": "prod_17",
+      "partition": "validation",
+      "fold": -1
+    },
+    {
+      "review_id": "review_00956",
+      "product_id": "prod_17",
+      "partition": "validation",
+      "fold": -1
+    },
+    {
+      "review_id": "review_00957",
+      "product_id": "prod_17",
+      "partition": "validation",
+      "fold": -1
+    },
+    {
+      "review_id": "review_00958",
+      "product_id": "prod_17",
+      "partition": "validation",
+      "fold": -1
+    },
+    {
+      "review_id": "review_00959",
+      "product_id": "prod_17",
+      "partition": "validation",
+      "fold": -1
+    },
+    {
+      "review_id": "review_00960",
+      "product_id": "prod_17",
+      "partition": "validation",
+      "fold": -1
+    },
+    {
+      "review_id": "review_00961",
+      "product_id": "prod_17",
+      "partition": "validation",
+      "fold": -1
+    },
+    {
+      "review_id": "review_00962",
+      "product_id": "prod_17",
+      "partition": "validation",
+      "fold": -1
+    },
+    {
+      "review_id": "review_00963",
+      "product_id": "prod_17",
+      "partition": "validation",
+      "fold": -1
+    },
+    {
+      "review_id": "review_00964",
+      "product_id": "prod_17",
+      "partition": "validation",
+      "fold": -1
+    },
+    {
+      "review_id": "review_00965",
+      "product_id": "prod_17",
+      "partition": "validation",
+      "fold": -1
+    },
+    {
+      "review_id": "review_00966",
+      "product_id": "prod_17",
+      "partition": "validation",
+      "fold": -1
+    },
+    {
+      "review_id": "review_00967",
+      "product_id": "prod_17",
+      "partition": "validation",
+      "fold": -1
+    },
+    {
+      "review_id": "review_00968",
+      "product_id": "prod_17",
+      "partition": "validation",
+      "fold": -1
+    },
+    {
+      "review_id": "review_00969",
+      "product_id": "prod_17",
+      "partition": "validation",
+      "fold": -1
+    },
+    {
+      "review_id": "review_00970",
+      "product_id": "prod_17",
+      "partition": "validation",
+      "fold": -1
+    },
+    {
+      "review_id": "review_00971",
+      "product_id": "prod_17",
+      "partition": "validation",
+      "fold": -1
+    },
+    {
+      "review_id": "review_00972",
+      "product_id": "prod_17",
+      "partition": "validation",
+      "fold": -1
+    },
+    {
+      "review_id": "review_00973",
+      "product_id": "prod_17",
+      "partition": "validation",
+      "fold": -1
+    },
+    {
+      "review_id": "review_00974",
+      "product_id": "prod_17",
+      "partition": "validation",
+      "fold": -1
+    },
+    {
+      "review_id": "review_00975",
+      "product_id": "prod_17",
+      "partition": "validation",
+      "fold": -1
+    },
+    {
+      "review_id": "review_00976",
+      "product_id": "prod_17",
+      "partition": "validation",
+      "fold": -1
+    },
+    {
+      "review_id": "review_00977",
+      "product_id": "prod_17",
+      "partition": "validation",
+      "fold": -1
+    },
+    {
+      "review_id": "review_00978",
+      "product_id": "prod_17",
+      "partition": "validation",
+      "fold": -1
+    },
+    {
+      "review_id": "review_00979",
+      "product_id": "prod_17",
+      "partition": "validation",
+      "fold": -1
+    },
+    {
+      "review_id": "review_00980",
+      "product_id": "prod_17",
+      "partition": "validation",
+      "fold": -1
+    },
+    {
+      "review_id": "review_00981",
+      "product_id": "prod_17",
+      "partition": "validation",
+      "fold": -1
+    },
+    {
+      "review_id": "review_00982",
+      "product_id": "prod_17",
+      "partition": "validation",
+      "fold": -1
+    },
+    {
+      "review_id": "review_00983",
+      "product_id": "prod_17",
+      "partition": "validation",
+      "fold": -1
+    },
+    {
+      "review_id": "review_00984",
+      "product_id": "prod_17",
+      "partition": "validation",
+      "fold": -1
+    },
+    {
+      "review_id": "review_00985",
+      "product_id": "prod_17",
+      "partition": "validation",
+      "fold": -1
+    },
+    {
+      "review_id": "review_00986",
+      "product_id": "prod_17",
+      "partition": "validation",
+      "fold": -1
+    },
+    {
+      "review_id": "review_00987",
+      "product_id": "prod_17",
+      "partition": "validation",
+      "fold": -1
+    },
+    {
+      "review_id": "review_00988",
+      "product_id": "prod_17",
+      "partition": "validation",
+      "fold": -1
+    },
+    {
+      "review_id": "review_00989",
+      "product_id": "prod_17",
+      "partition": "validation",
+      "fold": -1
+    },
+    {
+      "review_id": "review_00990",
+      "product_id": "prod_17",
+      "partition": "validation",
+      "fold": -1
+    },
+    {
+      "review_id": "review_00991",
+      "product_id": "prod_17",
+      "partition": "validation",
+      "fold": -1
+    },
+    {
+      "review_id": "review_00992",
+      "product_id": "prod_17",
+      "partition": "validation",
+      "fold": -1
+    },
+    {
+      "review_id": "review_00993",
+      "product_id": "prod_17",
+      "partition": "validation",
+      "fold": -1
+    },
+    {
+      "review_id": "review_00994",
+      "product_id": "prod_17",
+      "partition": "validation",
+      "fold": -1
+    },
+    {
+      "review_id": "review_00995",
+      "product_id": "prod_17",
+      "partition": "validation",
+      "fold": -1
+    },
+    {
+      "review_id": "review_00996",
+      "product_id": "prod_17",
+      "partition": "validation",
+      "fold": -1
+    },
+    {
+      "review_id": "review_00997",
+      "product_id": "prod_17",
+      "partition": "validation",
+      "fold": -1
+    },
+    {
+      "review_id": "review_00998",
+      "product_id": "prod_17",
+      "partition": "validation",
+      "fold": -1
+    },
+    {
+      "review_id": "review_00999",
+      "product_id": "prod_17",
+      "partition": "validation",
+      "fold": -1
+    },
+    {
+      "review_id": "review_01000",
+      "product_id": "prod_17",
+      "partition": "validation",
+      "fold": -1
+    },
+    {
+      "review_id": "review_01001",
+      "product_id": "prod_17",
+      "partition": "validation",
+      "fold": -1
+    },
+    {
+      "review_id": "review_01002",
+      "product_id": "prod_17",
+      "partition": "validation",
+      "fold": -1
+    },
+    {
+      "review_id": "review_01003",
+      "product_id": "prod_17",
+      "partition": "validation",
+      "fold": -1
+    },
+    {
+      "review_id": "review_01004",
+      "product_id": "prod_17",
+      "partition": "validation",
+      "fold": -1
+    },
+    {
+      "review_id": "review_01005",
+      "product_id": "prod_17",
+      "partition": "validation",
+      "fold": -1
+    },
+    {
+      "review_id": "review_01006",
+      "product_id": "prod_17",
+      "partition": "validation",
+      "fold": -1
+    },
+    {
+      "review_id": "review_01007",
+      "product_id": "prod_17",
+      "partition": "validation",
+      "fold": -1
+    },
+    {
+      "review_id": "review_01008",
+      "product_id": "prod_17",
+      "partition": "validation",
+      "fold": -1
+    },
+    {
+      "review_id": "review_01009",
+      "product_id": "prod_17",
+      "partition": "validation",
+      "fold": -1
+    },
+    {
+      "review_id": "review_01010",
+      "product_id": "prod_17",
+      "partition": "validation",
+      "fold": -1
+    },
+    {
+      "review_id": "review_01011",
+      "product_id": "prod_17",
+      "partition": "validation",
+      "fold": -1
+    },
+    {
+      "review_id": "review_01012",
+      "product_id": "prod_17",
+      "partition": "validation",
+      "fold": -1
+    },
+    {
+      "review_id": "review_01013",
+      "product_id": "prod_17",
+      "partition": "validation",
+      "fold": -1
+    },
+    {
+      "review_id": "review_01014",
+      "product_id": "prod_18",
+      "partition": "train",
+      "fold": 1
+    },
+    {
+      "review_id": "review_01015",
+      "product_id": "prod_18",
+      "partition": "train",
+      "fold": 1
+    },
+    {
+      "review_id": "review_01016",
+      "product_id": "prod_18",
+      "partition": "train",
+      "fold": 1
+    },
+    {
+      "review_id": "review_01017",
+      "product_id": "prod_18",
+      "partition": "train",
+      "fold": 1
+    },
+    {
+      "review_id": "review_01018",
+      "product_id": "prod_18",
+      "partition": "train",
+      "fold": 1
+    },
+    {
+      "review_id": "review_01019",
+      "product_id": "prod_18",
+      "partition": "train",
+      "fold": 1
+    },
+    {
+      "review_id": "review_01020",
+      "product_id": "prod_18",
+      "partition": "train",
+      "fold": 1
+    },
+    {
+      "review_id": "review_01021",
+      "product_id": "prod_18",
+      "partition": "train",
+      "fold": 1
+    },
+    {
+      "review_id": "review_01022",
+      "product_id": "prod_18",
+      "partition": "train",
+      "fold": 1
+    },
+    {
+      "review_id": "review_01023",
+      "product_id": "prod_18",
+      "partition": "train",
+      "fold": 1
+    },
+    {
+      "review_id": "review_01024",
+      "product_id": "prod_18",
+      "partition": "train",
+      "fold": 1
+    },
+    {
+      "review_id": "review_01025",
+      "product_id": "prod_18",
+      "partition": "train",
+      "fold": 1
+    },
+    {
+      "review_id": "review_01026",
+      "product_id": "prod_18",
+      "partition": "train",
+      "fold": 1
+    },
+    {
+      "review_id": "review_01027",
+      "product_id": "prod_18",
+      "partition": "train",
+      "fold": 1
+    },
+    {
+      "review_id": "review_01028",
+      "product_id": "prod_18",
+      "partition": "train",
+      "fold": 1
+    },
+    {
+      "review_id": "review_01029",
+      "product_id": "prod_18",
+      "partition": "train",
+      "fold": 1
+    },
+    {
+      "review_id": "review_01030",
+      "product_id": "prod_18",
+      "partition": "train",
+      "fold": 1
+    },
+    {
+      "review_id": "review_01031",
+      "product_id": "prod_18",
+      "partition": "train",
+      "fold": 1
+    },
+    {
+      "review_id": "review_01032",
+      "product_id": "prod_18",
+      "partition": "train",
+      "fold": 1
+    },
+    {
+      "review_id": "review_01033",
+      "product_id": "prod_18",
+      "partition": "train",
+      "fold": 1
+    },
+    {
+      "review_id": "review_01034",
+      "product_id": "prod_18",
+      "partition": "train",
+      "fold": 1
+    },
+    {
+      "review_id": "review_01035",
+      "product_id": "prod_18",
+      "partition": "train",
+      "fold": 1
+    },
+    {
+      "review_id": "review_01036",
+      "product_id": "prod_18",
+      "partition": "train",
+      "fold": 1
+    },
+    {
+      "review_id": "review_01037",
+      "product_id": "prod_18",
+      "partition": "train",
+      "fold": 1
+    },
+    {
+      "review_id": "review_01038",
+      "product_id": "prod_18",
+      "partition": "train",
+      "fold": 1
+    },
+    {
+      "review_id": "review_01039",
+      "product_id": "prod_18",
+      "partition": "train",
+      "fold": 1
+    },
+    {
+      "review_id": "review_01040",
+      "product_id": "prod_18",
+      "partition": "train",
+      "fold": 1
+    },
+    {
+      "review_id": "review_01041",
+      "product_id": "prod_18",
+      "partition": "train",
+      "fold": 1
+    },
+    {
+      "review_id": "review_01042",
+      "product_id": "prod_18",
+      "partition": "train",
+      "fold": 1
+    },
+    {
+      "review_id": "review_01043",
+      "product_id": "prod_18",
+      "partition": "train",
+      "fold": 1
+    },
+    {
+      "review_id": "review_01044",
+      "product_id": "prod_18",
+      "partition": "train",
+      "fold": 1
+    },
+    {
+      "review_id": "review_01045",
+      "product_id": "prod_18",
+      "partition": "train",
+      "fold": 1
+    },
+    {
+      "review_id": "review_01046",
+      "product_id": "prod_18",
+      "partition": "train",
+      "fold": 1
+    },
+    {
+      "review_id": "review_01047",
+      "product_id": "prod_18",
+      "partition": "train",
+      "fold": 1
+    },
+    {
+      "review_id": "review_01048",
+      "product_id": "prod_18",
+      "partition": "train",
+      "fold": 1
+    },
+    {
+      "review_id": "review_01049",
+      "product_id": "prod_18",
+      "partition": "train",
+      "fold": 1
+    },
+    {
+      "review_id": "review_01050",
+      "product_id": "prod_18",
+      "partition": "train",
+      "fold": 1
+    },
+    {
+      "review_id": "review_01051",
+      "product_id": "prod_18",
+      "partition": "train",
+      "fold": 1
+    },
+    {
+      "review_id": "review_01052",
+      "product_id": "prod_18",
+      "partition": "train",
+      "fold": 1
+    },
+    {
+      "review_id": "review_01053",
+      "product_id": "prod_18",
+      "partition": "train",
+      "fold": 1
+    },
+    {
+      "review_id": "review_01054",
+      "product_id": "prod_18",
+      "partition": "train",
+      "fold": 1
+    },
+    {
+      "review_id": "review_01055",
+      "product_id": "prod_18",
+      "partition": "train",
+      "fold": 1
+    },
+    {
+      "review_id": "review_01056",
+      "product_id": "prod_18",
+      "partition": "train",
+      "fold": 1
+    },
+    {
+      "review_id": "review_01057",
+      "product_id": "prod_18",
+      "partition": "train",
+      "fold": 1
+    },
+    {
+      "review_id": "review_01058",
+      "product_id": "prod_18",
+      "partition": "train",
+      "fold": 1
+    },
+    {
+      "review_id": "review_01059",
+      "product_id": "prod_18",
+      "partition": "train",
+      "fold": 1
+    },
+    {
+      "review_id": "review_01060",
+      "product_id": "prod_18",
+      "partition": "train",
+      "fold": 1
+    },
+    {
+      "review_id": "review_01061",
+      "product_id": "prod_18",
+      "partition": "train",
+      "fold": 1
+    },
+    {
+      "review_id": "review_01062",
+      "product_id": "prod_18",
+      "partition": "train",
+      "fold": 1
+    },
+    {
+      "review_id": "review_01063",
+      "product_id": "prod_18",
+      "partition": "train",
+      "fold": 1
+    },
+    {
+      "review_id": "review_01064",
+      "product_id": "prod_18",
+      "partition": "train",
+      "fold": 1
+    },
+    {
+      "review_id": "review_01065",
+      "product_id": "prod_18",
+      "partition": "train",
+      "fold": 1
+    },
+    {
+      "review_id": "review_01066",
+      "product_id": "prod_18",
+      "partition": "train",
+      "fold": 1
+    },
+    {
+      "review_id": "review_01067",
+      "product_id": "prod_18",
+      "partition": "train",
+      "fold": 1
+    },
+    {
+      "review_id": "review_01068",
+      "product_id": "prod_18",
+      "partition": "train",
+      "fold": 1
+    },
+    {
+      "review_id": "review_01069",
+      "product_id": "prod_18",
+      "partition": "train",
+      "fold": 1
+    },
+    {
+      "review_id": "review_01070",
+      "product_id": "prod_18",
+      "partition": "train",
+      "fold": 1
+    },
+    {
+      "review_id": "review_01071",
+      "product_id": "prod_18",
+      "partition": "train",
+      "fold": 1
+    },
+    {
+      "review_id": "review_01072",
+      "product_id": "prod_18",
+      "partition": "train",
+      "fold": 1
+    },
+    {
+      "review_id": "review_01073",
+      "product_id": "prod_18",
+      "partition": "train",
+      "fold": 1
+    },
+    {
+      "review_id": "review_01074",
+      "product_id": "prod_31",
+      "partition": "test",
+      "fold": -1
+    },
+    {
+      "review_id": "review_01075",
+      "product_id": "prod_31",
+      "partition": "test",
+      "fold": -1
+    },
+    {
+      "review_id": "review_01076",
+      "product_id": "prod_31",
+      "partition": "test",
+      "fold": -1
+    },
+    {
+      "review_id": "review_01077",
+      "product_id": "prod_31",
+      "partition": "test",
+      "fold": -1
+    },
+    {
+      "review_id": "review_01078",
+      "product_id": "prod_31",
+      "partition": "test",
+      "fold": -1
+    },
+    {
+      "review_id": "review_01079",
+      "product_id": "prod_31",
+      "partition": "test",
+      "fold": -1
+    },
+    {
+      "review_id": "review_01080",
+      "product_id": "prod_31",
+      "partition": "test",
+      "fold": -1
+    },
+    {
+      "review_id": "review_01081",
+      "product_id": "prod_31",
+      "partition": "test",
+      "fold": -1
+    },
+    {
+      "review_id": "review_01082",
+      "product_id": "prod_31",
+      "partition": "test",
+      "fold": -1
+    },
+    {
+      "review_id": "review_01083",
+      "product_id": "prod_31",
+      "partition": "test",
+      "fold": -1
+    },
+    {
+      "review_id": "review_01084",
+      "product_id": "prod_31",
+      "partition": "test",
+      "fold": -1
+    },
+    {
+      "review_id": "review_01085",
+      "product_id": "prod_31",
+      "partition": "test",
+      "fold": -1
+    },
+    {
+      "review_id": "review_01086",
+      "product_id": "prod_31",
+      "partition": "test",
+      "fold": -1
+    },
+    {
+      "review_id": "review_01087",
+      "product_id": "prod_31",
+      "partition": "test",
+      "fold": -1
+    },
+    {
+      "review_id": "review_01088",
+      "product_id": "prod_31",
+      "partition": "test",
+      "fold": -1
+    },
+    {
+      "review_id": "review_01089",
+      "product_id": "prod_31",
+      "partition": "test",
+      "fold": -1
+    },
+    {
+      "review_id": "review_01090",
+      "product_id": "prod_31",
+      "partition": "test",
+      "fold": -1
+    },
+    {
+      "review_id": "review_01091",
+      "product_id": "prod_31",
+      "partition": "test",
+      "fold": -1
+    },
+    {
+      "review_id": "review_01092",
+      "product_id": "prod_31",
+      "partition": "test",
+      "fold": -1
+    },
+    {
+      "review_id": "review_01093",
+      "product_id": "prod_31",
+      "partition": "test",
+      "fold": -1
+    },
+    {
+      "review_id": "review_01094",
+      "product_id": "prod_31",
+      "partition": "test",
+      "fold": -1
+    },
+    {
+      "review_id": "review_01095",
+      "product_id": "prod_31",
+      "partition": "test",
+      "fold": -1
+    },
+    {
+      "review_id": "review_01096",
+      "product_id": "prod_31",
+      "partition": "test",
+      "fold": -1
+    },
+    {
+      "review_id": "review_01097",
+      "product_id": "prod_31",
+      "partition": "test",
+      "fold": -1
+    },
+    {
+      "review_id": "review_01098",
+      "product_id": "prod_31",
+      "partition": "test",
+      "fold": -1
+    },
+    {
+      "review_id": "review_01099",
+      "product_id": "prod_31",
+      "partition": "test",
+      "fold": -1
+    },
+    {
+      "review_id": "review_01100",
+      "product_id": "prod_31",
+      "partition": "test",
+      "fold": -1
+    },
+    {
+      "review_id": "review_01101",
+      "product_id": "prod_31",
+      "partition": "test",
+      "fold": -1
+    },
+    {
+      "review_id": "review_01102",
+      "product_id": "prod_31",
+      "partition": "test",
+      "fold": -1
+    },
+    {
+      "review_id": "review_01103",
+      "product_id": "prod_31",
+      "partition": "test",
+      "fold": -1
+    },
+    {
+      "review_id": "review_01104",
+      "product_id": "prod_31",
+      "partition": "test",
+      "fold": -1
+    },
+    {
+      "review_id": "review_01105",
+      "product_id": "prod_31",
+      "partition": "test",
+      "fold": -1
+    },
+    {
+      "review_id": "review_01106",
+      "product_id": "prod_31",
+      "partition": "test",
+      "fold": -1
+    },
+    {
+      "review_id": "review_01107",
+      "product_id": "prod_31",
+      "partition": "test",
+      "fold": -1
+    },
+    {
+      "review_id": "review_01108",
+      "product_id": "prod_31",
+      "partition": "test",
+      "fold": -1
+    },
+    {
+      "review_id": "review_01109",
+      "product_id": "prod_31",
+      "partition": "test",
+      "fold": -1
+    },
+    {
+      "review_id": "review_01110",
+      "product_id": "prod_31",
+      "partition": "test",
+      "fold": -1
+    },
+    {
+      "review_id": "review_01111",
+      "product_id": "prod_31",
+      "partition": "test",
+      "fold": -1
+    },
+    {
+      "review_id": "review_01112",
+      "product_id": "prod_31",
+      "partition": "test",
+      "fold": -1
+    },
+    {
+      "review_id": "review_01113",
+      "product_id": "prod_31",
+      "partition": "test",
+      "fold": -1
+    },
+    {
+      "review_id": "review_01114",
+      "product_id": "prod_31",
+      "partition": "test",
+      "fold": -1
+    },
+    {
+      "review_id": "review_01115",
+      "product_id": "prod_31",
+      "partition": "test",
+      "fold": -1
+    },
+    {
+      "review_id": "review_01116",
+      "product_id": "prod_31",
+      "partition": "test",
+      "fold": -1
+    },
+    {
+      "review_id": "review_01117",
+      "product_id": "prod_31",
+      "partition": "test",
+      "fold": -1
+    },
+    {
+      "review_id": "review_01118",
+      "product_id": "prod_31",
+      "partition": "test",
+      "fold": -1
+    },
+    {
+      "review_id": "review_01119",
+      "product_id": "prod_31",
+      "partition": "test",
+      "fold": -1
+    },
+    {
+      "review_id": "review_01120",
+      "product_id": "prod_31",
+      "partition": "test",
+      "fold": -1
+    },
+    {
+      "review_id": "review_01121",
+      "product_id": "prod_31",
+      "partition": "test",
+      "fold": -1
+    },
+    {
+      "review_id": "review_01122",
+      "product_id": "prod_31",
+      "partition": "test",
+      "fold": -1
+    },
+    {
+      "review_id": "review_01123",
+      "product_id": "prod_32",
+      "partition": "validation",
+      "fold": -1
+    },
+    {
+      "review_id": "review_01124",
+      "product_id": "prod_32",
+      "partition": "validation",
+      "fold": -1
+    },
+    {
+      "review_id": "review_01125",
+      "product_id": "prod_32",
+      "partition": "validation",
+      "fold": -1
+    },
+    {
+      "review_id": "review_01126",
+      "product_id": "prod_32",
+      "partition": "validation",
+      "fold": -1
+    },
+    {
+      "review_id": "review_01127",
+      "product_id": "prod_32",
+      "partition": "validation",
+      "fold": -1
+    },
+    {
+      "review_id": "review_01128",
+      "product_id": "prod_32",
+      "partition": "validation",
+      "fold": -1
+    },
+    {
+      "review_id": "review_01129",
+      "product_id": "prod_32",
+      "partition": "validation",
+      "fold": -1
+    },
+    {
+      "review_id": "review_01130",
+      "product_id": "prod_32",
+      "partition": "validation",
+      "fold": -1
+    },
+    {
+      "review_id": "review_01131",
+      "product_id": "prod_32",
+      "partition": "validation",
+      "fold": -1
+    },
+    {
+      "review_id": "review_01132",
+      "product_id": "prod_32",
+      "partition": "validation",
+      "fold": -1
+    },
+    {
+      "review_id": "review_01133",
+      "product_id": "prod_32",
+      "partition": "validation",
+      "fold": -1
+    },
+    {
+      "review_id": "review_01134",
+      "product_id": "prod_32",
+      "partition": "validation",
+      "fold": -1
+    },
+    {
+      "review_id": "review_01135",
+      "product_id": "prod_32",
+      "partition": "validation",
+      "fold": -1
+    },
+    {
+      "review_id": "review_01136",
+      "product_id": "prod_32",
+      "partition": "validation",
+      "fold": -1
+    },
+    {
+      "review_id": "review_01137",
+      "product_id": "prod_32",
+      "partition": "validation",
+      "fold": -1
+    },
+    {
+      "review_id": "review_01138",
+      "product_id": "prod_32",
+      "partition": "validation",
+      "fold": -1
+    },
+    {
+      "review_id": "review_01139",
+      "product_id": "prod_32",
+      "partition": "validation",
+      "fold": -1
+    },
+    {
+      "review_id": "review_01140",
+      "product_id": "prod_32",
+      "partition": "validation",
+      "fold": -1
+    },
+    {
+      "review_id": "review_01141",
+      "product_id": "prod_32",
+      "partition": "validation",
+      "fold": -1
+    },
+    {
+      "review_id": "review_01142",
+      "product_id": "prod_32",
+      "partition": "validation",
+      "fold": -1
+    },
+    {
+      "review_id": "review_01143",
+      "product_id": "prod_32",
+      "partition": "validation",
+      "fold": -1
+    },
+    {
+      "review_id": "review_01144",
+      "product_id": "prod_32",
+      "partition": "validation",
+      "fold": -1
+    },
+    {
+      "review_id": "review_01145",
+      "product_id": "prod_32",
+      "partition": "validation",
+      "fold": -1
+    },
+    {
+      "review_id": "review_01146",
+      "product_id": "prod_32",
+      "partition": "validation",
+      "fold": -1
+    },
+    {
+      "review_id": "review_01147",
+      "product_id": "prod_32",
+      "partition": "validation",
+      "fold": -1
+    },
+    {
+      "review_id": "review_01148",
+      "product_id": "prod_32",
+      "partition": "validation",
+      "fold": -1
+    },
+    {
+      "review_id": "review_01149",
+      "product_id": "prod_32",
+      "partition": "validation",
+      "fold": -1
+    },
+    {
+      "review_id": "review_01150",
+      "product_id": "prod_32",
+      "partition": "validation",
+      "fold": -1
+    },
+    {
+      "review_id": "review_01151",
+      "product_id": "prod_32",
+      "partition": "validation",
+      "fold": -1
+    },
+    {
+      "review_id": "review_01152",
+      "product_id": "prod_32",
+      "partition": "validation",
+      "fold": -1
+    },
+    {
+      "review_id": "review_01153",
+      "product_id": "prod_32",
+      "partition": "validation",
+      "fold": -1
+    },
+    {
+      "review_id": "review_01154",
+      "product_id": "prod_32",
+      "partition": "validation",
+      "fold": -1
+    },
+    {
+      "review_id": "review_01155",
+      "product_id": "prod_32",
+      "partition": "validation",
+      "fold": -1
+    },
+    {
+      "review_id": "review_01156",
+      "product_id": "prod_32",
+      "partition": "validation",
+      "fold": -1
+    },
+    {
+      "review_id": "review_01157",
+      "product_id": "prod_32",
+      "partition": "validation",
+      "fold": -1
+    },
+    {
+      "review_id": "review_01158",
+      "product_id": "prod_32",
+      "partition": "validation",
+      "fold": -1
+    },
+    {
+      "review_id": "review_01159",
+      "product_id": "prod_32",
+      "partition": "validation",
+      "fold": -1
+    },
+    {
+      "review_id": "review_01160",
+      "product_id": "prod_32",
+      "partition": "validation",
+      "fold": -1
+    },
+    {
+      "review_id": "review_01161",
+      "product_id": "prod_32",
+      "partition": "validation",
+      "fold": -1
+    },
+    {
+      "review_id": "review_01162",
+      "product_id": "prod_32",
+      "partition": "validation",
+      "fold": -1
+    },
+    {
+      "review_id": "review_01163",
+      "product_id": "prod_32",
+      "partition": "validation",
+      "fold": -1
+    },
+    {
+      "review_id": "review_01164",
+      "product_id": "prod_32",
+      "partition": "validation",
+      "fold": -1
+    },
+    {
+      "review_id": "review_01165",
+      "product_id": "prod_32",
+      "partition": "validation",
+      "fold": -1
+    },
+    {
+      "review_id": "review_01166",
+      "product_id": "prod_32",
+      "partition": "validation",
+      "fold": -1
+    },
+    {
+      "review_id": "review_01167",
+      "product_id": "prod_32",
+      "partition": "validation",
+      "fold": -1
+    },
+    {
+      "review_id": "review_01168",
+      "product_id": "prod_32",
+      "partition": "validation",
+      "fold": -1
+    },
+    {
+      "review_id": "review_01169",
+      "product_id": "prod_32",
+      "partition": "validation",
+      "fold": -1
+    },
+    {
+      "review_id": "review_01170",
+      "product_id": "prod_32",
+      "partition": "validation",
+      "fold": -1
+    },
+    {
+      "review_id": "review_01171",
+      "product_id": "prod_32",
+      "partition": "validation",
+      "fold": -1
+    },
+    {
+      "review_id": "review_01172",
+      "product_id": "prod_32",
+      "partition": "validation",
+      "fold": -1
+    },
+    {
+      "review_id": "review_01173",
+      "product_id": "prod_33",
+      "partition": "train",
+      "fold": 3
+    },
+    {
+      "review_id": "review_01174",
+      "product_id": "prod_33",
+      "partition": "train",
+      "fold": 3
+    },
+    {
+      "review_id": "review_01175",
+      "product_id": "prod_33",
+      "partition": "train",
+      "fold": 3
+    },
+    {
+      "review_id": "review_01176",
+      "product_id": "prod_33",
+      "partition": "train",
+      "fold": 3
+    },
+    {
+      "review_id": "review_01177",
+      "product_id": "prod_33",
+      "partition": "train",
+      "fold": 3
+    },
+    {
+      "review_id": "review_01178",
+      "product_id": "prod_33",
+      "partition": "train",
+      "fold": 3
+    },
+    {
+      "review_id": "review_01179",
+      "product_id": "prod_33",
+      "partition": "train",
+      "fold": 3
+    },
+    {
+      "review_id": "review_01180",
+      "product_id": "prod_33",
+      "partition": "train",
+      "fold": 3
+    },
+    {
+      "review_id": "review_01181",
+      "product_id": "prod_33",
+      "partition": "train",
+      "fold": 3
+    },
+    {
+      "review_id": "review_01182",
+      "product_id": "prod_33",
+      "partition": "train",
+      "fold": 3
+    },
+    {
+      "review_id": "review_01183",
+      "product_id": "prod_33",
+      "partition": "train",
+      "fold": 3
+    },
+    {
+      "review_id": "review_01184",
+      "product_id": "prod_33",
+      "partition": "train",
+      "fold": 3
+    },
+    {
+      "review_id": "review_01185",
+      "product_id": "prod_33",
+      "partition": "train",
+      "fold": 3
+    },
+    {
+      "review_id": "review_01186",
+      "product_id": "prod_33",
+      "partition": "train",
+      "fold": 3
+    },
+    {
+      "review_id": "review_01187",
+      "product_id": "prod_33",
+      "partition": "train",
+      "fold": 3
+    },
+    {
+      "review_id": "review_01188",
+      "product_id": "prod_33",
+      "partition": "train",
+      "fold": 3
+    },
+    {
+      "review_id": "review_01189",
+      "product_id": "prod_33",
+      "partition": "train",
+      "fold": 3
+    },
+    {
+      "review_id": "review_01190",
+      "product_id": "prod_33",
+      "partition": "train",
+      "fold": 3
+    },
+    {
+      "review_id": "review_01191",
+      "product_id": "prod_33",
+      "partition": "train",
+      "fold": 3
+    },
+    {
+      "review_id": "review_01192",
+      "product_id": "prod_33",
+      "partition": "train",
+      "fold": 3
+    },
+    {
+      "review_id": "review_01193",
+      "product_id": "prod_33",
+      "partition": "train",
+      "fold": 3
+    },
+    {
+      "review_id": "review_01194",
+      "product_id": "prod_33",
+      "partition": "train",
+      "fold": 3
+    },
+    {
+      "review_id": "review_01195",
+      "product_id": "prod_33",
+      "partition": "train",
+      "fold": 3
+    },
+    {
+      "review_id": "review_01196",
+      "product_id": "prod_33",
+      "partition": "train",
+      "fold": 3
+    },
+    {
+      "review_id": "review_01197",
+      "product_id": "prod_33",
+      "partition": "train",
+      "fold": 3
+    },
+    {
+      "review_id": "review_01198",
+      "product_id": "prod_33",
+      "partition": "train",
+      "fold": 3
+    },
+    {
+      "review_id": "review_01199",
+      "product_id": "prod_33",
+      "partition": "train",
+      "fold": 3
+    },
+    {
+      "review_id": "review_01200",
+      "product_id": "prod_33",
+      "partition": "train",
+      "fold": 3
+    },
+    {
+      "review_id": "review_01201",
+      "product_id": "prod_33",
+      "partition": "train",
+      "fold": 3
+    },
+    {
+      "review_id": "review_01202",
+      "product_id": "prod_33",
+      "partition": "train",
+      "fold": 3
+    },
+    {
+      "review_id": "review_01203",
+      "product_id": "prod_33",
+      "partition": "train",
+      "fold": 3
+    },
+    {
+      "review_id": "review_01204",
+      "product_id": "prod_33",
+      "partition": "train",
+      "fold": 3
+    },
+    {
+      "review_id": "review_01205",
+      "product_id": "prod_33",
+      "partition": "train",
+      "fold": 3
+    },
+    {
+      "review_id": "review_01206",
+      "product_id": "prod_33",
+      "partition": "train",
+      "fold": 3
+    },
+    {
+      "review_id": "review_01207",
+      "product_id": "prod_33",
+      "partition": "train",
+      "fold": 3
+    },
+    {
+      "review_id": "review_01208",
+      "product_id": "prod_33",
+      "partition": "train",
+      "fold": 3
+    },
+    {
+      "review_id": "review_01209",
+      "product_id": "prod_33",
+      "partition": "train",
+      "fold": 3
+    },
+    {
+      "review_id": "review_01210",
+      "product_id": "prod_33",
+      "partition": "train",
+      "fold": 3
+    },
+    {
+      "review_id": "review_01211",
+      "product_id": "prod_33",
+      "partition": "train",
+      "fold": 3
+    },
+    {
+      "review_id": "review_01212",
+      "product_id": "prod_33",
+      "partition": "train",
+      "fold": 3
+    },
+    {
+      "review_id": "review_01213",
+      "product_id": "prod_33",
+      "partition": "train",
+      "fold": 3
+    },
+    {
+      "review_id": "review_01214",
+      "product_id": "prod_33",
+      "partition": "train",
+      "fold": 3
+    },
+    {
+      "review_id": "review_01215",
+      "product_id": "prod_33",
+      "partition": "train",
+      "fold": 3
+    },
+    {
+      "review_id": "review_01216",
+      "product_id": "prod_33",
+      "partition": "train",
+      "fold": 3
+    },
+    {
+      "review_id": "review_01217",
+      "product_id": "prod_33",
+      "partition": "train",
+      "fold": 3
+    },
+    {
+      "review_id": "review_01218",
+      "product_id": "prod_33",
+      "partition": "train",
+      "fold": 3
+    },
+    {
+      "review_id": "review_01219",
+      "product_id": "prod_33",
+      "partition": "train",
+      "fold": 3
+    },
+    {
+      "review_id": "review_01220",
+      "product_id": "prod_33",
+      "partition": "train",
+      "fold": 3
+    },
+    {
+      "review_id": "review_01221",
+      "product_id": "prod_33",
+      "partition": "train",
+      "fold": 3
+    },
+    {
+      "review_id": "review_01222",
+      "product_id": "prod_33",
+      "partition": "train",
+      "fold": 3
+    },
+    {
+      "review_id": "review_01223",
+      "product_id": "prod_34",
+      "partition": "train",
+      "fold": 3
+    },
+    {
+      "review_id": "review_01224",
+      "product_id": "prod_34",
+      "partition": "train",
+      "fold": 3
+    },
+    {
+      "review_id": "review_01225",
+      "product_id": "prod_34",
+      "partition": "train",
+      "fold": 3
+    },
+    {
+      "review_id": "review_01226",
+      "product_id": "prod_34",
+      "partition": "train",
+      "fold": 3
+    },
+    {
+      "review_id": "review_01227",
+      "product_id": "prod_34",
+      "partition": "train",
+      "fold": 3
+    },
+    {
+      "review_id": "review_01228",
+      "product_id": "prod_34",
+      "partition": "train",
+      "fold": 3
+    },
+    {
+      "review_id": "review_01229",
+      "product_id": "prod_34",
+      "partition": "train",
+      "fold": 3
+    },
+    {
+      "review_id": "review_01230",
+      "product_id": "prod_34",
+      "partition": "train",
+      "fold": 3
+    },
+    {
+      "review_id": "review_01231",
+      "product_id": "prod_34",
+      "partition": "train",
+      "fold": 3
+    },
+    {
+      "review_id": "review_01232",
+      "product_id": "prod_34",
+      "partition": "train",
+      "fold": 3
+    },
+    {
+      "review_id": "review_01233",
+      "product_id": "prod_34",
+      "partition": "train",
+      "fold": 3
+    },
+    {
+      "review_id": "review_01234",
+      "product_id": "prod_34",
+      "partition": "train",
+      "fold": 3
+    },
+    {
+      "review_id": "review_01235",
+      "product_id": "prod_34",
+      "partition": "train",
+      "fold": 3
+    },
+    {
+      "review_id": "review_01236",
+      "product_id": "prod_34",
+      "partition": "train",
+      "fold": 3
+    },
+    {
+      "review_id": "review_01237",
+      "product_id": "prod_34",
+      "partition": "train",
+      "fold": 3
+    },
+    {
+      "review_id": "review_01238",
+      "product_id": "prod_34",
+      "partition": "train",
+      "fold": 3
+    },
+    {
+      "review_id": "review_01239",
+      "product_id": "prod_34",
+      "partition": "train",
+      "fold": 3
+    },
+    {
+      "review_id": "review_01240",
+      "product_id": "prod_34",
+      "partition": "train",
+      "fold": 3
+    },
+    {
+      "review_id": "review_01241",
+      "product_id": "prod_34",
+      "partition": "train",
+      "fold": 3
+    },
+    {
+      "review_id": "review_01242",
+      "product_id": "prod_34",
+      "partition": "train",
+      "fold": 3
+    },
+    {
+      "review_id": "review_01243",
+      "product_id": "prod_34",
+      "partition": "train",
+      "fold": 3
+    },
+    {
+      "review_id": "review_01244",
+      "product_id": "prod_34",
+      "partition": "train",
+      "fold": 3
+    },
+    {
+      "review_id": "review_01245",
+      "product_id": "prod_34",
+      "partition": "train",
+      "fold": 3
+    },
+    {
+      "review_id": "review_01246",
+      "product_id": "prod_34",
+      "partition": "train",
+      "fold": 3
+    },
+    {
+      "review_id": "review_01247",
+      "product_id": "prod_34",
+      "partition": "train",
+      "fold": 3
+    },
+    {
+      "review_id": "review_01248",
+      "product_id": "prod_34",
+      "partition": "train",
+      "fold": 3
+    },
+    {
+      "review_id": "review_01249",
+      "product_id": "prod_34",
+      "partition": "train",
+      "fold": 3
+    },
+    {
+      "review_id": "review_01250",
+      "product_id": "prod_34",
+      "partition": "train",
+      "fold": 3
+    },
+    {
+      "review_id": "review_01251",
+      "product_id": "prod_34",
+      "partition": "train",
+      "fold": 3
+    },
+    {
+      "review_id": "review_01252",
+      "product_id": "prod_34",
+      "partition": "train",
+      "fold": 3
+    },
+    {
+      "review_id": "review_01253",
+      "product_id": "prod_34",
+      "partition": "train",
+      "fold": 3
+    },
+    {
+      "review_id": "review_01254",
+      "product_id": "prod_34",
+      "partition": "train",
+      "fold": 3
+    },
+    {
+      "review_id": "review_01255",
+      "product_id": "prod_34",
+      "partition": "train",
+      "fold": 3
+    },
+    {
+      "review_id": "review_01256",
+      "product_id": "prod_34",
+      "partition": "train",
+      "fold": 3
+    },
+    {
+      "review_id": "review_01257",
+      "product_id": "prod_34",
+      "partition": "train",
+      "fold": 3
+    },
+    {
+      "review_id": "review_01258",
+      "product_id": "prod_34",
+      "partition": "train",
+      "fold": 3
+    },
+    {
+      "review_id": "review_01259",
+      "product_id": "prod_34",
+      "partition": "train",
+      "fold": 3
+    },
+    {
+      "review_id": "review_01260",
+      "product_id": "prod_34",
+      "partition": "train",
+      "fold": 3
+    },
+    {
+      "review_id": "review_01261",
+      "product_id": "prod_34",
+      "partition": "train",
+      "fold": 3
+    },
+    {
+      "review_id": "review_01262",
+      "product_id": "prod_35",
+      "partition": "train",
+      "fold": 1
+    },
+    {
+      "review_id": "review_01263",
+      "product_id": "prod_35",
+      "partition": "train",
+      "fold": 1
+    },
+    {
+      "review_id": "review_01264",
+      "product_id": "prod_35",
+      "partition": "train",
+      "fold": 1
+    },
+    {
+      "review_id": "review_01265",
+      "product_id": "prod_35",
+      "partition": "train",
+      "fold": 1
+    },
+    {
+      "review_id": "review_01266",
+      "product_id": "prod_35",
+      "partition": "train",
+      "fold": 1
+    },
+    {
+      "review_id": "review_01267",
+      "product_id": "prod_35",
+      "partition": "train",
+      "fold": 1
+    },
+    {
+      "review_id": "review_01268",
+      "product_id": "prod_35",
+      "partition": "train",
+      "fold": 1
+    },
+    {
+      "review_id": "review_01269",
+      "product_id": "prod_35",
+      "partition": "train",
+      "fold": 1
+    },
+    {
+      "review_id": "review_01270",
+      "product_id": "prod_35",
+      "partition": "train",
+      "fold": 1
+    },
+    {
+      "review_id": "review_01271",
+      "product_id": "prod_35",
+      "partition": "train",
+      "fold": 1
+    },
+    {
+      "review_id": "review_01272",
+      "product_id": "prod_35",
+      "partition": "train",
+      "fold": 1
+    },
+    {
+      "review_id": "review_01273",
+      "product_id": "prod_35",
+      "partition": "train",
+      "fold": 1
+    },
+    {
+      "review_id": "review_01274",
+      "product_id": "prod_35",
+      "partition": "train",
+      "fold": 1
+    },
+    {
+      "review_id": "review_01275",
+      "product_id": "prod_35",
+      "partition": "train",
+      "fold": 1
+    },
+    {
+      "review_id": "review_01276",
+      "product_id": "prod_35",
+      "partition": "train",
+      "fold": 1
+    },
+    {
+      "review_id": "review_01277",
+      "product_id": "prod_35",
+      "partition": "train",
+      "fold": 1
+    },
+    {
+      "review_id": "review_01278",
+      "product_id": "prod_35",
+      "partition": "train",
+      "fold": 1
+    },
+    {
+      "review_id": "review_01279",
+      "product_id": "prod_35",
+      "partition": "train",
+      "fold": 1
+    },
+    {
+      "review_id": "review_01280",
+      "product_id": "prod_35",
+      "partition": "train",
+      "fold": 1
+    },
+    {
+      "review_id": "review_01281",
+      "product_id": "prod_35",
+      "partition": "train",
+      "fold": 1
+    },
+    {
+      "review_id": "review_01282",
+      "product_id": "prod_35",
+      "partition": "train",
+      "fold": 1
+    },
+    {
+      "review_id": "review_01283",
+      "product_id": "prod_35",
+      "partition": "train",
+      "fold": 1
+    },
+    {
+      "review_id": "review_01284",
+      "product_id": "prod_35",
+      "partition": "train",
+      "fold": 1
+    },
+    {
+      "review_id": "review_01285",
+      "product_id": "prod_35",
+      "partition": "train",
+      "fold": 1
+    },
+    {
+      "review_id": "review_01286",
+      "product_id": "prod_35",
+      "partition": "train",
+      "fold": 1
+    },
+    {
+      "review_id": "review_01287",
+      "product_id": "prod_35",
+      "partition": "train",
+      "fold": 1
+    },
+    {
+      "review_id": "review_01288",
+      "product_id": "prod_35",
+      "partition": "train",
+      "fold": 1
+    },
+    {
+      "review_id": "review_01289",
+      "product_id": "prod_35",
+      "partition": "train",
+      "fold": 1
+    },
+    {
+      "review_id": "review_01290",
+      "product_id": "prod_35",
+      "partition": "train",
+      "fold": 1
+    },
+    {
+      "review_id": "review_01291",
+      "product_id": "prod_35",
+      "partition": "train",
+      "fold": 1
+    },
+    {
+      "review_id": "review_01292",
+      "product_id": "prod_35",
+      "partition": "train",
+      "fold": 1
+    },
+    {
+      "review_id": "review_01293",
+      "product_id": "prod_35",
+      "partition": "train",
+      "fold": 1
+    },
+    {
+      "review_id": "review_01294",
+      "product_id": "prod_35",
+      "partition": "train",
+      "fold": 1
+    },
+    {
+      "review_id": "review_01295",
+      "product_id": "prod_35",
+      "partition": "train",
+      "fold": 1
+    },
+    {
+      "review_id": "review_01296",
+      "product_id": "prod_35",
+      "partition": "train",
+      "fold": 1
+    },
+    {
+      "review_id": "review_01297",
+      "product_id": "prod_35",
+      "partition": "train",
+      "fold": 1
+    },
+    {
+      "review_id": "review_01298",
+      "product_id": "prod_35",
+      "partition": "train",
+      "fold": 1
+    },
+    {
+      "review_id": "review_01299",
+      "product_id": "prod_35",
+      "partition": "train",
+      "fold": 1
+    },
+    {
+      "review_id": "review_01300",
+      "product_id": "prod_35",
+      "partition": "train",
+      "fold": 1
+    },
+    {
+      "review_id": "review_01301",
+      "product_id": "prod_35",
+      "partition": "train",
+      "fold": 1
+    },
+    {
+      "review_id": "review_01302",
+      "product_id": "prod_35",
+      "partition": "train",
+      "fold": 1
+    },
+    {
+      "review_id": "review_01303",
+      "product_id": "prod_35",
+      "partition": "train",
+      "fold": 1
+    },
+    {
+      "review_id": "review_01304",
+      "product_id": "prod_35",
+      "partition": "train",
+      "fold": 1
+    },
+    {
+      "review_id": "review_01305",
+      "product_id": "prod_35",
+      "partition": "train",
+      "fold": 1
+    },
+    {
+      "review_id": "review_01306",
+      "product_id": "prod_35",
+      "partition": "train",
+      "fold": 1
+    },
+    {
+      "review_id": "review_01307",
+      "product_id": "prod_35",
+      "partition": "train",
+      "fold": 1
+    },
+    {
+      "review_id": "review_01308",
+      "product_id": "prod_35",
+      "partition": "train",
+      "fold": 1
+    },
+    {
+      "review_id": "review_01309",
+      "product_id": "prod_35",
+      "partition": "train",
+      "fold": 1
+    },
+    {
+      "review_id": "review_01310",
+      "product_id": "prod_35",
+      "partition": "train",
+      "fold": 1
+    },
+    {
+      "review_id": "review_01311",
+      "product_id": "prod_35",
+      "partition": "train",
+      "fold": 1
+    }
+  ],
+  "counts": {
+    "train": 916,
+    "validation": 226,
+    "test": 169
+  }
+}
