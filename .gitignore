@@ -67,6 +67,7 @@ pnpm-debug.log*
 !/data/samples/
 !/data/samples/**
 !/data/test_reviews.csv
+!/data/augmented_reviews.csv
 /datasets/
 /scraped/
 /review_images/

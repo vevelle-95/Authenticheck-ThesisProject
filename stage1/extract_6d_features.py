@@ -12,7 +12,7 @@ from model_contract import (
     DEFAULT_DATA_PATH, DEFAULT_FEATURES_PATH, DEFAULT_OOF_PATH, DEFAULT_ROBERTA_DIR,
     DEFAULT_SPLITS_PATH, FEATURE_COLUMNS, INPUT_VERSION, quality_input_text,
 )
-from model_data import fingerprint, load_reviews, read_splits
+from model_data import fingerprint, load_experiment
 
 
 def build_features(assigned, oof_path, output, model_dir, extractor=None):
@@ -77,11 +77,14 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--data", default=str(DEFAULT_DATA_PATH))
     parser.add_argument("--splits", default=str(DEFAULT_SPLITS_PATH))
+    parser.add_argument("--augmentations", help="Approved training-only augmentation CSV; use the same file throughout the experiment")
+    parser.add_argument("--allow-unreviewed-augmentations", action="store_true", help="Experimental run: include pending drafts without marking them approved")
     parser.add_argument("--oof", default=str(DEFAULT_OOF_PATH))
     parser.add_argument("--output", default=str(DEFAULT_FEATURES_PATH))
     parser.add_argument("--model", default=str(DEFAULT_ROBERTA_DIR))
     args = parser.parse_args()
-    assigned = read_splits(load_reviews(args.data), args.splits)
+    assigned = load_experiment(args.data, args.splits, args.augmentations,
+                               allow_unreviewed=args.allow_unreviewed_augmentations)
     result = build_features(assigned, args.oof, args.output, args.model)
     print(f"Saved {len(result)} train/validation feature rows. Test products were not processed.")
 

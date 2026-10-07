@@ -14,7 +14,8 @@ from model_contract import (
     CLASS_NAMES, DEFAULT_BUNDLE, DEFAULT_DATA_PATH, DEFAULT_FEATURES_PATH,
     DEFAULT_SPLITS_PATH, FEATURE_COLUMNS, INPUT_VERSION,
 )
-from model_data import fingerprint, load_reviews, read_splits
+from model_data import fingerprint, load_experiment
+from training_augmentation import augmentation_summary
 from model_metrics import classification_metrics
 
 
@@ -71,6 +72,7 @@ def train_classifier(features, assigned, output):
     output.parent.mkdir(parents=True, exist_ok=True)
     best[1].save_model(output)
     output.with_suffix(".metadata.json").write_text(json.dumps({
+        "augmentation_usage": augmentation_summary(train),
         "input_version": INPUT_VERSION, "dataset_sha256": fingerprint(assigned),
         "class_order": list(CLASS_NAMES), "feature_columns": list(FEATURE_COLUMNS),
         "settings": best[2], "validation_metrics": best[3], "validation_trials": trials,
@@ -84,10 +86,13 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--data", default=str(DEFAULT_DATA_PATH))
     parser.add_argument("--splits", default=str(DEFAULT_SPLITS_PATH))
+    parser.add_argument("--augmentations", help="Approved training-only augmentation CSV; use the same file throughout the experiment")
+    parser.add_argument("--allow-unreviewed-augmentations", action="store_true", help="Experimental run: include pending drafts without marking them approved")
     parser.add_argument("--features", default=str(DEFAULT_FEATURES_PATH))
     parser.add_argument("--output", default=str(DEFAULT_BUNDLE / "xgboost_meta_classifier.json"))
     args = parser.parse_args()
-    assigned = read_splits(load_reviews(args.data), args.splits)
+    assigned = load_experiment(args.data, args.splits, args.augmentations,
+                               allow_unreviewed=args.allow_unreviewed_augmentations)
     metadata = json.loads(Path(args.features).with_suffix(".metadata.json").read_text(encoding="utf-8"))
     if metadata.get("dataset_sha256") != fingerprint(assigned) or metadata.get("input_version") != INPUT_VERSION:
         raise ValueError("Feature metadata does not match this experiment")

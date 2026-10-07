@@ -4,7 +4,9 @@ import copy
 import importlib.metadata
 import json
 import random
+import sys
 import time
+from pathlib import Path
 
 import numpy as np
 import torch
@@ -21,6 +23,10 @@ from training.eval import collect_predictions, select_threshold
 
 
 def main(assigned, config, base_dir=None, *, tokenizer=None, model=None):
+    project_root = str(Path(__file__).resolve().parents[3])
+    if project_root not in sys.path:
+        sys.path.append(project_root)
+    from training_augmentation import augmentation_summary
     seed = config["training"]["seed"]
     random.seed(seed)
     np.random.seed(seed)
@@ -58,6 +64,7 @@ def main(assigned, config, base_dir=None, *, tokenizer=None, model=None):
     if hasattr(tokenizer, "save_pretrained"):
         tokenizer.save_pretrained(directory / "tokenizer")
     metadata = {
+        "augmentation_usage": augmentation_summary(train),
         "dataset_sha256": fingerprint(assigned),
         "fit_review_ids": train.review_id.tolist(),
         "validation_review_ids": validation.review_id.tolist(),

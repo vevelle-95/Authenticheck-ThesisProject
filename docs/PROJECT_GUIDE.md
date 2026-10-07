@@ -203,11 +203,26 @@ Repeated evidence with the same category/polarity is grouped once. Training
 uses an equal-weight distribution over distinct polarities, while inference
 returns one sentiment per detected category.
 
-The CSV includes assistant-filled draft annotations and synthetic practice
-reviews. Their local records are `reports/generated/csv_annotation_fill.json`
-and `reports/generated/synthetic_reviews_added.json`; synthetic IDs start with
-`synthetic_review_` and `synthetic_prod_`. Review drafts before thesis evaluation.
-The pipeline does not generate synthetic data itself.
+The reusable [LLM ABSA annotation prompt](../scripts/prompts/absa_annotation.txt)
+preserves separate sentiments for the same category and asks for exact evidence
+phrases in newly annotated reviews. Supply product title, product description,
+and buyer review separately: listing text helps identify product type and choose
+the correct taxonomy category, while opinions, sentiments, and evidence phrases
+must come from the buyer review. A listing feature alone must not create an
+aspect annotation. This does not require a product-category column. The deployed
+ABSA encoder still receives the buyer review only; annotation context does not
+change its training or prediction inputs. Existing data validation still permits
+paraphrased evidence; review those cases if adopting the prompt's stricter span
+rule throughout the dataset. This prompt annotates review text; it does not
+generate reviews or assign quality labels. Human reviewers must approve LLM
+annotations before treating them as training targets.
+
+Earlier practice CSV versions included assistant-filled annotations and synthetic
+reviews recorded in `reports/generated/csv_annotation_fill.json` and
+`reports/generated/synthetic_reviews_added.json`. Those logs describe historical
+edits, not the contents of every replacement CSV. New augmentation drafts live
+separately in [data/augmented_reviews.csv](../data/augmented_reviews.csv).
+The training pipeline loads approved drafts; it does not call an LLM itself.
 
 ### Fixed taxonomy
 
@@ -282,8 +297,205 @@ For a changed real-review dataset, preserve the old manifest and prepare a new
 one, for example `--splits data/splits_real_v3.json`. Use that same manifest for
 both models. Establish the real partitions before LLM augmentation; generated
 variants must remain in training and inherit their source product's OOF fold.
-Automatic training-only augmentation and source-lineage assignment are not yet
-implemented; adding generated rows to the CSV alone does not enforce these rules.
+Pass `--augmentations data/augmented_reviews.csv` to attach approved variants after
+the real manifest has been validated. The shared loader assigns source lineage,
+product and fold; adding synthetic rows directly to the real CSV is unnecessary.
+
+### Review and use augmentation
+
+[data/augmented_reviews.csv](../data/augmented_reviews.csv) started with a pilot
+of 12 assistant-generated paraphrases: four deceptive, four irrelevant, and four
+Authentic. Balance batch 01 adds 20 pending drafts (eight deceptive, six irrelevant,
+six Authentic). Those 32 drafts are preserved. Full balancing adds 1,916 rule-based
+paraphrases, for 1,948 pending drafts altogether. The projected training dataset
+has 716 reviews in each quality class after every draft passes human review.
+By default, pending/rejected rows do not enter training or change experiment
+hashes. An explicit `--allow-unreviewed-augmentations` option includes pending
+rows for experimental runs while keeping their status; rejected rows stay excluded.
+The source CSV, validation/test memberships, and real OOF manifest remain intact.
+
+The augmentation file stores only the fields you need to author/review drafts:
+
+| Field | What the groupmate does |
+| --- | --- |
+| `review_id` | Give each synthetic draft its own unique ID. |
+| `source_review_id` | Identify an original training review being paraphrased. |
+| `review_text` | Preserve the source experience, opinions, uncertainty and language style. |
+| `ground_truth` | Preserve the source quality label; disputed labels need separate review. |
+| `aspect_annotations` | JSON annotations with exact evidence from the new text. Authentic paraphrases must retain all source category/sentiment pairs, including mixed sentiments. |
+| `image_mode` | `source` reuses original photos, `none` uses no photos, `donor` uses another original review's photos for a reviewed controlled mismatch. |
+| `image_source_review_id` | Leave blank for source/none; give the original donor's review ID for donor mode. |
+| `augmentation_method` | Normally `paraphrase`; donor mode requires `controlled_image_mismatch`. |
+| `review_status` | Start with `pending`; use `approved` after human review, or `rejected` for unusable drafts. |
+| `reviewed_by` | Name/initials of the actual human who approved the row. |
+| `review_notes` | Record label justification, evidence checks, image inspection and any concerns. |
+
+The loader inherits product ID, title, description, platform/source metadata, star
+rating and OOF fold. These fields are not generated or overridden by the LLM.
+Images are resolved from real CSV rows; arbitrary or invented URL fields are
+rejected. Non-Authentic aspect targets may be `[]`: both ABSA trainers use
+ground-truth Authentic rows, while own quality training uses all four classes.
+
+Review the source and draft together using the written annotation guidelines.
+Text is primary for relevance/information; images and ratings support quality
+interpretation. A rating/photo mismatch alone does not establish deception or
+irrelevance. Confirm that the quality label still holds with the draft's selected
+images, including when `image_mode=none` removes supporting visual evidence.
+Inspect actual photos before approval; URL equality checks do not verify their
+content or accessibility. Reviewers must resolve questionable source labels or
+aspect targets rather than multiply them. The pilot notes flag these concerns.
+
+Images from validation/test or another OOF fold cannot be donated. Reused URLs
+must occur only in the source's training fold, even for source-image mode. The
+current original dataset has two URL values shared across partitions and six
+shared across partitions/folds altogether; these are blocked for new augmentation.
+The loader does not alter those original rows or claim the original image overlap
+is resolved. Different URLs containing identical photos need separate checking.
+Use a different image donor or `none` when a URL is blocked. Donor mode is limited
+to already deceptive/irrelevant sources; it never automatically changes a label.
+
+From the project root, check all pilot drafts without approving them:
+
+```powershell
+.\.venv\Scripts\python.exe scripts/prepare_augmentation.py --check-drafts
+```
+
+Add `--audit-images` to print shared URLs. For more generation, export training
+sources and use [scripts/prompts/review_augmentation.txt](../scripts/prompts/review_augmentation.txt)
+with [scripts/prompts/absa_annotation.txt](../scripts/prompts/absa_annotation.txt):
+
+```powershell
+.\.venv\Scripts\python.exe scripts/prepare_augmentation.py --export-sources reports/generated/augmentation_sources_01.json --limit-per-class 5
+```
+
+Source export rotates through OOF folds and product groups. It does not approve
+source labels. Generate a training balance report for quality labels, distinct
+review/category/polarity counts, source-product coverage and human-review notes:
+
+```powershell
+.\.venv\Scripts\python.exe scripts/prepare_augmentation.py --check-drafts --balance-report reports/generated/augmentation_balance_01.json
+```
+
+Use a new report filename for each batch. These reports distinguish original
+examples from approved additions and pending proposals. Balance batch 01 spans
+all five source folds and limits total drafts to three per original source. Its
+Authentic additions target negative aesthetics, neutral packaging/seller/design,
+negative beauty texture and mixed performance. Some source labels/targets are
+flagged in the row notes: confirm them before approval rather than generating
+more copies. In particular, do not synthesize neutral description accuracy from
+size surprise or concern about other buyers' reviews without a reviewer-stated
+comparison of advertised and received characteristics. More paraphrases do not
+create new independent products or real experiences.
+
+Full generation is available through
+[scripts/balance_augmentation.py](../scripts/balance_augmentation.py). It is an
+offline rule-based generator using conservative phrase replacements and ordering
+of independent tagged fields, not a pretrained LLM. It preserves source labels,
+all Authentic aspect/polarity pairs, exact transformed evidence, listing context,
+ratings, product IDs and folds. Punctuation/case-only variants are rejected.
+Source annotations that conflict with known taxonomy constraints are excluded
+from automatic expansion, and the report records targets it could not fill.
+
+```powershell
+.\.venv\Scripts\python.exe scripts/balance_augmentation.py --aspect-minimum 30 --report reports/generated/augmentation_full_balance_next.json
+```
+
+The generator first increases sparse Authentic aspect/polarity support, then
+fills every quality class to the resulting largest class. It saves an exact
+backup of the previous augmentation CSV beside the report before replacing it.
+It leaves the real CSV and split manifest intact. A rerun on an already balanced
+file adds nothing. Use a fresh report filename for a different experiment.
+
+The current full file contains 143 Authentic, 701 deceptive, 420 LIV and 684
+irrelevant synthetic drafts. Together with original training rows, that projects
+to 716 per class (2,864 training rows). The real 226 validation and 169 test rows
+stay unchanged. All drafts remain pending; structure checks are not human
+annotation approval. Full generation supersedes the pilot's three-variant limit;
+its largest source contributes 112 variants (see the current generation report).
+There are still only 15 original deceptive training reviews across seven products;
+the added deceptive wording variants do not become independent observations.
+
+The current report is `reports/generated/augmentation_full_balance_v2.json`.
+Twenty-nine of the 30 aspect/polarity combinations project to at least 30 review
+targets. Neutral accuracy_of_description remains at three original reviews:
+available evidence describes size surprise or other buyers' reviews without
+the required advertised/received comparison. That source-annotation issue must
+be resolved before generating additional examples for that cell. No original
+label or annotation was silently rewritten to achieve the count.
+
+Generated outputs remain pending. By default, training includes only approved
+rows. For an immediate experimental run, explicitly include pending drafts:
+
+```powershell
+# Project root: run all stages, preserving previous model outputs.
+python pipeline.py --augmentations data/augmented_reviews.csv --allow-unreviewed-augmentations --work-dir data/augmented_experiment/features --output models/augmented_experiment --epochs 3
+```
+
+This uses all 1,948 pending rows without changing their status or inventing a
+human reviewer. Structural checks still run: source labels, exact aspect evidence,
+image URL scope, product separation and source OOF fold inheritance. Rejected
+rows are always excluded. Metadata records `unreviewed_rows`; this is an
+experimental model trained on unreviewed synthetic labels. Real validation/test
+rows are unchanged. Keep `--allow-unreviewed-augmentations` on direct stage and
+evaluation commands for the same experiment, or checkpoint provenance will differ.
+Do not edit the augmentation file during training or before evaluation.
+
+For the baseline, run from `baselines/clip-ca-cg`:
+
+```powershell
+.\.venv\Scripts\python.exe cache_clip_features.py --augmentations ../../data/augmented_reviews.csv --allow-unreviewed-augmentations
+.\.venv\Scripts\python.exe main.py --augmentations ../../data/augmented_reviews.csv --allow-unreviewed-augmentations --epochs 3
+```
+
+The baseline still trains ABSA only on Authentic rows; deceptive additions train
+AuthentiCheck's quality classifier. Its outputs follow the baseline YAML paths.
+When evaluating this experiment, use:
+
+```powershell
+# Project root, after training finishes:
+python stage2/evaluate_models.py --data data/test_reviews.csv --augmentations data/augmented_reviews.csv --allow-unreviewed-augmentations --bundle models/augmented_experiment --output results/augmented_experiment_test.json
+# Baseline folder, after baseline training finishes:
+.\.venv\Scripts\python.exe evaluate.py --augmentations ../../data/augmented_reviews.csv --allow-unreviewed-augmentations --output outputs/augmented_experiment_test.json
+```
+
+For a reviewed augmentation run, leave off the experimental flag. After human
+approval, run from the root:
+
+```powershell
+.\.venv\Scripts\python.exe pipeline.py --augmentations data/augmented_reviews.csv --validate-only
+.\.venv\Scripts\python.exe pipeline.py --augmentations data/augmented_reviews.csv --work-dir data/augmented_run/features --output models/augmented_run --epochs 3
+```
+
+From `baselines/clip-ca-cg`, use the same file for validation, cache preparation
+and training:
+
+```powershell
+.\.venv\Scripts\python.exe main.py --augmentations ../../data/augmented_reviews.csv --validate-only
+.\.venv\Scripts\python.exe cache_clip_features.py --augmentations ../../data/augmented_reviews.csv
+.\.venv\Scripts\python.exe main.py --augmentations ../../data/augmented_reviews.csv
+```
+
+Alternatively set baseline `data.augmentations` in its YAML config to that path.
+Keep output folders separate when retaining earlier baseline runs. Selected
+Authentic additions affect baseline/own ABSA; deceptive/irrelevant additions help
+own quality training. Balance quality labels and aspect/sentiment pairs separately.
+
+Pass the **same frozen augmentation CSV** to final evaluation so checkpoint
+provenance includes exactly the accepted training rows:
+
+```powershell
+# Project root:
+.\.venv\Scripts\python.exe stage2/evaluate_models.py --data data/test_reviews.csv --augmentations data/augmented_reviews.csv --bundle models/augmented_run --output results/augmented_run_test.json
+# Baseline folder:
+.\.venv\Scripts\python.exe evaluate.py --augmentations ../../data/augmented_reviews.csv --output outputs/augmented_run_test.json
+```
+
+These evaluate original real test rows only. Changing accepted draft text,
+annotations, lineage, image selection or reviewer notes changes the experiment
+fingerprint and requires rebuilding training outputs. Without `--augmentations`
+(or the baseline config setting), the previous original-only workflow still works.
+New-data prediction and both APIs do not need the augmentation CSV; they use the
+trained checkpoint as before.
 
 OOF means **out-of-fold**: each training review receives quality probabilities
 from a RoBERTa model fitted on the other four folds. Those probabilities train
@@ -769,6 +981,7 @@ works. The baseline's trained files are in `outputs/checkpoints/`.
 | [main.py](../main.py) | AuthentiCheck API entry point. Loads the selected trained bundle and answers extension requests; it does not train on those requests. |
 | [model_contract.py](../model_contract.py) | Shared settings and rulebook: dataset/model paths, epochs, batch size, learning rate, quality labels, ten aspects, sentiments, six-feature order, combined quality-text builder, input version, rating/photo formats, and API bundle selection. |
 | [model_data.py](../model_data.py) | Reads and checks the CSV, identifies dataset changes, and assigns products to saved partitions/folds. |
+| [training_augmentation.py](../training_augmentation.py) | Shared by both models. Adds approved synthetic training reviews, inherits original context/product/fold, validates exact evidence and image lineage, and blocks held-out sources/images. |
 | [model_metrics.py](../model_metrics.py) | Compares predictions with reference labels and calculates accuracy, precision, recall, F1, and the confusion matrix. |
 | [requirements.txt](../requirements.txt) | Python libraries needed by AuthentiCheck training and its API. |
 | [.gitignore](../.gitignore) | Tells Git to leave out environments, large weights, caches, generated reports, and other local files. It does not delete them. |
@@ -880,12 +1093,17 @@ controls, CSS defines appearance, and JavaScript supplies behavior.
 | File | Plain-language purpose |
 | --- | --- |
 | [data/test_reviews.csv](../data/test_reviews.csv) | The working review dataset for both models. The split manifest decides which rows are training, validation, or test. |
+| [data/augmented_reviews.csv](../data/augmented_reviews.csv) | Separate synthetic review drafts with source IDs, image selection and review status. Approved rows enter training by default; the explicit experimental flag also includes pending drafts without changing their status. |
 | [data/samples/extension_api_payload.json](../data/samples/extension_api_payload.json) | Example extension request, useful for understanding/testing the message format. |
 | [data/samples/extension_api_response.json](../data/samples/extension_api_response.json) | Example AuthentiCheck response for frontend development; its values are samples. |
 | [data/samples/capability_challenge.json](../data/samples/capability_challenge.json) | Small diagnostic review cases with provisional expected answers requiring human review; separate from final accuracy evaluation. |
 | [models/manifest.json](../models/manifest.json) | Manifest for the older download-bundle layout. Each newly trained bundle has its own manifest. |
 | [scripts/setup_models.py](../scripts/setup_models.py) | Installs/verifies an older model archive according to that manifest. Current training uses `pipeline.py` instead. |
 | [scripts/train_development_model.py](../scripts/train_development_model.py) | Optional offline training exercise using a compact random encoder, one epoch, and no photos. Its vocabulary includes the combined quality text. Saves to `models/development_v3/` and `data/development_v3/`; it does not train the pretrained DOST thesis model. |
+| [scripts/prompts/absa_annotation.txt](../scripts/prompts/absa_annotation.txt) | Reusable LLM prompt for the fixed ten aspects and exact evidence phrases. Preserves distinct sentiments for one category; outputs require human review. It annotates existing text and does not generate training reviews. |
+| [scripts/prompts/review_augmentation.txt](../scripts/prompts/review_augmentation.txt) | Prompt for meaning-preserving training review drafts. Keeps source labels, exact aspect evidence and pending human review; does not invent image URLs. |
+| [scripts/prepare_augmentation.py](../scripts/prepare_augmentation.py) | Checks draft structure, writes training balance/source-review reports, reports image reuse, and exports training sources across products/folds for generation. Does not approve drafts or train a model. |
+| [scripts/balance_augmentation.py](../scripts/balance_augmentation.py) | Generates the complete quality-class shortfall and sparse ABSA targets from training reviews using reproducible rule-based paraphrases. Preserves provenance, rejects known annotation conflicts, backs up earlier drafts and records projected counts; outputs remain pending. |
 | [scripts/serve_development_model.py](../scripts/serve_development_model.py) | Serves that compact bundle through the AuthentiCheck API with images omitted. Use `--port 8002` when the baseline occupies port 8001. |
 | [scripts/check_model_capabilities.py](../scripts/check_model_capabilities.py) | Sends provisional diagnostic cases to a selected endpoint and checks compact ABSA separately. For port 8002 pass `--endpoint http://127.0.0.1:8002/analyze`; reports go to `reports/generated/`. |
 | [docs/PROJECT_GUIDE.md](PROJECT_GUIDE.md) | This shared explanation of the models, dataset, outputs, APIs, interface, and defense terminology. |

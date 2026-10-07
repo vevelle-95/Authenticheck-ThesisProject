@@ -11,7 +11,8 @@ from model_contract import (
     DEFAULT_SPLITS_PATH, EPOCHS, INPUT_VERSION, LEARNING_RATE, MAX_LENGTH, SEED,
     quality_input_text,
 )
-from model_data import fingerprint, load_reviews, read_splits
+from model_data import fingerprint, load_experiment
+from training_augmentation import augmentation_summary
 from model_metrics import classification_metrics
 
 
@@ -70,6 +71,7 @@ def fit_roberta(train_frame, validation_frame, output, *, base_model=BASE_MODEL,
     tokenizer.save_pretrained(output)
     validation_metrics = trainer.evaluate() if validating else None
     metadata = {
+        "augmentation_usage": augmentation_summary(train_frame),
         "input_version": INPUT_VERSION, "max_length": max_length, "seed": seed,
         "base_model": str(base_model), "epochs": epochs,
         "text_input": "product_title + product_description + review_text",
@@ -106,13 +108,16 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--data", default=str(DEFAULT_DATA_PATH))
     parser.add_argument("--splits", default=str(DEFAULT_SPLITS_PATH))
+    parser.add_argument("--augmentations", help="Approved training-only augmentation CSV; use the same file throughout the experiment")
+    parser.add_argument("--allow-unreviewed-augmentations", action="store_true", help="Experimental run: include pending drafts without marking them approved")
     parser.add_argument("--output", default=str(DEFAULT_ROBERTA_DIR))
     parser.add_argument("--base-model", default=BASE_MODEL)
     parser.add_argument("--epochs", type=int, default=EPOCHS)
     parser.add_argument("--batch-size", type=int, default=BATCH_SIZE)
     parser.add_argument("--max-length", type=int, default=MAX_LENGTH)
     args = parser.parse_args()
-    assigned = read_splits(load_reviews(args.data), args.splits)
+    assigned = load_experiment(args.data, args.splits, args.augmentations,
+                               allow_unreviewed=args.allow_unreviewed_augmentations)
     fit_roberta(
         assigned[assigned.partition.eq("train")], assigned[assigned.partition.eq("validation")],
         args.output, base_model=args.base_model, epochs=args.epochs,

@@ -9,7 +9,8 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 import numpy as np
 
 from model_contract import ASPECTS, CLASS_NAMES, DEFAULT_BUNDLE, DEFAULT_SPLITS_PATH, POLARITIES, SENSORY_POLICY, SENTIMENT_TARGET_POLICY, quality_input_text
-from model_data import fingerprint, load_reviews, read_splits
+from model_data import fingerprint, load_experiment
+from training_augmentation import augmentation_summary
 from model_metrics import classification_metrics
 from stage2.fine_tune_absa import detection_metrics
 from stage2.online_inference import OnlineInference, aggregate_products
@@ -31,6 +32,8 @@ def check_training_provenance(assigned, bundle):
             raise ValueError(f"{path}: training/validation membership does not match the split manifest")
         if "dataset_sha256" in metadata and metadata["dataset_sha256"] != fingerprint(assigned):
             raise ValueError(f"{path}: dataset fingerprint mismatch")
+        if "training_sha256" in metadata and metadata["training_sha256"] != fingerprint(fit):
+            raise ValueError(f"{path}: training contents or augmentation lineage changed")
 
 
 def evaluate_own_models(test, pipe):
@@ -122,17 +125,21 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--data", required=True)
     parser.add_argument("--splits", default=str(DEFAULT_SPLITS_PATH))
+    parser.add_argument("--augmentations", help="Approved training-only augmentation CSV; use the same file throughout the experiment")
+    parser.add_argument("--allow-unreviewed-augmentations", action="store_true", help="Experimental run: include pending drafts without marking them approved")
     parser.add_argument("--bundle", default=str(DEFAULT_BUNDLE))
     parser.add_argument("--output", default="results/own_model_test.json")
     args = parser.parse_args()
     output = Path(args.output)
     if output.exists():
         raise FileExistsError("A final test report already exists at this path; use a new experiment output")
-    assigned = read_splits(load_reviews(args.data, require_annotations=True), args.splits)
+    assigned = load_experiment(args.data, args.splits, args.augmentations, require_annotations=True,
+                               allow_unreviewed=args.allow_unreviewed_augmentations)
     check_training_provenance(assigned, args.bundle)
     bundle = Path(args.bundle)
     pipe = OnlineInference(bundle / "dost_roberta", bundle / "xgboost_meta_classifier.json", bundle / "absa_model")
     result = evaluate_own_models(assigned[assigned.partition.eq("test")], pipe)
+    result["augmentation_usage"] = augmentation_summary(assigned)
     output.parent.mkdir(parents=True, exist_ok=True)
     output.write_text(json.dumps(result, indent=2, ensure_ascii=False, allow_nan=False), encoding="utf-8")
     print(f"Saved held-out results to {output}")

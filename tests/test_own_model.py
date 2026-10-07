@@ -16,7 +16,8 @@ from model_contract import (
     ASPECTS, CLASS_NAMES, FEATURE_COLUMNS, INPUT_VERSION, map_quality, normalize_rating,
     parse_annotations, parse_image_urls, quality_input_text,
 )
-from model_data import fingerprint, load_reviews, prepare_splits, read_splits
+from model_data import fingerprint, load_experiment, load_reviews, prepare_splits, read_splits
+from training_augmentation import AUGMENTATION_COLUMNS, append_augmentations
 from stage1.generate_oof_features import generate_oof
 from stage1.train_roberta import predict_probabilities
 from stage1.features import FeatureExtractor
@@ -527,6 +528,285 @@ class InferenceTests(unittest.TestCase):
         summary = build_summary(pd.DataFrame(rows), ["authentic", "authentic", "deceptive"], rows)
         self.assertEqual(summary["verifiedRating"], 5)
         self.assertEqual(summary["aggregateSentiment"], -0.5)
+
+
+class AugmentationTests(unittest.TestCase):
+    def assigned(self, directory):
+        raw = fixture_frame(30)
+        raw["review_image_urls"] = raw.product_id.map(lambda product: f"https://example.invalid/{product}.jpg")
+        path = Path(directory) / "real.csv"
+        raw.to_csv(path, index=False)
+        frame = load_reviews(path, require_annotations=True)
+        return prepare_splits(frame, Path(directory) / "splits.json")
+
+    def draft(self, assigned, **changes):
+        source = assigned[assigned.partition.eq("train") & assigned.label.eq(0)].iloc[0]
+        row = dict(
+            review_id="synthetic-1", source_review_id=source.review_id,
+            review_text="A new phrasing about quality.", ground_truth="authentic",
+            aspect_annotations=json.dumps([{"category": "product_quality", "text": "quality",
+                                             "sentiment": ("negative", "neutral", "positive")[source.annotations[0]["sentiment"]]}]),
+            image_mode="source", image_source_review_id="", augmentation_method="paraphrase",
+            review_status="approved", reviewed_by="human-reviewer", review_notes="Label, exact evidence and photo checked",
+        )
+        row.update(changes)
+        return pd.DataFrame([row], columns=AUGMENTATION_COLUMNS)
+
+    def test_pending_drafts_do_not_change_dataset_or_fingerprint(self):
+        with tempfile.TemporaryDirectory() as directory:
+            assigned = self.assigned(directory)
+            combined = append_augmentations(assigned, self.draft(assigned, review_status="pending", reviewed_by=""))
+            pd.testing.assert_frame_equal(assigned, combined)
+            self.assertEqual(fingerprint(assigned), fingerprint(combined))
+
+    def test_experimental_pending_rows_keep_status_and_do_not_modify_csv(self):
+        from training_augmentation import augmentation_summary
+        with tempfile.TemporaryDirectory() as directory:
+            assigned = self.assigned(directory)
+            draft = self.draft(assigned, review_status="pending", reviewed_by="")
+            path = Path(directory) / "drafts.csv"
+            draft.to_csv(path, index=False)
+            before = path.read_bytes()
+            combined = load_experiment(Path(directory) / "real.csv", Path(directory) / "splits.json",
+                                       path, True, allow_unreviewed=True)
+            generated = combined.iloc[-1]
+            self.assertEqual(generated.review_status, "pending")
+            self.assertEqual(generated.reviewed_by, "")
+            self.assertEqual(augmentation_summary(combined), {"approved_rows": 0, "unreviewed_rows": 1})
+            self.assertEqual(path.read_bytes(), before)
+            self.assertEqual(generated.fold, assigned.set_index("review_id").loc[generated.source_review_id].fold)
+            self.assertEqual(set(combined[combined.partition.ne("train")].review_id),
+                             set(assigned[assigned.partition.ne("train")].review_id))
+            self.assertNotEqual(fingerprint(combined), fingerprint(assigned))
+
+    def test_experimental_mode_keeps_structural_checks_and_excludes_rejected(self):
+        with tempfile.TemporaryDirectory() as directory:
+            assigned = self.assigned(directory)
+            rejected = self.draft(assigned, review_status="rejected", reviewed_by="")
+            pd.testing.assert_frame_equal(assigned, append_augmentations(assigned, rejected, allow_unreviewed=True))
+            held = assigned[assigned.partition.eq("test")].iloc[0]
+            with self.assertRaisesRegex(ValueError, "sources must belong to training"):
+                append_augmentations(assigned, self.draft(assigned, review_status="pending", reviewed_by="",
+                                     source_review_id=held.review_id), allow_unreviewed=True)
+            with self.assertRaisesRegex(ValueError, "exact review substring"):
+                bad = self.draft(assigned, review_status="pending", reviewed_by="", review_text="No matching evidence")
+                append_augmentations(assigned, bad, allow_unreviewed=True)
+            with self.assertRaisesRegex(ValueError, "Approved rows need"):
+                append_augmentations(assigned, self.draft(assigned, reviewed_by=""), allow_unreviewed=True)
+            with self.assertRaisesRegex(ValueError, "requires an augmentation CSV"):
+                append_augmentations(assigned, allow_unreviewed=True)
+
+    def test_pipeline_forwards_experimental_mode_and_records_usage(self):
+        import pipeline
+        from unittest.mock import patch
+        with tempfile.TemporaryDirectory() as directory:
+            directory = Path(directory)
+            assigned = self.assigned(directory)
+            draft = self.draft(assigned, review_status="pending", reviewed_by="")
+            path = directory / "drafts.csv"
+            draft.to_csv(path, index=False)
+            output = directory / "bundle"
+            arguments = ["pipeline.py", "--data", str(directory / "real.csv"), "--splits", str(directory / "splits.json"),
+                         "--augmentations", str(path), "--allow-unreviewed-augmentations", "--output", str(output),
+                         "--work-dir", str(directory / "features")]
+            with patch("sys.argv", arguments), patch.object(pipeline, "run_script") as run, patch.object(pipeline, "version", return_value="test"):
+                pipeline.main()
+            self.assertEqual(run.call_count, 5)
+            for call in run.call_args_list:
+                self.assertIn("--allow-unreviewed-augmentations", call.args)
+                self.assertIn("--augmentations", call.args)
+            manifest = json.loads((output / "manifest.json").read_text())
+            self.assertEqual(manifest["augmentation_usage"], {"approved_rows": 0, "unreviewed_rows": 1})
+            self.assertIn("experimental-unreviewed", manifest["augmentation_policy"])
+
+    def test_approved_rows_inherit_context_rating_product_images_and_fold(self):
+        with tempfile.TemporaryDirectory() as directory:
+            assigned = self.assigned(directory)
+            draft = self.draft(assigned)
+            path = Path(directory) / "augmentations.csv"
+            draft.to_csv(path, index=False)
+            combined = load_experiment(Path(directory) / "real.csv", Path(directory) / "splits.json", path, True)
+            original = assigned.set_index("review_id").loc[draft.iloc[0].source_review_id]
+            generated = combined.iloc[-1]
+            for field in ("product_id", "product_title", "product_description", "star_rating", "fold", "partition", "ground_truth", "image_urls"):
+                self.assertEqual(generated[field], original[field])
+            self.assertEqual(generated.annotations[0]["evidence"], ["quality"])
+            self.assertEqual(len(combined), len(assigned) + 1)
+            self.assertNotEqual(fingerprint(combined), fingerprint(assigned))
+            self.assertEqual(set(combined[combined.partition.ne("train")].review_id), set(assigned[assigned.partition.ne("train")].review_id))
+
+    def test_sources_and_image_donors_cannot_leak_from_held_out_data(self):
+        with tempfile.TemporaryDirectory() as directory:
+            assigned = self.assigned(directory)
+            for partition in ("validation", "test"):
+                held = assigned[assigned.partition.eq(partition)].iloc[0]
+                with self.subTest(partition=partition), self.assertRaisesRegex(ValueError, "sources must belong to training"):
+                    append_augmentations(assigned, self.draft(assigned, source_review_id=held.review_id))
+            source = assigned[assigned.partition.eq("train") & assigned.label.eq(1)].iloc[0]
+            donors = [assigned[assigned.partition.eq("test")].iloc[0],
+                      assigned[assigned.partition.eq("train") & assigned.fold.ne(source.fold)].iloc[0]]
+            for donor in donors:
+                with self.assertRaisesRegex(ValueError, "Image donor must be training-only"):
+                    append_augmentations(assigned, self.draft(assigned, source_review_id=source.review_id, ground_truth="deceptive",
+                        aspect_annotations="[]", image_mode="donor", image_source_review_id=donor.review_id,
+                        augmentation_method="controlled_image_mismatch"))
+
+    def test_source_images_shared_with_other_scopes_are_rejected(self):
+        with tempfile.TemporaryDirectory() as directory:
+            assigned = self.assigned(directory)
+            draft = self.draft(assigned)
+            source = assigned.set_index("review_id").loc[draft.iloc[0].source_review_id]
+            assigned.loc[assigned.partition.eq("test"), "review_image_urls"] = source.review_image_urls
+            with self.assertRaisesRegex(ValueError, "reused image URL"):
+                append_augmentations(assigned, draft)
+            # Missing images are explicitly allowed without importing held-out photos.
+            combined = append_augmentations(assigned, self.draft(assigned, image_mode="none"))
+            self.assertEqual(combined.iloc[-1].image_urls, [])
+
+    def test_verified_same_fold_image_donor_has_lineage(self):
+        with tempfile.TemporaryDirectory() as directory:
+            assigned = self.assigned(directory)
+            source = assigned[assigned.partition.eq("train") & assigned.label.eq(1)].iloc[0]
+            donor = assigned[assigned.partition.eq("train") & assigned.fold.eq(source.fold) & assigned.review_id.ne(source.review_id)].iloc[0]
+            draft = self.draft(assigned, source_review_id=source.review_id, ground_truth="deceptive", aspect_annotations="[]",
+                image_mode="donor", image_source_review_id=donor.review_id, augmentation_method="controlled_image_mismatch")
+            combined = append_augmentations(assigned, draft)
+            self.assertEqual(combined.iloc[-1].image_urls, donor.image_urls)
+            self.assertEqual(combined.iloc[-1].image_source_review_id, donor.review_id)
+            self.assertEqual(combined.iloc[-1].product_id, source.product_id)
+
+    def test_mixed_polarities_require_exact_evidence_and_preserved_targets(self):
+        with tempfile.TemporaryDirectory() as directory:
+            assigned = self.assigned(directory)
+            draft = self.draft(assigned)
+            source_id = draft.iloc[0].source_review_id
+            annotations = [{"category": "product_quality", "text": "quality", "sentiment": polarity}
+                           for polarity in ("positive", "negative")]
+            assigned.loc[assigned.review_id.eq(source_id), "aspect_annotations"] = json.dumps(annotations)
+            draft.loc[0, "aspect_annotations"] = json.dumps(annotations)
+            combined = append_augmentations(assigned, draft)
+            self.assertEqual(len(json.loads(combined.iloc[-1].aspect_annotations)), 2)
+            draft.loc[0, "aspect_annotations"] = json.dumps(annotations[:1])
+            with self.assertRaisesRegex(ValueError, "preserve all source aspect/sentiment"):
+                append_augmentations(assigned, draft)
+            annotations[0]["text"] = "invented span"
+            draft.loc[0, "aspect_annotations"] = json.dumps(annotations)
+            with self.assertRaisesRegex(ValueError, "exact review substring"):
+                append_augmentations(assigned, draft)
+
+    def test_duplicate_text_label_changes_and_unreviewed_rows_are_rejected(self):
+        with tempfile.TemporaryDirectory() as directory:
+            assigned = self.assigned(directory)
+            for changes, error in [
+                ({"review_text": assigned.iloc[0].review_text.upper()}, "distinct"),
+                ({"ground_truth": "deceptive"}, "Preserve the source quality"),
+                ({"reviewed_by": ""}, "need reviewed_by"),
+                ({"review_notes": ""}, "need reviewed_by"),
+            ]:
+                with self.subTest(changes=changes), self.assertRaisesRegex(ValueError, error):
+                    append_augmentations(assigned, self.draft(assigned, **changes))
+
+    def test_oof_excludes_original_and_variant_together(self):
+        with tempfile.TemporaryDirectory() as directory:
+            assigned = self.assigned(directory)
+            combined = append_augmentations(assigned, self.draft(assigned))
+            variant = combined.iloc[-1]
+            cohorts = []
+
+            def fit(frame, validation, output, **kwargs):
+                cohorts.append(set(frame.review_id))
+                return object(), object()
+
+            def predict(model, tokenizer, held):
+                return np.full((len(held), 4), 0.25)
+
+            oof = generate_oof(combined, Path(directory) / "oof.csv", Path(directory) / "folds", fit=fit, predict=predict)
+            for fold, fitting in enumerate(cohorts):
+                self.assertEqual(variant.source_review_id in fitting, "synthetic-1" in fitting)
+                self.assertEqual("synthetic-1" in fitting, fold != variant.fold)
+            self.assertEqual(set(oof.review_id), set(combined[combined.partition.eq("train")].review_id))
+
+    def test_evaluation_checks_accepted_training_rows_and_contents(self):
+        from stage2.evaluate_models import check_training_provenance
+
+        with tempfile.TemporaryDirectory() as directory:
+            assigned = self.assigned(directory)
+            combined = append_augmentations(assigned, self.draft(assigned))
+            bundle = Path(directory) / "bundle"
+            for relative, authentic_only in (("dost_roberta/training_metadata.json", False),
+                                              ("xgboost_meta_classifier.metadata.json", False),
+                                              ("absa_model/training_metadata.json", True)):
+                fit = combined[combined.partition.eq("train")]
+                validation = combined[combined.partition.eq("validation")]
+                if authentic_only:
+                    fit, validation = fit[fit.label.eq(0)], validation[validation.label.eq(0)]
+                metadata = dict(fit_review_ids=fit.review_id.tolist(), validation_review_ids=validation.review_id.tolist())
+                if relative.startswith("dost_roberta"):
+                    metadata["training_sha256"] = fingerprint(fit)
+                else:
+                    metadata["dataset_sha256"] = fingerprint(combined)
+                path = bundle / relative
+                path.parent.mkdir(parents=True, exist_ok=True)
+                path.write_text(json.dumps(metadata), encoding="utf-8")
+            check_training_provenance(combined, bundle)
+            with self.assertRaisesRegex(ValueError, "membership"):
+                check_training_provenance(assigned, bundle)
+            changed = combined.copy()
+            changed.loc[changed.review_id.eq("synthetic-1"), "review_text"] = "Changed generated review with quality."
+            with self.assertRaisesRegex(ValueError, "training contents"):
+                check_training_provenance(changed, bundle)
+
+
+class RuleAugmentationTests(unittest.TestCase):
+    def test_variant_is_seeded_and_preserves_mixed_exact_targets(self):
+        import random
+        from scripts.balance_augmentation import variant
+
+        source = dict(label=0, review_text="Performance: good | Product Quality: poor | The product works but it is bad.",
+                      aspect_annotations=json.dumps([
+                          {"category": "performance", "text": "Performance: good", "sentiment": "positive"},
+                          {"category": "performance", "text": "it is bad", "sentiment": "negative"},
+                          {"category": "product_quality", "text": "Product Quality: poor", "sentiment": "negative"},
+                      ]))
+        first = variant(source, random.Random(42))
+        self.assertEqual(first, variant(source, random.Random(42)))
+        text, annotations = first
+        self.assertEqual({(a["category"], a["sentiment"]) for a in annotations},
+                         {("performance", "positive"), ("performance", "negative"), ("product_quality", "negative")})
+        self.assertTrue(all(a["text"] in text for a in annotations))
+        narrative = text.rsplit(" | ", 1)[1]
+        self.assertTrue(narrative.startswith("The "))
+        self.assertIn("works but it is", narrative)
+
+    def test_known_taxonomy_conflicts_are_not_multiplied(self):
+        from scripts.balance_augmentation import source_annotation_issue
+
+        source = dict(label=0, product_title="Facial cleanser", review_text="Did not expect this size.",
+                      aspect_annotations=json.dumps([{"category": "accuracy_of_description", "text": "Did not expect this size.", "sentiment": "neutral"}]))
+        self.assertIn("advertised/received", source_annotation_issue(source))
+        source.update(product_title="Rubber school shoes", review_text="Strong rubber smell",
+                      aspect_annotations=json.dumps([{"category": "sensory_experience", "text": "Strong rubber smell", "sentiment": "negative"}]))
+        self.assertIn("beauty", source_annotation_issue(source))
+        source.update(product_title="Face wash", review_text="Can you replace it?",
+                      aspect_annotations=json.dumps([{"category": "seller_service", "text": "Can you replace it?", "sentiment": "neutral"}]))
+        self.assertIn("request/question", source_annotation_issue(source))
+
+    def test_clear_beauty_texture_source_is_eligible(self):
+        from scripts.balance_augmentation import source_annotation_issue
+
+        source = dict(label=0, product_title="Facial wash", review_text="Texture feels rough",
+                      aspect_annotations=json.dumps([{"category": "sensory_experience", "text": "Texture feels rough", "sentiment": "negative"}]))
+        self.assertIsNone(source_annotation_issue(source))
+
+    def test_non_authentic_targets_stay_empty_and_punctuation_is_not_new_content(self):
+        import random
+        from scripts.balance_augmentation import lexical_key, variant
+
+        source = dict(label=1, review_text="Good item, good fragrance", aspect_annotations="not used")
+        text, annotations = variant(source, random.Random(42))
+        self.assertEqual(annotations, [])
+        self.assertEqual(lexical_key("GOOD item!!!"), lexical_key("good item"))
+        self.assertNotEqual(lexical_key("bad item"), lexical_key("good item"))
 
 
 if __name__ == "__main__":

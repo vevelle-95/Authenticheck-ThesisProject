@@ -14,7 +14,7 @@ from PIL import Image
 from torch import nn
 from transformers import BatchEncoding, CLIPConfig, CLIPModel, RobertaConfig, RobertaModel
 
-from datasets.authenticheck_data import ASPECTS, build_targets, fingerprint, load_reviews, parse_annotations, read_splits
+from datasets.authenticheck_data import ASPECTS, build_targets, fingerprint, load_experiment, load_reviews, parse_annotations, read_splits
 from datasets.clip_cache import ClipFeatureCache
 from datasets.image_store import ImageStore
 from datasets.multimodal_dataset import MultiModalDataset, multimodal_collate_fn
@@ -306,6 +306,63 @@ class AdaptationTests(unittest.TestCase):
             self.assertEqual(len(forced), 6)
             self.assertEqual(set(forced[0]), {'category', 'text', 'sentiment'})
             self.assertTrue(all(item['text'] == 'unseen context' for item in forced))
+
+
+class SharedAugmentationTests(unittest.TestCase):
+    def test_both_loaders_use_identical_cohorts_fingerprints_and_mixed_targets(self):
+        # Import the shared module through the same project path as the baseline loader.
+        import sys
+        project_root = Path(__file__).resolve().parents[3]
+        if str(project_root) not in sys.path:
+            sys.path.append(str(project_root))
+        import model_data as own_data
+        from training_augmentation import AUGMENTATION_COLUMNS
+
+        with tempfile.TemporaryDirectory() as directory:
+            directory = Path(directory)
+            annotations = [{'category': 'product_quality', 'text': 'fragile', 'sentiment': 'negative'},
+                           {'category': 'product_quality', 'text': 'sturdy', 'sentiment': 'positive'}]
+            rows = [dict(review_id=f'r{product}-{label}', product_id=f'p{product}',
+                         product_title='Product', product_description='Listing context',
+                         review_text=f'Product {product} feedback {label}: fragile but sturdy',
+                         review_image_urls='[]', star_rating=3,
+                         ground_truth=('authentic', 'deceptive', 'liv', 'irrelevant')[label],
+                         aspect_annotations=json.dumps(annotations) if label == 0 else '[]')
+                    for product in range(30) for label in range(4)]
+            csv, splits, augmented = directory / 'real.csv', directory / 'splits.json', directory / 'augmentations.csv'
+            pd.DataFrame(rows).to_csv(csv, index=False)
+            original = own_data.prepare_splits(own_data.load_reviews(csv, True), splits)
+            source = original[original.partition.eq('train') & original.label.eq(0)].iloc[0]
+            draft = dict(review_id='synthetic-1', source_review_id=source.review_id,
+                         review_text='It is fragile in places, yet sturdy elsewhere.', ground_truth='authentic',
+                         aspect_annotations=json.dumps(annotations), image_mode='none', image_source_review_id='',
+                         augmentation_method='paraphrase', review_status='approved', reviewed_by='human',
+                         review_notes='Mixed opinions and exact evidence checked')
+            pd.DataFrame([draft], columns=AUGMENTATION_COLUMNS).to_csv(augmented, index=False)
+            own = own_data.load_experiment(csv, splits, augmented, True)
+            baseline = load_experiment(csv, splits, augmented)
+            self.assertEqual(own_data.fingerprint(own), fingerprint(baseline))
+            for column in ('review_id', 'product_id', 'review_text', 'partition', 'fold', 'source_review_id', 'image_urls'):
+                self.assertEqual(own[column].tolist(), baseline[column].tolist())
+            self.assertEqual(baseline.iloc[-1].annotations, {'product_quality': {0, 2}})
+            self.assertEqual({a['sentiment'] for a in own.iloc[-1].annotations}, {0, 2})
+            self.assertEqual(len(baseline[baseline.partition.eq('test')]), len(original[original.partition.eq('test')]))
+            # Changing accepted synthetic content invalidates checkpoint provenance.
+            draft['review_text'] = 'Still fragile here and sturdy there.'
+            pd.DataFrame([draft], columns=AUGMENTATION_COLUMNS).to_csv(augmented, index=False)
+            changed = load_experiment(csv, splits, augmented)
+            self.assertNotEqual(fingerprint(changed), fingerprint(baseline))
+            # Explicit experimental mode includes drafts without inventing approval.
+            draft['review_status'], draft['reviewed_by'] = 'pending', ''
+            pd.DataFrame([draft], columns=AUGMENTATION_COLUMNS).to_csv(augmented, index=False)
+            self.assertEqual(len(load_experiment(csv, splits, augmented)), len(original))
+            pending_own = own_data.load_experiment(csv, splits, augmented, True, allow_unreviewed=True)
+            pending_baseline = load_experiment(csv, splits, augmented, allow_unreviewed=True)
+            self.assertEqual(own_data.fingerprint(pending_own), fingerprint(pending_baseline))
+            self.assertEqual(pending_baseline.iloc[-1].review_status, 'pending')
+            self.assertEqual(pending_baseline.iloc[-1].reviewed_by, '')
+            self.assertEqual(len(pending_baseline), len(original) + 1)
+            self.assertNotEqual(fingerprint(pending_baseline), fingerprint(changed))
 
 
 if __name__ == '__main__':

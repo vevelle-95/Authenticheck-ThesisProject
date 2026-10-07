@@ -2,7 +2,7 @@
 
 import argparse
 
-from datasets.authenticheck_data import fingerprint, load_reviews, read_splits
+from datasets.authenticheck_data import fingerprint, load_experiment
 from inference import predict_frame
 from runtime import load_checkpoint, load_config, resolve_path, write_json
 from training.eval import compute_metrics
@@ -13,6 +13,8 @@ def main():
     parser.add_argument("--config")
     parser.add_argument("--csv")
     parser.add_argument("--splits")
+    parser.add_argument("--augmentations", help="Training-only CSV; paths resolve from the baseline folder")
+    parser.add_argument("--allow-unreviewed-augmentations", action="store_true", help="Match a checkpoint trained with pending experimental drafts")
     parser.add_argument("--checkpoint", default="outputs/checkpoints/best.pt")
     parser.add_argument("--output", default="outputs/test_metrics.json")
     args = parser.parse_args()
@@ -20,9 +22,12 @@ def main():
     if output_path.exists():
         raise FileExistsError(f"Report already exists: {output_path}; choose another filename")
     config = load_config(args.config)
-    assigned = read_splits(
-        load_reviews(resolve_path(args.csv or config["data"]["csv"]), require_annotations=True),
+    augmentation_path = args.augmentations or config["data"].get("augmentations")
+    assigned = load_experiment(
+        resolve_path(args.csv or config["data"]["csv"]),
         resolve_path(args.splits or config["data"]["splits"]),
+        resolve_path(augmentation_path) if augmentation_path else None,
+        allow_unreviewed=args.allow_unreviewed_augmentations,
     )
     checkpoint_path = resolve_path(args.checkpoint)
     checkpoint = load_checkpoint(checkpoint_path)
@@ -36,6 +41,7 @@ def main():
     test = assigned[assigned.partition.eq("test") & assigned.label.eq(0)]
     predictions, raw, _ = predict_frame(test, checkpoint_path)
     report = {
+        "augmentation_usage": metadata.get("augmentation_usage"),
         "model_version": checkpoint["model_version"], "partition": "test",
         "review_count": len(test), "product_count": test.product_id.nunique(),
         "scope": "standalone ABSA on ground-truth Authentic reviews, six shared aspects",

@@ -2,6 +2,7 @@
 
 import hashlib
 import json
+import sys
 from pathlib import Path
 
 import numpy as np
@@ -123,3 +124,18 @@ def build_targets(annotations):
             for polarity in polarities:
                 sentiments[index, polarity] = 1 / len(polarities)
     return aspects, sentiments
+
+
+def load_experiment(data, splits, augmentations=None, *, allow_unreviewed=False):
+    """Use the same selected variants and lineage rules as AuthentiCheck."""
+    project_root = Path(__file__).resolve().parents[3]
+    if str(project_root) not in sys.path:
+        sys.path.append(str(project_root))
+    from training_augmentation import append_augmentations
+
+    assigned = read_splits(load_reviews(data, require_annotations=True), splits)
+    combined = append_augmentations(assigned, augmentations, allow_unreviewed=allow_unreviewed)
+    if combined is not assigned:
+        combined['annotations'] = [parse_annotations(row.aspect_annotations) if row.label == 0 else {}
+                                   for row in combined.itertuples()]
+    return combined

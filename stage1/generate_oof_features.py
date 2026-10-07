@@ -14,7 +14,7 @@ from model_contract import (
     BASE_MODEL, BATCH_SIZE, DEFAULT_BUNDLE, DEFAULT_DATA_PATH, DEFAULT_OOF_PATH,
     DEFAULT_SPLITS_PATH, EPOCHS, FEATURE_COLUMNS, INPUT_VERSION, MAX_LENGTH, SEED,
 )
-from model_data import fingerprint, load_reviews, read_splits
+from model_data import fingerprint, load_experiment
 
 
 def generate_oof(assigned, output, fold_dir, *, base_model=BASE_MODEL,
@@ -68,6 +68,8 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--data", default=str(DEFAULT_DATA_PATH))
     parser.add_argument("--splits", default=str(DEFAULT_SPLITS_PATH))
+    parser.add_argument("--augmentations", help="Approved training-only augmentation CSV; use the same file throughout the experiment")
+    parser.add_argument("--allow-unreviewed-augmentations", action="store_true", help="Experimental run: include pending drafts without marking them approved")
     parser.add_argument("--output", default=str(DEFAULT_OOF_PATH))
     parser.add_argument("--fold-dir", default=str(DEFAULT_BUNDLE / "oof"))
     parser.add_argument("--base-model", default=BASE_MODEL)
@@ -75,7 +77,8 @@ def main():
     parser.add_argument("--batch-size", type=int, default=BATCH_SIZE)
     parser.add_argument("--max-length", type=int, default=MAX_LENGTH)
     args = parser.parse_args()
-    assigned = read_splits(load_reviews(args.data), args.splits)
+    assigned = load_experiment(args.data, args.splits, args.augmentations,
+                               allow_unreviewed=args.allow_unreviewed_augmentations)
     generate_oof(assigned, args.output, args.fold_dir, base_model=args.base_model,
                  epochs=args.epochs, batch_size=args.batch_size, max_length=args.max_length)
 

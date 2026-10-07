@@ -17,7 +17,8 @@ from model_contract import (
     ASPECTS, BASE_MODEL, BATCH_SIZE, DEFAULT_DATA_PATH, DEFAULT_SPLITS_PATH,
     EPOCHS, LEARNING_RATE, SEED, SENSORY_POLICY, SENTIMENT_TARGET_POLICY,
 )
-from model_data import fingerprint, load_reviews, read_splits
+from model_data import fingerprint, load_experiment
+from training_augmentation import augmentation_summary
 from model_metrics import classification_metrics
 
 
@@ -136,6 +137,7 @@ def train_absa(assigned, output, *, encoder=BASE_MODEL, epochs=EPOCHS, batch_siz
             best_epoch = epoch + 1
             best_metrics = metrics
     Path(output, "training_metadata.json").write_text(json.dumps({
+        "augmentation_usage": augmentation_summary(training),
         "dataset_sha256": fingerprint(assigned), "seed": SEED,
         "sensory_domain_policy": SENSORY_POLICY,
         "sentiment_target_policy": SENTIMENT_TARGET_POLICY,
@@ -151,6 +153,8 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--data", default=str(DEFAULT_DATA_PATH))
     parser.add_argument("--splits", default=str(DEFAULT_SPLITS_PATH))
+    parser.add_argument("--augmentations", help="Approved training-only augmentation CSV; use the same file throughout the experiment")
+    parser.add_argument("--allow-unreviewed-augmentations", action="store_true", help="Experimental run: include pending drafts without marking them approved")
     parser.add_argument("--encoder", default=BASE_MODEL, help="Independent pretrained encoder, not the Stage 1 classifier")
     parser.add_argument("--output", default=str(absa_model.DEFAULT_ABSA_MODEL_DIR))
     parser.add_argument("--epochs", type=int, default=EPOCHS)
@@ -159,7 +163,8 @@ def main():
     parser.add_argument("--authentic-only", action="store_true", help="Accepted for compatibility; ABSA always trains on ground-truth Authentic reviews")
     parser.add_argument("--eval-only", action="store_true", help="Evaluate validation only; final testing uses evaluate_models.py")
     args = parser.parse_args()
-    assigned = read_splits(load_reviews(args.data, require_annotations=True), args.splits)
+    assigned = load_experiment(args.data, args.splits, args.augmentations, require_annotations=True,
+                               allow_unreviewed=args.allow_unreviewed_augmentations)
     if args.eval_only:
         model = absa_model.ABSAHeadModel.from_pretrained(args.output)
         tokenizer = AutoTokenizer.from_pretrained(model.tokenizer_dir, local_files_only=True)

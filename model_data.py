@@ -166,3 +166,17 @@ def read_splits(frame, path):
     if not joined.loc[~joined.partition.eq("train"), "fold"].eq(-1).all():
         raise ValueError("Validation/test records cannot belong to training folds")
     return joined
+
+
+def load_experiment(data, splits, augmentations=None, require_annotations=False, *, allow_unreviewed=False):
+    """Check real split membership first, then attach selected training variants."""
+    from training_augmentation import append_augmentations
+
+    assigned = read_splits(load_reviews(data, require_annotations=require_annotations), splits)
+    combined = append_augmentations(assigned, augmentations, allow_unreviewed=allow_unreviewed)
+    if require_annotations and combined is not assigned:
+        combined["annotations"] = [
+            parse_annotations(row.aspect_annotations, row.review_text) if row.label == 0 else []
+            for row in combined.itertuples()
+        ]
+    return combined
