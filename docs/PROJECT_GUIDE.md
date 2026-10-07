@@ -4,10 +4,12 @@ This is the guide for the dataset, AuthentiCheck model, CLIP-CA-CG baseline,
 APIs, browser extension, and frontend comparison. Commands use Windows
 PowerShell. **Project root** means the `Authenticheck-ThesisProject` folder.
 
-The dataset is still being collected and annotated. Both models have local
-practice checkpoints and working APIs. The frontend currently connects to
-AuthentiCheck; the CLIP-CA-CG comparison call and display remain to be connected.
-Practice results include draft/synthetic data and are development checks.
+The dataset is still being collected and annotated. Both APIs are implemented,
+and both models have saved local practice checkpoints. AuthentiCheck's earlier
+review-only quality checkpoints need retraining for the current combined product
+context input. The frontend connects to AuthentiCheck; the CLIP-CA-CG comparison
+call and display remain to be connected. Practice results include draft/synthetic
+data and are development checks.
 
 **For groupmates preparing for the tool defense:** read
 [what runs](#1-what-runs), the [project map](#8-file-map-tests-and-troubleshooting),
@@ -29,7 +31,7 @@ You do not need to open every Python file to explain the tool.
 
 | Component | Inputs | Output |
 | --- | --- | --- |
-| AuthentiCheck quality filter | Review text, buyer photos, and stars | `authentic`, `deceptive`, `liv`, or `irrelevant` |
+| AuthentiCheck quality filter | Product title + description + review text, buyer photos, and stars | `authentic`, `deceptive`, `liv`, or `irrelevant` |
 | AuthentiCheck ABSA | Text of reviews predicted Authentic | Ten aspect categories and their sentiments |
 | CLIP-CA-CG baseline | Review text and optional buyer photos | Six aspect categories and their sentiments |
 | Extension | Buyer reviews already loaded on Shopee/Lazada | Review evidence, coverage, and local/API results |
@@ -43,8 +45,8 @@ ABSA means **aspect-based sentiment analysis**. AuthentiCheck first applies this
 quality filter:
 
 ```text
-Review text -> DOST RoBERTa -> four quality probabilities
-Review text + usable buyer photos -> multilingual CLIP similarity
+Product title + description + review -> DOST RoBERTa -> four quality probabilities
+The same combined text + usable buyer photos -> multilingual CLIP similarity
 Stars -> (stars - 1) / 4
 Those six values -> XGBoost -> final quality label
 Authentic reviews -> independent DOST ABSA -> aspects and sentiments
@@ -54,8 +56,18 @@ Both AuthentiCheck encoders start from `dost-asti/RoBERTa-tl-cased`. ABSA is
 trained independently; it does not reuse the quality classifier's fine-tuned
 weights. XGBoost belongs to the logical quality stage even though its script
 lives in `stage2/`. CLIP is pretrained and is not fine-tuned by this pipeline.
-The maximum review/photo cosine similarity is used; no usable photos means `0`.
-Product titles, descriptions, and category metadata are not learned inputs.
+The maximum combined-text/photo cosine similarity is used; no usable photos means
+`0`. The shared `quality_input_text()` helper in `model_contract.py` joins title,
+description, and review in that order and normalizes whitespace. Quality training,
+OOF predictions, feature generation, final evaluation, and the API all use it.
+Missing listing context is treated as empty; a written buyer review is required.
+ABSA receives the buyer review alone, matching its opinion annotations, and API
+review text remains the buyer's text. Product category is not a model input.
+
+RoBERTa still has a configurable maximum input length (default 128 tokens).
+Long descriptions can use that budget before the review appears; inspect the
+tokenized inputs and choose a suitable `--max-length` during validation. M-CLIP
+has its own encoder limit, independent of the pipeline's RoBERTa setting.
 
 CLIP-CA-CG uses RoBERTa with a Bi-GRU, frozen ResNet image regions, cached frozen
 CLIP embeddings, cross-attention, gating, and aspect/sentiment heads. It has no
@@ -69,8 +81,9 @@ than separate opinion spans.
    including each review's written text, stars, and available buyer photos.
 2. With **Use model API** enabled, it sends those reviews to AuthentiCheck's
    local API. The API is the connection between the interface and the trained models.
-3. The quality model turns the text into four quality probabilities. CLIP supplies
-   a text/photo similarity score, and the stars supply one more number.
+3. The quality model reads the product title, description, and buyer review
+   together and produces four quality probabilities. CLIP compares that same
+   combined text with buyer photos, and the stars supply one more number.
 4. XGBoost uses those six numbers to predict the review's quality class.
 5. For reviews predicted Authentic, a separately trained text model detects
    product aspects and predicts positive, neutral, or negative sentiment for each.
@@ -156,7 +169,8 @@ make every row a test example; the saved split manifest determines partitions.
 | `star_rating` | Integer from 1 to 5 |
 | `ground_truth` | Human quality label: `authentic`, `deceptive`, `liv`, or `irrelevant` |
 | `aspect_annotations` | JSON list of category, evidence text, and sentiment |
-| `product_title`, `product_description`, `text_label` | Context/source metadata, not learned inputs or targets |
+| `product_title`, `product_description` | Listing context included in AuthentiCheck quality/CLIP text; not opinion evidence for ABSA |
+| `text_label` | Source metadata; never a training target |
 | `aspects`, `aspect_text`, `sentiment` | May remain in the CSV, but training reads `aspect_annotations` |
 
 `product_category` is not required. Annotators use product context to apply the
@@ -261,6 +275,7 @@ Run from the project root:
 
 The pipeline generates OOF probabilities, trains final RoBERTa, extracts six
 features, fits XGBoost, then trains independent ABSA. Test products are excluded.
+All quality-text fitting and prediction uses title + description + buyer review.
 Fold training uses its fixed epoch setting; held-fold reviews do not select its
 checkpoint. Final RoBERTa and XGBoost are selected using validation macro-F1;
 XGBoost class weights come from training data. ABSA uses human-labeled Authentic
@@ -273,6 +288,22 @@ For a separate experiment, choose separate destinations:
 ```powershell
 .\.venv\Scripts\python.exe pipeline.py --data data/test_reviews.csv --splits data/experiment_01/splits.json --work-dir data/experiment_01/features --output models/experiment_01 --epochs 3 --batch-size 2
 ```
+
+**After the combined-input change, regenerate the quality models and features.**
+The old `models/practice_run/` quality/XGBoost files use a review-only contract
+and are rejected by the current API. Renaming them or editing their version tags
+does not retrain them. Use a fresh destination while retaining the shared splits:
+
+```powershell
+.\.venv\Scripts\python.exe pipeline.py --data data/test_reviews.csv --splits data/splits.json --work-dir data/context_run/features --output models/context_run --epochs 3 --batch-size 2
+```
+
+This runs new OOF fits, final quality RoBERTa, six-feature extraction, XGBoost,
+and ABSA. The independent ABSA input remains review text; a compatible saved
+ABSA model may also be retained when rebuilding the quality components manually.
+The CSV and split fingerprint policy are unchanged by this code update, so an
+unchanged CSV can keep its existing shared product assignments. Current quality
+artifacts use `product-context-six-features-v3-missing-image-zero`.
 
 ### Train CLIP-CA-CG
 
@@ -305,7 +336,9 @@ XGBoost trains decision trees and has no epoch setting. Changing a default does
 not change existing weights; run a new training experiment and select its saved
 bundle/checkpoint for the API. Both APIs keep loaded models in memory, so restart
 the service when replacing its selected model. The AuthentiCheck practice bundle
-was trained for one epoch; the baseline's current training history contains five.
+was trained for one epoch under the older review-only input; the baseline's
+current training history contains five. Retrain the quality components before
+using that older AuthentiCheck bundle with the current API.
 
 ### When the dataset changes
 
@@ -329,7 +362,7 @@ For the default AuthentiCheck bundle, run from the project root:
 .\.venv\Scripts\python.exe stage2/evaluate_models.py --data data/test_reviews.csv --splits data/splits.json --bundle models/own_model_v2 --output results/own_model_test.json
 ```
 
-For an experiment or the existing practice bundle, pass its matching `--bundle`,
+For a current input-compatible experiment, pass its matching `--bundle`,
 `--splits`, and a new report filename. Evaluation checks training/validation
 membership and available dataset fingerprints. It reports quality metrics,
 aspect detection, sentiment given human target categories, and product sentiment
@@ -367,7 +400,8 @@ no general paired-comparison CLI or completed formal statistical protocol yet.
 | `models/own_model_v2/absa_model/` | `model.pt`, `absa_config.json`, `encoder/config.json`, tokenizer, and metadata |
 | `models/own_model_v2/oof/fold_0/` through `fold_4/` | Training-feature generation models |
 | `models/own_model_v2/manifest.json` | Bundle versions, environment, taxonomy, and experiment settings |
-| `models/practice_run/` | Current local AuthentiCheck practice bundle, with the same structure |
+| `models/practice_run/` | Historical review-only practice bundle; its quality weights are incompatible with current combined-input inference |
+| `models/context_run/` | Suggested destination for new combined-input training; created when that training command is run |
 | `results/*.json` | AuthentiCheck prediction/evaluation reports |
 | `reports/generated/*.json` | Draft annotation/synthetic generation records |
 | `baselines/clip-ca-cg/outputs/checkpoints/` | `best.pt`, tokenizer, training metadata, and epoch history |
@@ -382,6 +416,10 @@ validation model to `absa_model/model.pt`; its history is in training metadata.
 The baseline saves its best model to `outputs/checkpoints/best.pt` and records
 epoch results in `training_history.json`.
 
+The existing `models/practice_run/` quality weights are historical review-only
+weights. Keep them with their original metadata; the current API rejects their
+input contract. Retraining to `models/context_run/` creates a compatible bundle.
+
 If restoring an existing baseline, keep `outputs/checkpoints/`,
 `outputs/clip_cache/`, and `outputs/image_cache/` together. The model cache can
 also be copied; otherwise uncached reviews may download CLIP assets. The saved
@@ -395,12 +433,13 @@ not the directory name.
 
 ### Predict a new CSV with AuthentiCheck
 
-New data needs review text and integer stars. Include IDs for matching/grouping;
-photos are optional. Human labels and annotations are not needed. For the current
-practice bundle, run from the root:
+New data needs review text and integer stars. Include IDs for matching/grouping
+and the listing title/description when available; photos are optional. Human
+labels and annotations are not needed. After training the combined-input bundle,
+run from the root:
 
 ```powershell
-.\.venv\Scripts\python.exe stage2/online_inference.py --data data/new_reviews.csv --roberta-model models/practice_run/dost_roberta --xgb-path models/practice_run/xgboost_meta_classifier.json --absa-dir models/practice_run/absa_model --output results/new_review_predictions.json
+.\.venv\Scripts\python.exe stage2/online_inference.py --data data/new_reviews.csv --roberta-model models/context_run/dost_roberta --xgb-path models/context_run/xgboost_meta_classifier.json --absa-dir models/context_run/absa_model --output results/new_review_predictions.json
 ```
 
 The API bundle environment variable does not set these CLI arguments. To use
@@ -428,10 +467,10 @@ review context, not an extracted evidence snippet.
 
 ### Start both services
 
-**Terminal A: project root, using the current practice bundle.**
+**Terminal A: project root, after training the combined-input bundle.**
 
 ```powershell
-$env:AUTHENTICHECK_MODEL_BUNDLE = "models/practice_run"
+$env:AUTHENTICHECK_MODEL_BUNDLE = "models/context_run"
 .\.venv\Scripts\python.exe -m uvicorn main:app --host 127.0.0.1 --port 8000
 ```
 
@@ -439,6 +478,10 @@ $env:AUTHENTICHECK_MODEL_BUNDLE = "models/practice_run"
 Relative paths resolve from the project root. Without it, the default is
 `models/own_model_v2`. Restart the API after changing the setting. It affects
 API inference; pipeline training still uses its default or explicit `--output`.
+
+The example requires the new bundle to exist. Selecting the older review-only
+practice bundle produces a readiness/input-contract error until its quality
+models and features are rebuilt.
 
 **Terminal B: open at the project root, then enter the baseline folder.**
 
@@ -666,7 +709,7 @@ All paths in this table start at `Authenticheck-ThesisProject/`.
 | [prototype/](../prototype/) | A standalone interface demonstration with illustrative data. |
 | [tests/](../tests/) | Automated AuthentiCheck checks and small browser test pages. |
 | [baselines/clip-ca-cg/tests/](../baselines/clip-ca-cg/tests/) | Automated baseline architecture/data/API checks. |
-| [scripts/](../scripts/) | An older model-bundle installation utility. It is outside the current training route. |
+| [scripts/](../scripts/) | Optional compact development training/serving/diagnostics and an older model-bundle installer. Pretrained thesis training uses `pipeline.py`. |
 | [docs/](./) | This project guide. Keep team explanations here instead of creating separate guides. |
 | `results/` | AuthentiCheck prediction and evaluation reports, created by the relevant commands. |
 | `reports/generated/` | Records of draft annotation filling and synthetic practice reviews. These describe dataset edits. |
@@ -682,7 +725,7 @@ works. The baseline's trained files are in `outputs/checkpoints/`.
 | [README.md](../README.md) | The short project overview, extension installation steps, and quick start. |
 | [pipeline.py](../pipeline.py) | AuthentiCheck training entry point. Coordinates validation, splits, OOF fitting, final quality training, XGBoost, and ABSA. |
 | [main.py](../main.py) | AuthentiCheck API entry point. Loads the selected trained bundle and answers extension requests; it does not train on those requests. |
-| [model_contract.py](../model_contract.py) | Shared rulebook: quality labels, ten aspects, accepted sentiments, six-feature order, rating/photo formats, and API bundle selection. |
+| [model_contract.py](../model_contract.py) | Shared rulebook: quality labels, ten aspects, sentiments, six-feature order, combined quality-text builder, input version, rating/photo formats, and API bundle selection. |
 | [model_data.py](../model_data.py) | Reads and checks the CSV, identifies dataset changes, and assigns products to saved partitions/folds. |
 | [model_metrics.py](../model_metrics.py) | Compares predictions with reference labels and calculates accuracy, precision, recall, F1, and the confusion matrix. |
 | [requirements.txt](../requirements.txt) | Python libraries needed by AuthentiCheck training and its API. |
@@ -699,9 +742,9 @@ and reviews to score.
 | --- | --- | --- |
 | [config.py](../stage1/config.py) | Holds Stage 1 defaults such as paths, batch size, learning rate, and epochs. | Supporting settings |
 | [prepare_splits.py](../stage1/prepare_splits.py) | Checks the CSV and creates/reuses the shared train/validation/test and five-fold assignment. | Preparation command |
-| [train_roberta.py](../stage1/train_roberta.py) | Fine-tunes DOST RoBERTa to predict four review-quality classes; also supplies the fitting code used by OOF training. | Training |
+| [train_roberta.py](../stage1/train_roberta.py) | Fine-tunes DOST RoBERTa on title + description + buyer review to predict four quality classes; OOF fitting uses the same code. | Training |
 | [generate_oof_features.py](../stage1/generate_oof_features.py) | Trains five fold models and scores each held-out training fold. Those predictions become XGBoost training inputs. | Training-feature preparation |
-| [features.py](../stage1/features.py) | Produces the same six numbers during training and prediction: four text probabilities, photo similarity, and normalized stars. Loads usable buyer photos; no usable photo gives similarity `0`. | Supporting code for training and prediction |
+| [features.py](../stage1/features.py) | Produces the same six numbers during training and prediction: four combined-text probabilities, combined-text/photo similarity, and normalized stars. No usable photo gives similarity `0`. | Supporting code for training and prediction |
 | [extract_6d_features.py](../stage1/extract_6d_features.py) | Writes the training/validation feature CSV. Uses OOF probabilities for training and final RoBERTa probabilities for validation. | Training-feature preparation |
 
 The `oof/` models help build training features. The final `dost_roberta/` model
@@ -714,7 +757,7 @@ handles new reviews. They are separate fits with separate purposes.
 | [train_xgboost.py](../stage2/train_xgboost.py) | Learns the final quality decision from the six features and selects settings using validation reviews. | Training |
 | [absa_model.py](../stage2/absa_model.py) | Defines the ten-aspect detector and sentiment classifier, including how their trained weights are saved and loaded. | Supporting model code |
 | [fine_tune_absa.py](../stage2/fine_tune_absa.py) | Trains independent DOST ABSA on human-labeled Authentic training reviews; chooses the checkpoint and aspect-detection threshold using validation. | Training |
-| [online_inference.py](../stage2/online_inference.py) | Runs RoBERTa/CLIP/stars through XGBoost, sends predicted Authentic reviews to ABSA, and builds review/product summaries. The API uses this same prediction code. | New-review prediction / API |
+| [online_inference.py](../stage2/online_inference.py) | Uses combined listing/review text for quality and CLIP, sends the buyer review alone to ABSA if predicted Authentic, and builds summaries. The API uses this prediction code. | New-review prediction / API |
 | [predict_absa.py](../stage2/predict_absa.py) | Runs ABSA separately for diagnosis. Can filter by an existing predicted quality label; it does not run the full quality classifier itself. | Optional prediction command |
 | [evaluate_models.py](../stage2/evaluate_models.py) | Checks model/data provenance and scores selected models on reserved test products, including ABSA with and without the predicted quality filter. | Final evaluation command |
 
@@ -739,7 +782,6 @@ its own environment; it reads the same root dataset and split file.
 | [requirements.txt](../baselines/clip-ca-cg/requirements.txt) | Libraries for the baseline's separate Python environment. |
 | [setup_environment.ps1](../baselines/clip-ca-cg/setup_environment.ps1) | Installs compatible baseline dependencies, including the CPU or CUDA/Torchvision setup. |
 | [benchmark_model.py](../baselines/clip-ca-cg/benchmark_model.py) | Optional GPU-memory check with random weights/inputs. Saves a resource report; it does not produce a trained model or an accuracy result. |
-| [test_forward.py](../baselines/clip-ca-cg/test_forward.py) | Optional shortcut that launches `tests/test_adaptation.py`. It contains no additional tests and does not start normal training. |
 | [.gitignore](../baselines/clip-ca-cg/.gitignore) | Additional rules keeping baseline environments, checkpoints, and generated caches/reports out of Git. |
 
 ### Baseline data, model, and training helpers
@@ -799,9 +841,15 @@ controls, CSS defines appearance, and JavaScript supplies behavior.
 | [data/test_reviews.csv](../data/test_reviews.csv) | The working review dataset for both models. The split manifest decides which rows are training, validation, or test. |
 | [data/samples/extension_api_payload.json](../data/samples/extension_api_payload.json) | Example extension request, useful for understanding/testing the message format. |
 | [data/samples/extension_api_response.json](../data/samples/extension_api_response.json) | Example AuthentiCheck response for frontend development; its values are samples. |
+| [data/samples/capability_challenge.json](../data/samples/capability_challenge.json) | Small diagnostic review cases with provisional expected answers requiring human review; separate from final accuracy evaluation. |
 | [models/manifest.json](../models/manifest.json) | Manifest for the older download-bundle layout. Each newly trained bundle has its own manifest. |
 | [scripts/setup_models.py](../scripts/setup_models.py) | Installs/verifies an older model archive according to that manifest. Current training uses `pipeline.py` instead. |
+| [scripts/train_development_model.py](../scripts/train_development_model.py) | Optional offline training exercise using a compact random encoder, one epoch, and no photos. Its vocabulary includes the combined quality text. Saves to `models/development_v3/` and `data/development_v3/`; it does not train the pretrained DOST thesis model. |
+| [scripts/serve_development_model.py](../scripts/serve_development_model.py) | Serves that compact bundle through the AuthentiCheck API with images omitted. Use `--port 8002` when the baseline occupies port 8001. |
+| [scripts/check_model_capabilities.py](../scripts/check_model_capabilities.py) | Sends provisional diagnostic cases to a selected endpoint and checks compact ABSA separately. For port 8002 pass `--endpoint http://127.0.0.1:8002/analyze`; reports go to `reports/generated/`. |
 | [docs/PROJECT_GUIDE.md](PROJECT_GUIDE.md) | This shared explanation of the models, dataset, outputs, APIs, interface, and defense terminology. |
+| [docs/DEVELOPMENT_MODEL_TESTING.md](DEVELOPMENT_MODEL_TESTING.md) | Existing supplementary instructions for the optional compact workflow. The pretrained-model setup is in this project guide. |
+| [docs/MANUSCRIPT_COMPLETION_AUDIT.md](MANUSCRIPT_COMPLETION_AUDIT.md) | Historical assessment using a proposed implementation rubric. Its dated score is separate from model accuracy or current validation results. |
 
 Generated split/feature files, per-epoch checkpoints, tokenizers, model
 configurations, and reports are explained in [section 5](#5-saved-files-and-new-review-prediction).
@@ -822,7 +870,6 @@ The two maintained test folders have separate jobs:
 | [test_own_model.py](../tests/test_own_model.py) | CSV/label rules, product separation, OOF behavior, no-image score `0`, mixed sentiments, ABSA filtering, and summary calculations. |
 | [test_own_model_integration.py](../tests/test_own_model_integration.py) | A complete miniature train/save/load/predict/evaluate round trip using a temporary tiny encoder and mocked photo features. Reuses fixtures from `test_own_model.py`. |
 | [test_api_contract.py](../tests/test_api_contract.py) | AuthentiCheck request/response format and review-count limits, using a fake predictor rather than saved thesis weights. |
-| [test_model_setup.py](../tests/test_model_setup.py) | The older download manifest and installer. Optional legacy coverage, separate from the current model-training route. |
 | [check_extension_contract.mjs](../tests/check_extension_contract.mjs) | Extension script configuration and sample API message formats. Runs with Node. |
 | [test_extension_runtime.mjs](../tests/test_extension_runtime.mjs) | Extension response validation, message handling, and API errors/timeouts in a simulated environment. Runs with Node. |
 | [extractor-fixture.html](../tests/extractor-fixture.html) | Small browser page for checking buyer text/photo extraction and seller-response exclusion. |
@@ -845,17 +892,16 @@ The tiny models exist only to run checks quickly, and temporary learned files
 are cleaned up. Test logs can show one epoch or poor miniature-model scores;
 those are software exercises and are not the real training results.
 
-The redundant `baselines/clip-ca-cg/test_forward.py` launcher can be removed
-without losing coverage when the discovery command below is used.
-`tests/test_model_setup.py` is optional if the older installer is retired.
-The other test files cover current behavior. Keep `test_own_model.py` if keeping
-its integration test, because that integration test imports its sample-data helper.
+The redundant baseline launcher and older installer test have already been
+removed from the current repository. The retained files cover current behavior.
+Keep `test_own_model.py` if keeping its integration test, because that integration
+test imports its sample-data helper.
 
 For defense preparation, groupmates should explain the model flow and outputs;
 the person maintaining the code can run these checks after relevant changes.
 They do not need to run before every new review prediction.
 
-From the root, run all Python checks, including the optional legacy setup checks:
+From the root, run all Python checks:
 
 ```powershell
 .\.venv\Scripts\python.exe -m unittest discover -s tests -p "test*.py" -v
@@ -910,6 +956,7 @@ The generated output folders are not additional source folders to maintain.
 | CLIP revision mismatch or cached image bytes missing | Restore the matching cache; rebuild features with `--force` if photos/features are inconsistent. |
 | HTTP 422 | Check schema version, supported fields, nonblank text, review count, and photo URLs; baseline IDs must be unique. |
 | Inference fails with missing/invalid stars | AuthentiCheck requires integer ratings 1 to 5; inspect extraction instead of filling invented ratings. |
+| Stage 1 input-contract mismatch | Regenerate OOF probabilities/features and retrain quality RoBERTa/XGBoost for the combined input. Select the rebuilt bundle and restart the API. |
 | No baseline comparison appears | The service exists, but the frontend comparison message/call/rendering still needs implementation. |
 | No models/outputs after cloning | Train locally or restore a compatible bundle; ignored files are not supplied by Git. |
 

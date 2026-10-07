@@ -1,10 +1,17 @@
 # Development model testing
 
-The compact development bundle exercises the v2 software pipeline before final
+The compact development bundle exercises the combined-input software pipeline before final
 annotations are available. It uses `data/test_reviews.csv`, including draft and
 synthetic annotations, a randomly initialized compact RoBERTa encoder, and one
 training epoch. It is not the pretrained DOST thesis model. Buyer images are
 omitted during training and serving; their similarity feature is zero.
+
+Quality training/OOF/features/prediction use product title + description + buyer
+review. ABSA uses the buyer review alone. New compact bundles use the v3 input
+contract and `development_v3` destinations; previous `development_v2` weights
+are preserved and rejected by current inference. This guide describes the
+optional compact workflow; the main [project guide](PROJECT_GUIDE.md) describes
+pretrained DOST training and both normal APIs.
 
 The training workflow retains product-disjoint partitions and five-fold
 out-of-fold features. Validation selects checkpoints and the ABSA threshold.
@@ -24,20 +31,22 @@ Train the isolated bundle:
 .\.venv-dev\Scripts\python.exe scripts/train_development_model.py
 ```
 
-Artifacts are saved in `models/development_v2/`; training intermediates are in
-`data/development_v2/`. The manifest records the test limitations and smoke
+Artifacts are saved in `models/development_v3/`; training intermediates are in
+`data/development_v3/`. The manifest records the test limitations and smoke
 response. Existing `models/own_model_v2/` and older weights are preserved.
 
 Start the development API:
 
 ```powershell
-.\.venv-dev\Scripts\python.exe scripts/serve_development_model.py
+.\.venv-dev\Scripts\python.exe scripts/serve_development_model.py --port 8002
 ```
 
 In the extension popup enable **Use model API**, set the endpoint to
-`http://127.0.0.1:8001/analyze`, and save. Reload the extension and refresh the
+`http://127.0.0.1:8002/analyze`, and save. Port 8001 is used by the baseline API
+in the main project guide; keep the compact service on a separate port.
+Reload the extension and refresh the
 marketplace tab after changing extension source. Scroll to reviews and rescan.
-The panel labels this bundle **Development model**. Use `/ready` on port 8001
+The panel labels this bundle **Development model**. Use `/ready` on port 8002
 to check readiness. Keep the server terminal open; Ctrl+C stops it.
 
 Written text and an integer star rating from 1 to 5 are required for analysis.

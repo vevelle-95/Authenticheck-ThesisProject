@@ -25,7 +25,7 @@ def main():
     existing = set(training.review_text.str.casefold())
     assert not any(case["text"].casefold() in existing for case in cases)
     torch.set_num_threads(2)
-    bundle = ROOT / "models/development_v2/absa_model"
+    bundle = ROOT / "models/development_v3/absa_model"
     model = ABSAHeadModel.from_pretrained(bundle).eval()
     tokenizer = AutoTokenizer.from_pretrained(model.tokenizer_dir, local_files_only=True)
     rows = []

@@ -62,7 +62,7 @@ class FeatureExtractor:
             self.tokenizer = AutoTokenizer.from_pretrained(self.model_dir)
             self.model = AutoModelForSequenceClassification.from_pretrained(self.model_dir)
             if getattr(self.model.config, "input_contract_version", None) != INPUT_VERSION:
-                raise ValueError("Stage 1 input contract mismatch; train the v2 review-only classifier")
+                raise ValueError("Stage 1 input contract mismatch; retrain with product title + description + review text")
             if [self.model.config.id2label[i] for i in range(4)] != list(CLASS_NAMES):
                 raise ValueError("Stage 1 class order mismatch")
             self.model.to("cuda" if torch.cuda.is_available() else "cpu").eval()

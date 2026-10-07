@@ -7,7 +7,7 @@ import subprocess
 import sys
 from pathlib import Path
 
-from model_contract import ASPECTS, BASE_MODEL, DEFAULT_BUNDLE, INPUT_VERSION, SENSORY_POLICY, SENTIMENT_TARGET_POLICY, TAXONOMY_VERSION
+from model_contract import ASPECTS, BASE_MODEL, DEFAULT_BUNDLE, INPUT_VERSION, MODEL_VERSION, SENSORY_POLICY, SENTIMENT_TARGET_POLICY, TAXONOMY_VERSION
 from model_data import load_reviews, prepare_splits
 
 ROOT = Path(__file__).resolve().parent
@@ -64,7 +64,9 @@ def main():
         "sentiment_target_policy": SENTIMENT_TARGET_POLICY,
         "aspects": list(ASPECTS), "splits": str(Path(args.splits).resolve()),
         "test_evaluated": False,
-        "model_version": "authenticheck-2.0",
+        "model_version": MODEL_VERSION,
+        "quality_text_input": "product_title + product_description + review_text",
+        "absa_text_input": "review_text",
         "environment": {name: version(name) for name in (
             "torch", "transformers", "datasets", "scikit-learn", "xgboost", "sentence-transformers",
         )},

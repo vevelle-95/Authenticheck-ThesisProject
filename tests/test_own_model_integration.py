@@ -15,9 +15,9 @@ from tokenizers.pre_tokenizers import WhitespaceSplit
 from tokenizers.processors import TemplateProcessing
 from transformers import PreTrainedTokenizerFast, RobertaConfig, RobertaModel
 
-from model_contract import ASPECTS, SENSORY_POLICY, SENTIMENT_TARGET_POLICY, aspect_prompt, parse_annotations
+from model_contract import ASPECTS, INPUT_VERSION, SENSORY_POLICY, SENTIMENT_TARGET_POLICY, aspect_prompt, parse_annotations, quality_input_text
 from model_data import prepare_splits
-from stage1.train_roberta import fit_roberta
+from stage1.train_roberta import fit_roberta, tokenize_reviews
 from stage1.generate_oof_features import generate_oof
 from stage1.extract_6d_features import build_features
 from stage1.features import FeatureExtractor
@@ -76,10 +76,14 @@ class OfflineTrainingIntegrationTests(unittest.TestCase):
                     assigned = prepare_splits(frame, root / "splits.json")
                     oof_path = root / "oof.csv"
                     generate_oof(assigned, oof_path, root / "folds", base_model=str(base), epochs=1, batch_size=16)
-                    fit_roberta(
-                        assigned[assigned.partition.eq("train")], assigned[assigned.partition.eq("validation")],
-                        bundle / "dost_roberta", base_model=str(base), epochs=1, batch_size=16,
-                    )
+                    with patch("stage1.train_roberta.tokenize_reviews", wraps=tokenize_reviews) as tokenize:
+                        fit_roberta(
+                            assigned[assigned.partition.eq("train")], assigned[assigned.partition.eq("validation")],
+                            bundle / "dost_roberta", base_model=str(base), epochs=1, batch_size=16,
+                        )
+                    training_texts = tokenize.call_args_list[0].args[1]
+                    self.assertEqual(training_texts, [quality_input_text(row) for row in
+                        assigned[assigned.partition.eq("train")].to_dict("records")])
 
                     class OfflineFeatures(FeatureExtractor):
                         def visual_features(self, text, urls):
@@ -128,9 +132,27 @@ class OfflineTrainingIntegrationTests(unittest.TestCase):
                     pipeline_output = pipe.run(test)
                     self.assertEqual(pipeline_output["reviewCount"], len(test))
                     self.assertTrue(np.isfinite(pipeline_output["authenticShare"]))
+                    for evaluated, predicted, original in zip(output["filtered_reviews"],
+                            pipeline_output["reviews"], test.to_dict("records")):
+                        live_features = list(predicted["features"]["p_text"].values()) + [
+                            predicted["features"]["s_clip"], predicted["features"]["r_star"],
+                        ]
+                        np.testing.assert_allclose(evaluated["features"], live_features)
+                        self.assertEqual(predicted["text"], original["review_text"])
                     missing_image = pipe.run(frame.iloc[[1]])["reviews"][0]
                     self.assertEqual(missing_image["features"]["s_clip"], 0)
                     self.assertIsNone(missing_image["bestImageUrl"])
+
+                    # Reject review-only text weights and meta-classifiers even
+                    # when their files and training IDs otherwise look valid.
+                    for artifact, field in ((bundle / "dost_roberta" / "config.json", "input_contract_version"),
+                                            (bundle / "xgboost_meta_classifier.metadata.json", "input_version")):
+                        saved = json.loads(artifact.read_text())
+                        self.assertEqual(saved[field], INPUT_VERSION)
+                        artifact.write_text(json.dumps({**saved, field: "review-only-six-features-v2-missing-image-zero"}))
+                        with self.assertRaisesRegex(ValueError, "input contract"):
+                            pipe.check_artifacts()
+                        artifact.write_text(json.dumps(saved))
 
                     # Reusing OOF probabilities from in-sample predictions must fail,
                     # even if the feature table itself still has the right row count.

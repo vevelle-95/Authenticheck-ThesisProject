@@ -10,11 +10,12 @@ The team is currently collecting and annotating the dataset. Use the single
 training, saved outputs, APIs, frontend comparison, and browser extraction.
 This README is the project overview and quick start.
 
-AuthentiCheck and CLIP-CA-CG have trained local practice bundles and working APIs.
-The extension connects to AuthentiCheck; baseline comparison rendering is still
-pending frontend integration. Environments, weights, caches, and generated
-reports are ignored by Git. Another machine must set up and train or restore
-compatible models using the guide.
+Both APIs are implemented and saved local practice bundles exist. AuthentiCheck's
+older review-only quality models need retraining for the current title +
+description + review input. The extension connects to AuthentiCheck; baseline
+comparison rendering is still pending frontend integration. Environments,
+weights, caches, and generated reports are ignored by Git. Another machine must
+set up and train or restore compatible models using the guide.
 
 A dependency-free Manifest V3 browser extension plus a standalone frontend prototype. The extension injects a floating review-analysis panel into Shopee Philippines and Lazada Philippines product pages. It follows the AuthentiCheck thesis pipeline: review-quality classification first, then aspect sentiment using only reviews classified as authentic.
 
@@ -61,7 +62,10 @@ Enable **Use model API** in the popup and provide a local endpoint such as `http
 
 The versioned API returns `authenticShare`, `verifiedRating`, `counts`, `sentimentCounts`, `aspects`, and classified `reviews`. Incomplete or incompatible model responses are rejected; they are never silently mixed with local heuristic values. Version 0.3 permits local API hosts only (`127.0.0.1` or `localhost`).
 
-The request also includes `productDescription` and an `imageUrls` array for each review when buyer media is visible. The current model uses review text, buyer photos, and stars. Product description is retained as context; it is not a learned input.
+The quality model and M-CLIP use product title + description + buyer review text,
+with the same combination in training, evaluation, and live prediction. XGBoost
+also uses the buyer's stars. ABSA uses the buyer review alone, and the interface
+displays that original review text.
 
 When API mode is enabled, connection and response errors are shown explicitly. The extension does not silently replace a failed model response with heuristic output; the user may deliberately select **Use local preview**, which remains labeled as a preliminary estimate.
 
@@ -132,20 +136,21 @@ Full datasets, scraped buyer images, trained weights, secrets, and generated exp
 python -m venv .venv
 .venv\Scripts\Activate.ps1
 pip install -r requirements.txt
-python pipeline.py --data data/reviews.csv --validate-only
-python pipeline.py --data data/reviews.csv
+python pipeline.py --data data/test_reviews.csv --validate-only
+python pipeline.py --data data/test_reviews.csv
 uvicorn main:app --host 127.0.0.1 --port 8000
 ```
 
 `pipeline.py` validates the finalized dataset, persists product-disjoint partitions, generates five-fold out-of-fold RoBERTa probabilities, trains final RoBERTa and XGBoost, and independently trains fixed ten-category ABSA. It selects models and thresholds using validation data. Training and the backend default to `models/own_model_v2/`. See the [training and evaluation guide](docs/PROJECT_GUIDE.md#4-train-validate-and-test) for the CSV workflow and separate held-out test command.
 
 To use an existing compatible bundle, set `AUTHENTICHECK_MODEL_BUNDLE` before
-starting the API. For the current practice models, run these commands from
-`Authenticheck-ThesisProject`:
+starting the API. To rebuild for the combined input and select a separate bundle,
+run these commands from `Authenticheck-ThesisProject`:
 
 ```powershell
 .\.venv\Scripts\Activate.ps1
-$env:AUTHENTICHECK_MODEL_BUNDLE = "models/practice_run"
+python pipeline.py --data data/test_reviews.csv --splits data/splits.json --work-dir data/context_run/features --output models/context_run --epochs 3
+$env:AUTHENTICHECK_MODEL_BUNDLE = "models/context_run"
 python -m uvicorn main:app --host 127.0.0.1 --port 8000
 ```
 
@@ -154,6 +159,11 @@ must contain `dost_roberta/`, `xgboost_meta_classifier.json` with its metadata,
 and `absa_model/`. The API checks their compatibility before accepting analysis
 requests. This setting affects API inference; training still saves to
 `models/own_model_v2/` unless you pass `--output` to `pipeline.py`.
+
+The saved `models/practice_run/` quality models use the previous review-only
+input contract and are rejected by current inference. Rebuild OOF probabilities,
+RoBERTa, six-feature CSVs, and XGBoost; changing a version tag is insufficient.
+The full pipeline command above also trains independent ABSA.
 
 Restart the API after changing the setting. It applies to the current PowerShell
 session; without it, the API uses the default bundle. Check

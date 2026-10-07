@@ -9,7 +9,8 @@ PROJECT_ROOT = Path(__file__).resolve().parent
 DATA_DIR = PROJECT_ROOT / "data"
 DEFAULT_BUNDLE = PROJECT_ROOT / "models" / "own_model_v2"
 BASE_MODEL = "dost-asti/RoBERTa-tl-cased"
-INPUT_VERSION = "review-only-six-features-v2-missing-image-zero"
+INPUT_VERSION = "product-context-six-features-v3-missing-image-zero"
+MODEL_VERSION = "authenticheck-2.1"
 TAXONOMY_VERSION = "fixed-ten-v1"
 SENSORY_POLICY = "annotation-guidelines-only"
 SENTIMENT_TARGET_POLICY = "category-polarity-distribution-v1"
@@ -50,6 +51,31 @@ def get_inference_bundle():
     if not bundle.is_absolute():
         bundle = PROJECT_ROOT / bundle
     return bundle.resolve()
+
+
+def quality_input_text(record):
+    """Use the same title + description + buyer review for every quality input.
+
+    Missing listing context is allowed; the buyer review itself must be present.
+    Only text fields are included, never labels, IDs, stars, or annotations.
+    """
+    parts = (
+        record.get("product_title", record.get("prod_title", "")),
+        record.get("product_description", record.get("prod_description", "")),
+        record.get("review_text", record.get("text", "")),
+    )
+    cleaned = []
+    for index, value in enumerate(parts):
+        if value is None or (isinstance(value, float) and math.isnan(value)):
+            value = ""
+        if not isinstance(value, str):
+            raise ValueError("Product title, description, and review text must be strings")
+        value = " ".join(value.split())
+        if index == 2 and not value:
+            raise ValueError("Review text cannot be empty")
+        if value:
+            cleaned.append(value)
+    return " ".join(cleaned)
 
 
 def _label(value, names, aliases):

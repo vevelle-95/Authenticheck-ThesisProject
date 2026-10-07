@@ -9,6 +9,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.requests import Request
 from pydantic import BaseModel, ConfigDict, Field, HttpUrl, field_validator
+from model_contract import MODEL_VERSION as DEFAULT_MODEL_VERSION
 
 # Configure logging
 logging.basicConfig(
@@ -49,7 +50,7 @@ class RequestLoggingMiddleware(BaseHTTPMiddleware):
             raise
 
 SCHEMA_VERSION = "1.0"
-MODEL_VERSION = os.getenv("AUTHENTICHECK_MODEL_VERSION", "authenticheck-2.0")
+MODEL_VERSION = os.getenv("AUTHENTICHECK_MODEL_VERSION", DEFAULT_MODEL_VERSION)
 
 
 class ReviewRequest(BaseModel):

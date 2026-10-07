@@ -14,7 +14,7 @@ from tokenizers.pre_tokenizers import WhitespaceSplit
 from tokenizers.processors import TemplateProcessing
 from transformers import PreTrainedTokenizerFast, RobertaConfig, RobertaModel, set_seed
 
-from model_contract import ASPECTS, SEED, aspect_prompt
+from model_contract import ASPECTS, INPUT_VERSION, SEED, aspect_prompt, quality_input_text
 from model_data import load_reviews, prepare_splits
 from stage1.generate_oof_features import generate_oof
 from stage1.train_roberta import fit_roberta
@@ -28,8 +28,8 @@ from stage2.online_inference import OnlineInference
 def main():
     torch.set_num_threads(2)
     set_seed(SEED)
-    work = ROOT / "data" / "development_v2"
-    bundle = ROOT / "models" / "development_v2"
+    work = ROOT / "data" / "development_v3"
+    bundle = ROOT / "models" / "development_v3"
     if (bundle / "development_manifest.json").exists():
         raise SystemExit("Development bundle already exists; refusing to overwrite it.")
     work.mkdir(parents=True, exist_ok=True)
@@ -42,7 +42,8 @@ def main():
     training = assigned[assigned.partition.eq("train")]
     validation = assigned[assigned.partition.eq("validation")]
     words = set()
-    for text in [*training.review_text, *(aspect_prompt(category) for category in ASPECTS)]:
+    for text in [*(quality_input_text(row) for row in training.to_dict("records")),
+                 *(aspect_prompt(category) for category in ASPECTS)]:
         words.update(re.findall(r"\S+", text))
     vocabulary = {"<pad>": 0, "<s>": 1, "</s>": 2, "<unk>": 3}
     vocabulary.update({word: index + 4 for index, word in enumerate(sorted(words - set(vocabulary)))})
@@ -71,7 +72,10 @@ def main():
     pipe.check_artifacts()
     smoke = pipe.run(validation.head(4))
     report = {
-        "model_version": "development-compact-v2",
+        "model_version": "development-compact-v3",
+        "input_version": INPUT_VERSION,
+        "quality_text_input": "product_title + product_description + review_text",
+        "absa_text_input": "review_text",
         "purpose": "Software smoke test only; not a pretrained DOST model or thesis result",
         "source": "data/test_reviews.csv (draft and synthetic annotations)",
         "image_inputs": "omitted; visual similarity is zero",

@@ -9,7 +9,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 import pandas as pd
 from stage1 import config
 from stage1.features import FeatureExtractor
-from model_contract import FEATURE_COLUMNS, INPUT_VERSION
+from model_contract import FEATURE_COLUMNS, INPUT_VERSION, quality_input_text
 from model_data import fingerprint, load_reviews, read_splits
 
 
@@ -53,7 +53,7 @@ def build_features(assigned, oof_path, output, model_dir, extractor=None):
     for row in assigned[assigned.partition.ne("test")].to_dict("records"):
         probabilities = lookup.loc[row["review_id"], list(FEATURE_COLUMNS[:4])].tolist() if row["partition"] == "train" else None
         features, best, scores = extractor.extract(
-            row["review_text"], row["image_urls"], row["star_rating"], probabilities,
+            quality_input_text(row), row["image_urls"], row["star_rating"], probabilities,
         )
         records.append({
             "review_id": row["review_id"], "product_id": row["product_id"],

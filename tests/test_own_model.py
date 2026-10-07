@@ -14,10 +14,11 @@ from transformers import BatchEncoding
 
 from model_contract import (
     ASPECTS, CLASS_NAMES, FEATURE_COLUMNS, INPUT_VERSION, map_quality, normalize_rating,
-    parse_annotations, parse_image_urls,
+    parse_annotations, parse_image_urls, quality_input_text,
 )
 from model_data import fingerprint, load_reviews, prepare_splits, read_splits
 from stage1.generate_oof_features import generate_oof
+from stage1.train_roberta import predict_probabilities
 from stage1.features import FeatureExtractor
 from stage2.absa_model import ABSAHeadModel, tokenize_sentiment
 from stage2.fine_tune_absa import batch_forward, build_targets, detection_metrics, select_threshold
@@ -32,6 +33,7 @@ def fixture_frame(products=20):
             text = f"product {product} class {label} quality value"
             rows.append({
                 "review_id": f"r{product}-{label}", "product_id": f"p{product}",
+                "product_title": f"Product {product}", "product_description": "Advertised quality and value",
                 "review_text": text, "review_image_urls": "https://example.invalid/photo.jpg",
                 "star_rating": 5, "ground_truth": CLASS_NAMES[label],
                 "aspect_annotations": json.dumps([{
@@ -71,6 +73,39 @@ class FakeEncoder(nn.Module):
 
 
 class ContractTests(unittest.TestCase):
+    def test_quality_context_uses_listing_text_but_never_targets(self):
+        row = {
+            "product_title": "  Phone\n case  ", "product_description": "Matte   finish",
+            "review_text": "  Matibay\tang casing  ", "ground_truth": "deceptive",
+            "text_label": "irrelevant", "aspect_annotations": "positive", "star_rating": 5,
+        }
+        self.assertEqual(quality_input_text(row), "Phone case Matte finish Matibay ang casing")
+        self.assertEqual(quality_input_text({"text": "Matibay."}), "Matibay.")
+        self.assertEqual(quality_input_text({"prod_title": "Case", "prod_description": "", "text": "Matibay."}),
+                         "Case Matibay.")
+        self.assertEqual(quality_input_text({"product_title": float("nan"), "product_description": None,
+                                            "review_text": "Matibay."}), "Matibay.")
+        with self.assertRaisesRegex(ValueError, "Review text"):
+            quality_input_text({"product_title": "A title", "review_text": " "})
+
+    def test_quality_prediction_batches_include_product_context(self):
+        class QualityEncoder(nn.Module):
+            def __init__(self):
+                super().__init__()
+                self.anchor = nn.Parameter(torch.zeros(1))
+                self.config = SimpleNamespace(review_max_length=128)
+
+            def forward(self, input_ids, attention_mask):
+                return SimpleNamespace(logits=torch.zeros(len(input_ids), 4))
+
+        tokenizer = FakeTokenizer()
+        frame = fixture_frame(1)
+        probabilities = predict_probabilities(QualityEncoder(), tokenizer, frame, batch_size=2)
+        encoded = [text for first, _, _ in tokenizer.calls for text in first]
+        self.assertEqual(encoded, [quality_input_text(row) for row in frame.to_dict("records")])
+        self.assertTrue(all(text.startswith("Product 0 Advertised quality and value ") for text in encoded))
+        self.assertEqual(probabilities.shape, (4, 4))
+
     def test_identifiers_preserve_leading_zeroes(self):
         with tempfile.TemporaryDirectory() as directory:
             frame = fixture_frame(1)
@@ -305,7 +340,8 @@ class InferenceTests(unittest.TestCase):
         class StubPipeline(OnlineInference):
             def check_artifacts(self):
                 pass
-            def extract_features(self, description, text, images, rating):
+            def extract_features(self, text, images, rating):
+                self.feature_texts.append(text)
                 return [0.4, 0.3, 0.2, 0.1, 0.5, 1], [0.4, 0.3, 0.2, 0.1], 0.5, 1, "image"
             def classify(self, features):
                 value = next(self.verdicts)
@@ -316,10 +352,15 @@ class InferenceTests(unittest.TestCase):
         pipe = StubPipeline("unused", "unused", "unused")
         pipe.verdicts = iter([0, 1, 2, 3])
         pipe.calls = []
+        pipe.feature_texts = []
         frame = pd.DataFrame({"review_id": ["a", "b", "c", "d"], "product_id": ["p"] * 4,
-                              "text": ["first", "second", "third", "fourth"], "star_rating": [5] * 4})
+                              "text": ["first", "second", "third", "fourth"], "star_rating": [5] * 4,
+                              "product_title": ["Advertised product"] * 4,
+                              "product_description": ["Fast and durable"] * 4})
         result = pipe.run(frame)
         self.assertEqual(pipe.calls, ["first"])
+        self.assertEqual(pipe.feature_texts, [quality_input_text(row) for row in frame.to_dict("records")])
+        self.assertEqual([row["text"] for row in result["reviews"]], frame.text.tolist())
         self.assertEqual(result["authenticShare"], 25)
         self.assertEqual(result["aggregateSentiment"], 1)
         self.assertEqual([row["id"] for row in result["reviews"]], ["a", "b", "c", "d"])

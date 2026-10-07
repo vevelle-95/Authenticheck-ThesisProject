@@ -8,7 +8,7 @@ import numpy as np
 import pandas as pd
 from sklearn.model_selection import StratifiedGroupKFold
 
-from model_contract import SEED, map_quality, normalize_rating, parse_annotations, parse_image_urls
+from model_contract import SEED, map_quality, normalize_rating, parse_annotations, parse_image_urls, quality_input_text
 
 SPLIT_VERSION = "product-70-15-15-oof5-v1"
 
@@ -37,6 +37,8 @@ def load_reviews(path, require_annotations=False):
     frame["image_urls"] = frame.review_image_urls.map(parse_image_urls)
     if "product_description" not in frame:
         frame["product_description"] = ""
+    for row in frame.to_dict("records"):
+        quality_input_text(row)
     if require_annotations:
         frame["annotations"] = [
             parse_annotations(row.aspect_annotations, row.review_text)

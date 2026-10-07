@@ -8,7 +8,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 import numpy as np
 
-from model_contract import ASPECTS, CLASS_NAMES, DEFAULT_BUNDLE, POLARITIES, SENSORY_POLICY, SENTIMENT_TARGET_POLICY
+from model_contract import ASPECTS, CLASS_NAMES, DEFAULT_BUNDLE, POLARITIES, SENSORY_POLICY, SENTIMENT_TARGET_POLICY, quality_input_text
 from model_data import fingerprint, load_reviews, read_splits
 from model_metrics import classification_metrics
 from stage2.fine_tune_absa import detection_metrics
@@ -42,7 +42,7 @@ def evaluate_own_models(test, pipe):
     per_review_polarity = {}
     det_gold, det_predicted, det_eligible = [], [], []
     for record, aspects in zip(test.to_dict("records"), aspect_predictions):
-        features, _, _ = pipe.extractor.extract(record["review_text"], record["image_urls"], record["star_rating"])
+        features, _, _ = pipe.extractor.extract(quality_input_text(record), record["image_urls"], record["star_rating"])
         verdict, probabilities = pipe.classify(features)
         text_verdict = int(np.argmax(features[:4]))
         quality_predictions.append(verdict)

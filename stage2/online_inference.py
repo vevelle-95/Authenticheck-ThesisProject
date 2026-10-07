@@ -13,7 +13,7 @@ from transformers import AutoTokenizer
 
 from stage2 import absa_model
 from stage1.features import FeatureExtractor
-from model_contract import ASPECTS, CLASS_NAMES, FEATURE_COLUMNS, INPUT_VERSION, POLARITIES, SENSORY_POLICY, SENTIMENT_TARGET_POLICY, TAXONOMY_VERSION, parse_image_urls
+from model_contract import ASPECTS, CLASS_NAMES, FEATURE_COLUMNS, INPUT_VERSION, POLARITIES, SENSORY_POLICY, SENTIMENT_TARGET_POLICY, TAXONOMY_VERSION, parse_image_urls, quality_input_text
 
 DEFAULT_XGB_PATH = absa_model.MODELS_DIR / "xgboost_meta_classifier.json"
 DEFAULT_OUTPUT_PATH = absa_model.DATA_DIR / "online_inference_results.json"
@@ -44,12 +44,12 @@ class OnlineInference:
         if not any((self.roberta_model / name).is_file() for name in ("model.safetensors", "pytorch_model.bin")):
             missing.append(str(self.roberta_model / "model.safetensors"))
         if missing:
-            raise FileNotFoundError("Train our v2 bundle first. Missing artifacts: " + ", ".join(missing))
+            raise FileNotFoundError("Train an input-compatible bundle first. Missing artifacts: " + ", ".join(missing))
         text = json.loads((self.roberta_model / "config.json").read_text(encoding="utf-8"))
         meta = json.loads(self.xgb_path.with_suffix(".metadata.json").read_text(encoding="utf-8"))
         absa = json.loads((self.absa_dir / "absa_config.json").read_text(encoding="utf-8"))
         if text.get("input_contract_version") != INPUT_VERSION or meta.get("input_version") != INPUT_VERSION:
-            raise ValueError("Stage 1 checkpoint contract mismatch; old feature/model bundles require retraining")
+            raise ValueError("Stage 1 input contract mismatch; regenerate OOF/features and retrain RoBERTa/XGBoost with product title + description + review text")
         if meta.get("feature_columns") != list(FEATURE_COLUMNS) or meta.get("class_order") != list(CLASS_NAMES):
             raise ValueError("XGBoost feature/class order mismatch")
         if absa.get("model_version") != absa_model.MODEL_VERSION or absa.get("taxonomy_version") != TAXONOMY_VERSION or absa.get("aspects") != list(ASPECTS):
@@ -95,25 +95,14 @@ class OnlineInference:
     def run(self, df):
         self.check_artifacts()
 
-        title_col = "product_title" if "product_title" in df else "prod_title"
-        description_col = "product_description" if "product_description" in df else "prod_description"
         text_col = "review_text" if "review_text" in df else "text"
-
-        if not all(c in df.columns for c in (title_col, description_col, text_col)):
-            raise ValueError("product title, description and review cols are ALL required!")
+        if text_col not in df:
+            raise ValueError("review_text or text is required")
 
         results, verdicts = [], []
         for row in df.to_dict("records"):
-            title = row[title_col]
-            description = row[description_col]
             review_text = row[text_col]
-
-            text = " ".join(
-                str(v).strip() for v in (title, description, review_text)
-                if v is not None and str(v).strip()
-            )
-
-            print("TEXT CONCATENATION:", text)
+            text = quality_input_text(row)
 
             urls = row.get("review_image_urls", row.get("image_urls", row.get("image_url")))
 
@@ -123,18 +112,18 @@ class OnlineInference:
             entry = {
                 "id": str(row.get("review_id", row.get("id", ""))),
                 "product_id": str(row.get("product_id", "")),
-                "text": text, "starRating": float(row["star_rating"]), "label": CLASS_NAMES[verdict],
+                "text": review_text, "starRating": float(row["star_rating"]), "label": CLASS_NAMES[verdict],
                 "confidence": round(max(probabilities), 4),
                 "probabilities": dict(zip(CLASS_NAMES, (round(value, 4) for value in probabilities))),
                 "features": {"p_text": dict(zip(CLASS_NAMES, p_text)), "s_clip": similarity, "r_star": rating},
-                "signals": ["Compact development encoder review-text evidence" if self.development_mode else "RoBERTa review-text evidence",
+                "signals": ["Compact development encoder product-context evidence" if self.development_mode else "RoBERTa product-context and buyer-review evidence",
                             "Buyer images omitted in development mode; CLIP score is 0" if self.development_mode else
                             "M-CLIP matched buyer-image similarity" if best else "No usable buyer image; CLIP score is 0",
                             "Normalized star rating"],
                 "bestImageUrl": best,
             }
             if verdict == 0:
-                entry["aspectSentiment"] = self.aspect_sentiment(text)
+                entry["aspectSentiment"] = self.aspect_sentiment(review_text)
 
             results.append(entry)
             verdicts.append(CLASS_NAMES[verdict])

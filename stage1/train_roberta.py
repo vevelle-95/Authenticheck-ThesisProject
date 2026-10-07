@@ -1,4 +1,4 @@
-"""Train the review-only four-class model using shared training/validation products."""
+"""Train quality classification on product title, description, and buyer review."""
 
 import argparse
 import json
@@ -7,7 +7,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from stage1 import config
-from model_contract import CLASS_NAMES, INPUT_VERSION, SEED
+from model_contract import CLASS_NAMES, INPUT_VERSION, SEED, quality_input_text
 from model_data import fingerprint, load_reviews, read_splits
 from model_metrics import classification_metrics
 
@@ -38,7 +38,8 @@ def fit_roberta(train_frame, validation_frame, output, *, base_model=config.BASE
     model.config.review_max_length = max_length
 
     def dataset(frame):
-        encodings = tokenize_reviews(tokenizer, frame.review_text, max_length)
+        texts = [quality_input_text(row) for row in frame.to_dict("records")]
+        encodings = tokenize_reviews(tokenizer, texts, max_length)
         return Dataset.from_dict({**encodings, "labels": frame.label.tolist()})
 
     def metrics(prediction):
@@ -68,6 +69,7 @@ def fit_roberta(train_frame, validation_frame, output, *, base_model=config.BASE
     metadata = {
         "input_version": INPUT_VERSION, "max_length": max_length, "seed": seed,
         "base_model": str(base_model), "epochs": epochs,
+        "text_input": "product_title + product_description + review_text",
         "fit_review_ids": train_frame.review_id.tolist(),
         "validation_review_ids": validation_frame.review_id.tolist() if validating else [],
         "training_sha256": fingerprint(train_frame), "validation_metrics": validation_metrics,
@@ -85,7 +87,9 @@ def predict_probabilities(model, tokenizer, frame, batch_size=16, max_length=Non
     probabilities = []
     for start in range(0, len(frame), batch_size):
         enc = tokenize_reviews(
-            tokenizer, frame.review_text.iloc[start:start + batch_size], max_length, return_tensors="pt",
+            tokenizer,
+            [quality_input_text(row) for row in frame.iloc[start:start + batch_size].to_dict("records")],
+            max_length, return_tensors="pt",
         ).to(next(model.parameters()).device)
         with torch.inference_mode():
             probabilities.extend(torch.softmax(model(**enc).logits, dim=-1).cpu().tolist())
