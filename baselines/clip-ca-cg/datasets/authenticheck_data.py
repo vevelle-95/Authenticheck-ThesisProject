@@ -67,8 +67,6 @@ def load_reviews(path, require_annotations=False):
                 raise ValueError(f'{name} cannot be blank')
     if frame.review_id.duplicated().any():
         raise ValueError('review_id must be unique')
-    if require_annotations and frame.review_text.str.casefold().duplicated().any():
-        raise ValueError('Duplicate review text must be resolved before training')
     if 'product_description' not in frame:
         frame['product_description'] = ''
     frame['image_urls'] = frame.review_image_urls.map(parse_image_urls)
@@ -102,6 +100,16 @@ def read_splits(frame, path):
         raise ValueError('Invalid split coverage')
     if joined.groupby('product_id').partition.nunique().max() != 1:
         raise ValueError('Product leakage between partitions')
+    text_keys = joined.review_text.map(lambda text: ' '.join(text.split()).casefold())
+    if joined.groupby(text_keys).partition.nunique().max() != 1:
+        raise ValueError('Duplicate review text leakage between partitions; regenerate splits in AuthentiCheck')
+    training = joined[joined.partition.eq('train')]
+    if set(training.fold) != set(range(5)) or training.groupby('product_id').fold.nunique().max() != 1:
+        raise ValueError('Invalid or leaking OOF fold assignments')
+    if training.groupby(text_keys.loc[training.index]).fold.nunique().max() != 1:
+        raise ValueError('Duplicate review text leakage between OOF folds; regenerate splits in AuthentiCheck')
+    if not joined.loc[~joined.partition.eq('train'), 'fold'].eq(-1).all():
+        raise ValueError('Validation/test records cannot belong to training folds')
     return joined
 
 

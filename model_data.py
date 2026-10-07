@@ -30,8 +30,6 @@ def load_reviews(path, require_annotations=False):
             raise ValueError(f"{column} cannot be blank")
     if frame.review_id.duplicated().any():
         raise ValueError("review_id must uniquely identify each review")
-    if frame.review_text.str.casefold().duplicated().any():
-        raise ValueError("Duplicate review text must be resolved before partitioning")
     frame["label"] = frame.ground_truth.map(map_quality)
     frame["normalized_rating"] = frame.star_rating.map(normalize_rating)
     frame["image_urls"] = frame.review_image_urls.map(parse_image_urls)
@@ -55,12 +53,39 @@ def fingerprint(frame):
     return hashlib.sha256(json.dumps(records, sort_keys=True, ensure_ascii=False).encode()).hexdigest()
 
 
+def _review_text_keys(frame):
+    """Compare text without case or whitespace differences; preserve source text."""
+    return frame.review_text.map(lambda text: " ".join(text.split()).casefold())
+
+
+def _split_groups(frame):
+    """Join whole products linked by repeated text, including transitive links."""
+    parents = {product: product for product in frame.product_id.unique()}
+
+    def root(product):
+        while parents[product] != product:
+            parents[product] = parents[parents[product]]
+            product = parents[product]
+        return product
+
+    first_product = {}
+    for product, text in zip(frame.product_id, _review_text_keys(frame)):
+        if text in first_product:
+            left, right = root(product), root(first_product[text])
+            if left != right:
+                parents[max(left, right)] = min(left, right)
+        else:
+            first_product[text] = product
+    return frame.product_id.map(root)
+
+
 def _balanced_groups(frame, fractions, seed):
-    """Search seeded group assignments; proportions are approximate at product level."""
-    products = frame.product_id.unique()
-    if len(products) < 3:
-        raise ValueError("At least three distinct products are required for product-disjoint partitions")
-    groups = [frame.index[frame.product_id.eq(product)].to_numpy() for product in products]
+    """Search seeded assignments of independent product/duplicate-text groups."""
+    group_ids = _split_groups(frame)
+    independent_groups = group_ids.unique()
+    if len(independent_groups) < 3:
+        raise ValueError("At least three independent product/duplicate-text groups are required for partitions")
+    groups = [frame.index[group_ids.eq(group)].to_numpy() for group in independent_groups]
     all_counts = np.bincount(frame.label, minlength=4)
     if (all_counts == 0).any():
         raise ValueError("All four review-quality classes are required")
@@ -78,7 +103,8 @@ def _balanced_groups(frame, fractions, seed):
         if any(set(frame.loc[index, "label"]) != {0, 1, 2, 3} for index in indices):
             continue
         train = frame.loc[indices[0]]
-        if train.product_id.nunique() < 5 or train.groupby("label").product_id.nunique().min() < 5:
+        train_groups = group_ids.loc[indices[0]]
+        if train_groups.nunique() < 5 or train_groups.groupby(train.label).nunique().min() < 5:
             continue
         score = sum(
             abs(len(index) / len(frame) - fraction)
@@ -88,7 +114,7 @@ def _balanced_groups(frame, fractions, seed):
         if best is None or score < best[0]:
             best = (score, indices)
     if best is None:
-        raise ValueError("Cannot create class-covered product splits with five OOF folds. More class-diverse product groups are needed; no row-split fallback is permitted.")
+        raise ValueError("Cannot create class-covered product splits with five OOF folds. More class-diverse independent product/duplicate-text groups are needed; no row-split fallback is permitted.")
     return best[1]
 
 
@@ -104,7 +130,7 @@ def prepare_splits(frame, path, seed=SEED):
         assigned.loc[indices, "partition"] = name
     train = assigned.loc[train_index]
     splitter = StratifiedGroupKFold(n_splits=5, shuffle=True, random_state=seed)
-    for fold, (fit, held) in enumerate(splitter.split(train, train.label, train.product_id)):
+    for fold, (fit, held) in enumerate(splitter.split(train, train.label, _split_groups(train))):
         if set(train.iloc[fit].label) != {0, 1, 2, 3}:
             raise ValueError(f"OOF fold {fold} has missing fitting classes; collect more diverse product groups")
         assigned.loc[train.iloc[held].index, "fold"] = fold
@@ -130,9 +156,13 @@ def read_splits(frame, path):
         raise ValueError("Invalid partition coverage")
     if joined.groupby("product_id").partition.nunique().max() != 1:
         raise ValueError("Product leakage between partitions")
+    if joined.groupby(_review_text_keys(joined)).partition.nunique().max() != 1:
+        raise ValueError("Duplicate review text leakage between partitions; regenerate splits")
     training = joined[joined.partition.eq("train")]
     if set(training.fold) != set(range(5)) or training.groupby("product_id").fold.nunique().max() != 1:
         raise ValueError("Invalid or leaking OOF fold assignments")
+    if training.groupby(_review_text_keys(training)).fold.nunique().max() != 1:
+        raise ValueError("Duplicate review text leakage between OOF folds; regenerate splits")
     if not joined.loc[~joined.partition.eq("train"), "fold"].eq(-1).all():
         raise ValueError("Validation/test records cannot belong to training folds")
     return joined
