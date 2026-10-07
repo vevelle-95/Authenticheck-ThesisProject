@@ -79,8 +79,7 @@ class OnlineInference:
             self._absa_tokenizer = AutoTokenizer.from_pretrained(self._absa.tokenizer_dir, local_files_only=True)
         return self._absa, self._absa_tokenizer
 
-    def extract_features(self, product_description, text, image_urls, star_rating):
-        # Description is retained in the API for annotation/reporting, not model input.
+    def extract_features(self, text, image_urls, star_rating):
         features, best, scores = self.extractor.extract(text, image_urls, star_rating)
         return features, features[:4], features[4], features[5], best
 
@@ -114,11 +113,11 @@ class OnlineInference:
                 if v is not None and str(v).strip()
             )
 
+            print("TEXT CONCATENATION:", text)
+
             urls = row.get("review_image_urls", row.get("image_urls", row.get("image_url")))
 
-            features, p_text, similarity, rating, best = self.extract_features(
-                row.get("product_description", ""), text, urls, row.get("star_rating"),
-            )
+            features, p_text, similarity, rating, best = self.extract_features(text, urls, row.get("star_rating"))
 
             verdict, probabilities = self.classify(features)
             entry = {
