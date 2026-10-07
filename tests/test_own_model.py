@@ -475,7 +475,27 @@ class AbsaTests(unittest.TestCase):
         self.assertTrue(all(segment in review for segment in segments))
 
     def test_review_without_boundaries_keeps_the_whole_text(self):
-        self.assertEqual(split_evidence_segments("  sobrang ganda at mura pa  "), ["sobrang ganda at mura pa"])
+        self.assertEqual(split_evidence_segments("  sobrang ganda ng produkto  "), ["sobrang ganda ng produkto"])
+
+    def test_english_run_on_splits_on_connectors(self):
+        review = "great quality and battery lasts long but the price is not worth it"
+        segments = split_evidence_segments(review)
+        self.assertEqual(len(segments), 3)
+        self.assertTrue(all(segment in review for segment in segments))
+        self.assertTrue(all(segment != review for segment in segments))
+
+    def test_filipino_run_on_splits_on_connectors(self):
+        review = "maganda ang produkto at mura pa kaya binili ko agad tapos mabilis ang delivery"
+        segments = split_evidence_segments(review)
+        self.assertEqual(len(segments), 4)
+        self.assertTrue(all(segment in review for segment in segments))
+        self.assertTrue(all(segment != review for segment in segments))
+
+    def test_emoji_separators_split_clauses(self):
+        review = "sobrang ganda ng casing 🥰 malinis ang finish 🔥"
+        segments = split_evidence_segments(review)
+        self.assertEqual(len(segments), 2)
+        self.assertTrue(all(segment in review for segment in segments))
 
 
 class InferenceTests(unittest.TestCase):

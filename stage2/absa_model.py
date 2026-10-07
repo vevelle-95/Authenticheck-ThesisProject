@@ -28,12 +28,14 @@ SENTIMENT_IGNORE = -100
 polarity_index = map_polarity
 SENTENCE_BOUNDARY = re.compile(r"(?<=[.!?…])\s+|\n+")
 CLAUSE_CONNECTOR = re.compile(
-    r"\s+(?:pero|kaso|ngunit|subalit|but|however|yet|although|though|while|kasi|dahil|because|since)\b",
+    r"\s+(?:pero|kaso|kasi|kase|dahil|ngunit|subalit|kaya|tapos|at|bagama't|bagaman|gayunpaman|pagkat|pagka"
+    r"|but|however|yet|although|though|while|because|since|and|then)\b",
     re.IGNORECASE,
 )
-CLAUSE_DELIMITER = re.compile(r"\s*[;|]\s*")
+CLAUSE_DELIMITER = re.compile(
+    r"\s*[;/|•]\s*|[\U0001F300-\U0001FAFF☀-➿⬀-⯿]+",
+)
 CLAUSE_COMMA = re.compile(r"\s*,\s*")
-SHORT_CLAUSE_WORDS = 20
 
 
 def _cut(sentence, pattern, at_end):
@@ -60,13 +62,9 @@ def split_evidence_segments(text):
         sentence = sentence.strip()
         if not sentence:
             continue
-        clauses = _cut(sentence, CLAUSE_CONNECTOR, at_end=False)
-        for clause in clauses:
+        for clause in _cut(sentence, CLAUSE_CONNECTOR, at_end=False):
             for delimited in _cut(clause, CLAUSE_DELIMITER, at_end=True):
-                if len(delimited.split()) > SHORT_CLAUSE_WORDS:
-                    segments.extend(_cut(delimited, CLAUSE_COMMA, at_end=True))
-                else:
-                    segments.append(delimited)
+                segments.extend(_cut(delimited, CLAUSE_COMMA, at_end=True))
     return segments or [str(text).strip()]
 
 
