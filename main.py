@@ -1,10 +1,52 @@
 import os
+import logging
+import time
 from functools import lru_cache
 from typing import Any, Literal
 
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from starlette.middleware.base import BaseHTTPMiddleware
+from starlette.requests import Request
 from pydantic import BaseModel, ConfigDict, Field, HttpUrl, field_validator
+
+# Configure logging
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+)
+logger = logging.getLogger(__name__)
+
+
+class RequestLoggingMiddleware(BaseHTTPMiddleware):
+    async def dispatch(self, request: Request, call_next):
+        # Log incoming request
+        logger.info(f"→ {request.method} {request.url.path}")
+        
+        # Log request body for POST requests
+        if request.method == "POST":
+            try:
+                body = await request.body()
+                if body:
+                    logger.info(f"  Request body size: {len(body)} bytes")
+            except Exception as e:
+                logger.error(f"  Error reading request body: {e}")
+        
+        # Track execution time
+        start_time = time.time()
+        
+        try:
+            response = await call_next(request)
+            process_time = time.time() - start_time
+            
+            # Log response status and timing
+            logger.info(f"← {request.method} {request.url.path} | Status: {response.status_code} | Time: {process_time:.2f}s")
+            
+            return response
+        except Exception as e:
+            process_time = time.time() - start_time
+            logger.error(f"✗ {request.method} {request.url.path} | Error: {str(e)} | Time: {process_time:.2f}s")
+            raise
 
 SCHEMA_VERSION = "1.0"
 MODEL_VERSION = os.getenv("AUTHENTICHECK_MODEL_VERSION", "authenticheck-2.0")
@@ -67,6 +109,9 @@ pipeline = LazyPipeline()
 app = FastAPI(title="AuthentiCheck Backend", version=MODEL_VERSION)
 app.state.model_ready = False
 app.state.model_error = "Models have not been checked."
+
+# Add request logging middleware (must be added before CORS middleware)
+app.add_middleware(RequestLoggingMiddleware)
 
 app.add_middleware(
     CORSMiddleware,

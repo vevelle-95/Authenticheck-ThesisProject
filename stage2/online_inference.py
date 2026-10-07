@@ -109,6 +109,8 @@ class OnlineInference:
                 if v is not None and str(v).strip()
             )
 
+            print("TEXT CONCATENATION:", text)
+
             urls = row.get("review_image_urls", row.get("image_urls", row.get("image_url")))
 
             features, p_text, similarity, rating, best = self.extract_features(text, urls, row.get("star_rating"))
