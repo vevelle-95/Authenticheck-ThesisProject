@@ -1,0 +1,37 @@
+{
+  "input_version": "product-context-six-features-v3-missing-image-zero",
+  "taxonomy_version": "fixed-ten-v1",
+  "sensory_domain_policy": "annotation-guidelines-only",
+  "sentiment_target_policy": "category-polarity-distribution-v1",
+  "aspects": [
+    "product_quality",
+    "functionality",
+    "performance",
+    "design",
+    "aesthetics",
+    "sensory_experience",
+    "value",
+    "packaging",
+    "seller_service",
+    "accuracy_of_description"
+  ],
+  "splits": "C:\\Users\\Acer\\Desktop\\Thesis\\Authenticheck-ThesisProject\\data\\splits_real_v2.json",
+  "test_evaluated": false,
+  "augmentations": "C:\\Users\\Acer\\Desktop\\Thesis\\Authenticheck-ThesisProject\\data\\augmented_reviews.csv",
+  "augmentation_policy": "experimental-unreviewed-training-only-source-product-and-fold-v1",
+  "augmentation_usage": {
+    "approved_rows": 0,
+    "unreviewed_rows": 1948
+  },
+  "model_version": "authenticheck-2.1",
+  "quality_text_input": "product_title + product_description + review_text",
+  "absa_text_input": "review_text",
+  "environment": {
+    "torch": "2.14.0",
+    "transformers": "5.17.0",
+    "datasets": "5.0.1",
+    "scikit-learn": "1.9.1",
+    "xgboost": "3.2.0",
+    "sentence-transformers": "6.1.0"
+  }
+}

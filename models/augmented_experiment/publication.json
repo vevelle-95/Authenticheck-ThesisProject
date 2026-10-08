@@ -1,0 +1,101 @@
+{
+  "published_at": "2026-10-08T09:10:39+08:00",
+  "source_code_commit": "c82b8c38ddc6509cfcb17ebeff936d750c228287",
+  "verification": {
+    "checked_at": "2026-10-08T09:10:35+08:00",
+    "checks": [
+      "complete final artifacts",
+      "training provenance",
+      "local CPU RoBERTa/XGBoost inference",
+      "local CPU ABSA inference"
+    ],
+    "augmentation_usage": {
+      "approved_rows": 0,
+      "unreviewed_rows": 1948
+    },
+    "test_set_evaluated": false,
+    "images_tested": false,
+    "smoke_quality_class_index": 2,
+    "smoke_aspect_count": 3
+  },
+  "files": [
+    {
+      "path": "absa_model/absa_config.json",
+      "bytes": 647,
+      "sha256": "0ebdffc474b0af47c6f69bd0e903001acaec4bd97c3116adfc1794bd1fc19624"
+    },
+    {
+      "path": "absa_model/encoder/config.json",
+      "bytes": 746,
+      "sha256": "212eeb5a7a41f90b2664523c7e55135da7b5165fa220052941b29ab2a57de7c8"
+    },
+    {
+      "path": "absa_model/model.pt",
+      "bytes": 436433159,
+      "sha256": "ae6bde5ddb9a5026e5f584ee418132ca34c275563f7a41641f1a33fec9e1c933"
+    },
+    {
+      "path": "absa_model/tokenizer/tokenizer.json",
+      "bytes": 2109591,
+      "sha256": "d714a94e36fbaf988a415cbe8579ab02f757397c39ec21e44112de56553fe4b2"
+    },
+    {
+      "path": "absa_model/tokenizer/tokenizer_config.json",
+      "bytes": 433,
+      "sha256": "54543c393ddee61f06ca6147fd67341997730cb308b738a3b2d015e9efc8f41d"
+    },
+    {
+      "path": "absa_model/training_metadata.json",
+      "bytes": 25815,
+      "sha256": "776e789a78aa204ff2689d04ba2eba5281ef47c9fc2c3924bb5917e6abc1b2e1"
+    },
+    {
+      "path": "dost_roberta/config.json",
+      "bytes": 1133,
+      "sha256": "1e878f20cd6db2ff3a36b9db0b075105a7ee0147c68c45975aa81d652e732e29"
+    },
+    {
+      "path": "dost_roberta/model.safetensors",
+      "bytes": 436361808,
+      "sha256": "6753ac7f76c0ba4198699e1007ecfb1decc63408257e1821022a6a3a14940294"
+    },
+    {
+      "path": "dost_roberta/tokenizer.json",
+      "bytes": 2109593,
+      "sha256": "731ac2e063fbc37f482a9b4d94867fb04a883f1d5eb974030b427351d76591b7"
+    },
+    {
+      "path": "dost_roberta/tokenizer_config.json",
+      "bytes": 433,
+      "sha256": "54543c393ddee61f06ca6147fd67341997730cb308b738a3b2d015e9efc8f41d"
+    },
+    {
+      "path": "dost_roberta/training_metadata.json",
+      "bytes": 102481,
+      "sha256": "270f64fdd74de6ab418f3328d0cfee20a86a79de8380fe79fe334b47ed7d2ea7"
+    },
+    {
+      "path": "manifest.json",
+      "bytes": 1260,
+      "sha256": "ea68e69e5fdc8f4dabe87fe621029978419bdf4b3bd50c35ec27097a2e28c1e4"
+    },
+    {
+      "path": "xgboost_meta_classifier.json",
+      "bytes": 662654,
+      "sha256": "061df9f705218fadcbff92a69cdc97d55598e0cc7842b5b0a25770e1d8e971ef"
+    },
+    {
+      "path": "xgboost_meta_classifier.metadata.json",
+      "bytes": 108052,
+      "sha256": "f35f2a7469fa20f6fdc8ed3360b868154d86b8b4f26430803488fa837f5675cb"
+    }
+  ],
+  "pretrained_clip": "M-CLIP is downloaded by stage1/features.py; it was not fine-tuned or bundled",
+  "excluded": [
+    "OOF fold weights",
+    "optimizer/intermediate checkpoints",
+    "training_args.bin",
+    "feature CSVs",
+    "image/model caches"
+  ]
+}

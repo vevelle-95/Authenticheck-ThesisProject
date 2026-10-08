@@ -1236,3 +1236,26 @@ exact reproduction of the paper's reported experiments.
 Starting repository: [charlesczar/CLIP-CA-CG-model](https://github.com/charlesczar/CLIP-CA-CG-model),
 commit `fa5cf5dc36cf278c57c2eb2a25bb217c5ca92e56`.
 Architecture reference: [Lu et al. (2024)](https://thesai.org/Downloads/Volume15No2/Paper_90-Cross_Modal_Sentiment_Analysis_Based_on_CLIP_Image.pdf).
+
+
+<!-- published-augmented-experiment-bundle -->
+
+## Download the completed experimental AuthentiCheck bundle
+
+The final inference bundle is tracked under `models/augmented_experiment/` using Git LFS.
+It includes RoBERTa, XGBoost, ABSA, their tokenizers/configurations and provenance.
+OOF fold weights and intermediate checkpoints are not needed for inference.
+The model was trained with unreviewed synthetic drafts; `publication.json` records
+verification and dataset provenance. Publishing is not a final test evaluation.
+
+Run from the repository root after pulling:
+
+```powershell
+git lfs install
+git lfs pull --include="models/augmented_experiment/**"
+$env:AUTHENTICHECK_MODEL_BUNDLE = "models/augmented_experiment"
+.\.venv\Scripts\python.exe -m uvicorn main:app --host 127.0.0.1 --port 8000
+```
+
+The API loads the selected bundle when it starts. Frozen multilingual CLIP models
+are downloaded separately on first use; no CLIP fine-tuning weights were produced.

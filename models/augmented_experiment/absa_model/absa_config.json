@@ -1,0 +1,28 @@
+{
+  "model_version": "fixed-category-v2",
+  "taxonomy_version": "fixed-ten-v1",
+  "sensory_domain_policy": "annotation-guidelines-only",
+  "sentiment_target_policy": "category-polarity-distribution-v1",
+  "aspects": [
+    "product_quality",
+    "functionality",
+    "performance",
+    "design",
+    "aesthetics",
+    "sensory_experience",
+    "value",
+    "packaging",
+    "seller_service",
+    "accuracy_of_description"
+  ],
+  "polarities": [
+    "Negative",
+    "Neutral",
+    "Positive"
+  ],
+  "encoder": "dost-asti/RoBERTa-tl-cased",
+  "hidden_size": 768,
+  "dropout": 0.1,
+  "threshold": 0.15,
+  "max_length": 128
+}

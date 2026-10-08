@@ -99,3 +99,10 @@ desktop.ini
 *.bak
 *.swp
 ~$*
+
+# Published final AuthentiCheck experimental bundle (Git LFS weights)
+!/models/augmented_experiment/
+!/models/augmented_experiment/**
+/models/augmented_experiment/oof/
+/models/augmented_experiment/**/checkpoints/
+/models/augmented_experiment/**/training_args.bin
