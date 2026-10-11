@@ -22,7 +22,7 @@ def tokenize_reviews(tokenizer, texts, max_length=MAX_LENGTH, **kwargs):
 
 def fit_roberta(train_frame, validation_frame, output, *, base_model=BASE_MODEL,
                 epochs=EPOCHS, batch_size=BATCH_SIZE, learning_rate=LEARNING_RATE,
-                max_length=MAX_LENGTH, seed=SEED):
+                max_length=MAX_LENGTH, seed=SEED, low_memory=False):
     import torch
     from datasets import Dataset
     from transformers import AutoModelForSequenceClassification, AutoTokenizer, Trainer, TrainingArguments, set_seed
@@ -40,6 +40,11 @@ def fit_roberta(train_frame, validation_frame, output, *, base_model=BASE_MODEL,
     )
     model.config.input_contract_version = INPUT_VERSION
     model.config.review_max_length = max_length
+    if low_memory:
+        model.config.use_cache = False
+    memory_options = {"gradient_checkpointing": True,
+        "gradient_checkpointing_kwargs": {"use_reentrant": False},
+        "fp16": torch.cuda.is_available(), "optim": "adafactor"} if low_memory else {}
 
     def dataset(frame):
         texts = [quality_input_text(row) for row in frame.to_dict("records")]
@@ -60,12 +65,20 @@ def fit_roberta(train_frame, validation_frame, output, *, base_model=BASE_MODEL,
         load_best_model_at_end=validating, metric_for_best_model="macro_f1",
         greater_is_better=True, use_cpu=not torch.cuda.is_available(), seed=seed, data_seed=seed,
         report_to="none", dataloader_pin_memory=torch.cuda.is_available(),
+        **memory_options,
     )
     trainer = Trainer(
         model=model, args=arguments, train_dataset=dataset(train_frame),
         eval_dataset=dataset(validation_frame) if validating else None,
         processing_class=tokenizer, compute_metrics=metrics,
     )
+    output.mkdir(parents=True, exist_ok=True)
+    run_metadata = {"input_version": INPUT_VERSION, "training_sha256": fingerprint(train_frame),
+        "validation_sha256": fingerprint(validation_frame) if validating else None,
+        "epochs": epochs, "batch_size": batch_size, "max_length": max_length,
+        "seed": seed, "base_model": str(base_model), "low_memory_training": low_memory,
+        "fp16": low_memory and torch.cuda.is_available()}
+    (output / "run_metadata.json").write_text(json.dumps(run_metadata, indent=2), encoding="utf-8")
     trainer.train()
     trainer.save_model(str(output))
     tokenizer.save_pretrained(output)
@@ -74,6 +87,8 @@ def fit_roberta(train_frame, validation_frame, output, *, base_model=BASE_MODEL,
         "augmentation_usage": augmentation_summary(train_frame),
         "input_version": INPUT_VERSION, "max_length": max_length, "seed": seed,
         "base_model": str(base_model), "epochs": epochs,
+        "low_memory_training": low_memory, "fp16": low_memory and torch.cuda.is_available(),
+        "optimizer": "adafactor" if low_memory else "adamw_torch",
         "text_input": "product_title + product_description + review_text",
         "fit_review_ids": train_frame.review_id.tolist(),
         "validation_review_ids": validation_frame.review_id.tolist() if validating else [],
@@ -115,13 +130,17 @@ def main():
     parser.add_argument("--epochs", type=int, default=EPOCHS)
     parser.add_argument("--batch-size", type=int, default=BATCH_SIZE)
     parser.add_argument("--max-length", type=int, default=MAX_LENGTH)
+    parser.add_argument("--low-memory", action="store_true")
+    parser.add_argument("--gpu-memory-gb", type=float)
     args = parser.parse_args()
+    from gpu_memory import configure_gpu_memory
+    configure_gpu_memory(args.gpu_memory_gb)
     assigned = load_experiment(args.data, args.splits, args.augmentations,
                                allow_unreviewed=args.allow_unreviewed_augmentations)
     fit_roberta(
         assigned[assigned.partition.eq("train")], assigned[assigned.partition.eq("validation")],
         args.output, base_model=args.base_model, epochs=args.epochs,
-        batch_size=args.batch_size, max_length=args.max_length,
+        batch_size=args.batch_size, max_length=args.max_length, low_memory=args.low_memory,
     )
     print(f"Saved validation-selected RoBERTa to {args.output}; test products were not used.")
 

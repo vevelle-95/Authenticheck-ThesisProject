@@ -19,7 +19,8 @@ ROOT = Path(__file__).resolve().parent
 
 
 def run_script(script, *arguments):
-    subprocess.run([sys.executable, str(ROOT / script), *map(str, arguments)], cwd=ROOT, check=True)
+    print(f"Starting {script}", flush=True)
+    subprocess.run([sys.executable, "-u", str(ROOT / script), *map(str, arguments)], cwd=ROOT, check=True)
 
 
 def main():
@@ -36,6 +37,9 @@ def main():
     parser.add_argument("--max-length", type=int, default=MAX_LENGTH)
     parser.add_argument("--prepare-only", action="store_true")
     parser.add_argument("--validate-only", action="store_true")
+    parser.add_argument("--low-memory", action="store_true", help="Activation checkpointing, Adafactor, CUDA FP16")
+    parser.add_argument("--start-at", choices=("oof", "roberta", "features", "xgboost", "absa"), default="oof")
+    parser.add_argument("--gpu-memory-gb", type=float, help="VRAM target in decimal GB; reserves 0.3 GB for CUDA overhead")
     args = parser.parse_args()
     if args.allow_unreviewed_augmentations and not args.augmentations:
         parser.error("--allow-unreviewed-augmentations requires --augmentations")
@@ -70,15 +74,23 @@ def main():
     if args.allow_unreviewed_augmentations:
         common += ["--allow-unreviewed-augmentations"]
     fitting = ["--epochs", args.epochs, "--batch-size", args.batch_size, "--max-length", args.max_length]
-    run_script("stage1/generate_oof_features.py", *common, *fitting, "--base-model", args.base_model,
+    if args.low_memory:
+        fitting.append("--low-memory")
+    stages = ("oof", "roberta", "features", "xgboost", "absa")
+    def run_stage(stage, script, *arguments):
+        if stages.index(stage) >= stages.index(args.start_at):
+            if args.gpu_memory_gb is not None and stage != "xgboost":
+                arguments = (*arguments, "--gpu-memory-gb", args.gpu_memory_gb)
+            run_script(script, *arguments)
+    run_stage("oof", "stage1/generate_oof_features.py", *common, *fitting, "--base-model", args.base_model,
                "--output", work / "oof_probabilities.csv", "--fold-dir", bundle / "oof")
-    run_script("stage1/train_roberta.py", *common, *fitting, "--base-model", args.base_model,
+    run_stage("roberta", "stage1/train_roberta.py", *common, *fitting, "--base-model", args.base_model,
                "--output", bundle / "dost_roberta")
-    run_script("stage1/extract_6d_features.py", *common, "--oof", work / "oof_probabilities.csv",
+    run_stage("features", "stage1/extract_6d_features.py", *common, "--oof", work / "oof_probabilities.csv",
                "--model", bundle / "dost_roberta", "--output", work / "6d_features.csv")
-    run_script("stage2/train_xgboost.py", *common, "--features", work / "6d_features.csv",
+    run_stage("xgboost", "stage2/train_xgboost.py", *common, "--features", work / "6d_features.csv",
                "--output", bundle / "xgboost_meta_classifier.json")
-    run_script("stage2/fine_tune_absa.py", *common, *fitting, "--encoder", args.base_model,
+    run_stage("absa", "stage2/fine_tune_absa.py", *common, *fitting, "--encoder", args.base_model,
                "--output", bundle / "absa_model")
     bundle.mkdir(parents=True, exist_ok=True)
     (bundle / "manifest.json").write_text(json.dumps({
@@ -86,7 +98,7 @@ def main():
         "sensory_domain_policy": SENSORY_POLICY,
         "sentiment_target_policy": SENTIMENT_TARGET_POLICY,
         "aspects": list(ASPECTS), "splits": str(Path(args.splits).resolve()),
-        "test_evaluated": False,
+        "test_evaluated": False, "low_memory_training": args.low_memory, "gpu_memory_target_gb": args.gpu_memory_gb,
         "augmentations": args.augmentations,
         "augmentation_policy": ("experimental-unreviewed-training-only-source-product-and-fold-v1"
                                 if args.allow_unreviewed_augmentations else "approved-training-only-source-product-and-fold-v1"),

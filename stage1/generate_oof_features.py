@@ -19,7 +19,7 @@ from model_data import fingerprint, load_experiment
 
 def generate_oof(assigned, output, fold_dir, *, base_model=BASE_MODEL,
                  epochs=EPOCHS, batch_size=BATCH_SIZE, max_length=MAX_LENGTH,
-                 fit=fit_roberta, predict=predict_probabilities):
+                 fit=fit_roberta, predict=predict_probabilities, low_memory=False):
     training = assigned[assigned.partition.eq("train")].copy()
     if set(training.fold) != set(range(5)):
         raise ValueError("Five saved training folds are required")
@@ -33,8 +33,10 @@ def generate_oof(assigned, output, fold_dir, *, base_model=BASE_MODEL,
         model, tokenizer = fit(
             fitting, None, Path(fold_dir) / f"fold_{fold}", base_model=base_model,
             epochs=epochs, batch_size=batch_size, max_length=max_length, seed=SEED,
+            **({"low_memory": True} if low_memory else {}),
         )
-        values = predict(model, tokenizer, held)
+        gc.collect()
+        values = predict(model, tokenizer, held, batch_size=batch_size) if low_memory else predict(model, tokenizer, held)
         if np.asarray(values).shape != (len(held), 4):
             raise ValueError("OOF predictor returned an unexpected shape")
         for record, probabilities in zip(held.to_dict("records"), values):
@@ -51,6 +53,9 @@ def generate_oof(assigned, output, fold_dir, *, base_model=BASE_MODEL,
         })
         del model, tokenizer
         gc.collect()
+        import torch
+        if torch.cuda.is_available():
+            torch.cuda.empty_cache()
     frame = pd.DataFrame(rows)
     if frame.review_id.duplicated().any() or set(frame.review_id) != set(training.review_id):
         raise ValueError("Every training review must receive exactly one OOF prediction")
@@ -76,11 +81,15 @@ def main():
     parser.add_argument("--epochs", type=int, default=EPOCHS)
     parser.add_argument("--batch-size", type=int, default=BATCH_SIZE)
     parser.add_argument("--max-length", type=int, default=MAX_LENGTH)
+    parser.add_argument("--low-memory", action="store_true")
+    parser.add_argument("--gpu-memory-gb", type=float)
     args = parser.parse_args()
+    from gpu_memory import configure_gpu_memory
+    configure_gpu_memory(args.gpu_memory_gb)
     assigned = load_experiment(args.data, args.splits, args.augmentations,
                                allow_unreviewed=args.allow_unreviewed_augmentations)
     generate_oof(assigned, args.output, args.fold_dir, base_model=args.base_model,
-                 epochs=args.epochs, batch_size=args.batch_size, max_length=args.max_length)
+                 epochs=args.epochs, batch_size=args.batch_size, max_length=args.max_length, low_memory=args.low_memory)
 
 
 if __name__ == "__main__":

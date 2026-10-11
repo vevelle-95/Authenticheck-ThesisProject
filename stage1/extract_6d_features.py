@@ -3,6 +3,7 @@
 import argparse
 import json
 import sys
+import time
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
@@ -52,7 +53,10 @@ def build_features(assigned, oof_path, output, model_dir, extractor=None):
     extractor = extractor or FeatureExtractor(model_dir)
     lookup = aligned.set_index("review_id")
     records = []
-    for row in assigned[assigned.partition.ne("test")].to_dict("records"):
+    source = assigned[assigned.partition.ne("test")].to_dict("records")
+    started = time.monotonic()
+    print(f"Feature extraction: 0/{len(source)} reviews", flush=True)
+    for index, row in enumerate(source, 1):
         probabilities = lookup.loc[row["review_id"], list(FEATURE_COLUMNS[:4])].tolist() if row["partition"] == "train" else None
         features, best, scores = extractor.extract(
             quality_input_text(row), row["image_urls"], row["star_rating"], probabilities,
@@ -64,6 +68,10 @@ def build_features(assigned, oof_path, output, model_dir, extractor=None):
             **dict(zip(FEATURE_COLUMNS, features)), "best_image_url": best,
             "image_scores": json.dumps(scores),
         })
+        if index == 1 or index % 10 == 0 or index == len(source):
+            elapsed = time.monotonic() - started
+            remaining = elapsed / index * (len(source) - index)
+            print(f"Feature extraction: {index}/{len(source)}, elapsed={elapsed / 60:.1f}m, estimated remaining={remaining / 60:.1f}m", flush=True)
     output = Path(output)
     output.parent.mkdir(parents=True, exist_ok=True)
     pd.DataFrame(records).to_csv(output, index=False)
@@ -82,7 +90,10 @@ def main():
     parser.add_argument("--oof", default=str(DEFAULT_OOF_PATH))
     parser.add_argument("--output", default=str(DEFAULT_FEATURES_PATH))
     parser.add_argument("--model", default=str(DEFAULT_ROBERTA_DIR))
+    parser.add_argument("--gpu-memory-gb", type=float)
     args = parser.parse_args()
+    from gpu_memory import configure_gpu_memory
+    configure_gpu_memory(args.gpu_memory_gb)
     assigned = load_experiment(args.data, args.splits, args.augmentations,
                                allow_unreviewed=args.allow_unreviewed_augmentations)
     result = build_features(assigned, args.oof, args.output, args.model)

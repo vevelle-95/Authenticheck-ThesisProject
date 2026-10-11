@@ -71,11 +71,12 @@ def select_threshold(targets, probabilities, eligible):
 
 
 @torch.inference_mode()
-def evaluate_loader(model, loader, device, tune=False):
+def evaluate_loader(model, loader, device, tune=False, fp16=False):
     model.eval()
     target_rows, probabilities, eligible_rows, sentiment_targets, sentiment_predictions = [], [], [], [], []
     for batch in loader:
-        logits, sentiments, targets, polarities, eligible = batch_forward(model, batch, device)
+        with torch.autocast(device_type=device.type, dtype=torch.float16, enabled=fp16):
+            logits, sentiments, targets, polarities, eligible = batch_forward(model, batch, device)
         target_rows.extend(targets.cpu().tolist())
         probabilities.extend(torch.sigmoid(logits).cpu().tolist())
         eligible_rows.extend(eligible.cpu().tolist())
@@ -94,7 +95,7 @@ def evaluate_loader(model, loader, device, tune=False):
 
 
 def train_absa(assigned, output, *, encoder=BASE_MODEL, epochs=EPOCHS, batch_size=BATCH_SIZE,
-               learning_rate=LEARNING_RATE, max_length=absa_model.ABSA_MAX_LENGTH):
+               learning_rate=LEARNING_RATE, max_length=absa_model.ABSA_MAX_LENGTH, low_memory=False):
     if epochs < 1 or batch_size < 1:
         raise ValueError("epochs and batch_size must be positive")
     training = assigned[assigned.partition.eq("train") & assigned.label.eq(0)]
@@ -110,20 +111,35 @@ def train_absa(assigned, output, *, encoder=BASE_MODEL, epochs=EPOCHS, batch_siz
     val_loader = DataLoader(val_dataset, batch_size=batch_size)
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     model = absa_model.ABSAHeadModel(encoder, max_length=max_length).to(device)
-    optimizer = torch.optim.AdamW(model.parameters(), lr=learning_rate)
+    fp16 = low_memory and device.type == "cuda"
+    if low_memory:
+        model.encoder.config.use_cache = False
+        model.encoder.gradient_checkpointing_enable(gradient_checkpointing_kwargs={"use_reentrant": False})
+        from transformers import Adafactor
+        optimizer = Adafactor(model.parameters(), lr=learning_rate, relative_step=False,
+                              scale_parameter=False, warmup_init=False)
+    else:
+        optimizer = torch.optim.AdamW(model.parameters(), lr=learning_rate)
+    scaler = torch.amp.GradScaler("cuda", enabled=fp16)
     history, best = [], float("-inf")
     for epoch in range(epochs):
         model.train()
         losses = []
-        for batch in train_loader:
+        print(f"ABSA epoch {epoch + 1}/{epochs}: {len(train_loader)} batches", flush=True)
+        for step, batch in enumerate(train_loader, 1):
             optimizer.zero_grad()
-            logits, sentiments, targets, polarities, eligible = batch_forward(model, batch, device)
-            loss = model.compute_loss(logits, sentiments, targets, polarities, eligible)
-            loss.backward()
+            with torch.autocast(device_type=device.type, dtype=torch.float16, enabled=fp16):
+                logits, sentiments, targets, polarities, eligible = batch_forward(model, batch, device)
+                loss = model.compute_loss(logits, sentiments, targets, polarities, eligible)
+            scaler.scale(loss).backward()
+            scaler.unscale_(optimizer)
             torch.nn.utils.clip_grad_norm_(model.parameters(), 1.0)
-            optimizer.step()
+            scaler.step(optimizer)
+            scaler.update()
             losses.append(float(loss.detach()))
-        metrics = evaluate_loader(model, val_loader, device, tune=True)
+            if step == 1 or step % 50 == 0 or step == len(train_loader):
+                print(f"ABSA epoch {epoch + 1}/{epochs}: batch {step}/{len(train_loader)}, loss={losses[-1]:.4f}", flush=True)
+        metrics = evaluate_loader(model, val_loader, device, tune=True, fp16=fp16)
         sentiment_f1 = metrics["sentiment"]["macro_f1"]
         if sentiment_f1 is None:
             raise ValueError("Validation needs annotated Authentic review/category polarity instances")
@@ -139,6 +155,8 @@ def train_absa(assigned, output, *, encoder=BASE_MODEL, epochs=EPOCHS, batch_siz
     Path(output, "training_metadata.json").write_text(json.dumps({
         "augmentation_usage": augmentation_summary(training),
         "dataset_sha256": fingerprint(assigned), "seed": SEED,
+        "low_memory_training": low_memory, "fp16": fp16,
+        "optimizer": "adafactor" if low_memory else "adamw",
         "sensory_domain_policy": SENSORY_POLICY,
         "sentiment_target_policy": SENTIMENT_TARGET_POLICY,
         "fit_review_ids": training.review_id.tolist(), "validation_review_ids": validation.review_id.tolist(),
@@ -162,7 +180,11 @@ def main():
     parser.add_argument("--max-length", type=int, default=absa_model.ABSA_MAX_LENGTH)
     parser.add_argument("--authentic-only", action="store_true", help="Accepted for compatibility; ABSA always trains on ground-truth Authentic reviews")
     parser.add_argument("--eval-only", action="store_true", help="Evaluate validation only; final testing uses evaluate_models.py")
+    parser.add_argument("--low-memory", action="store_true")
+    parser.add_argument("--gpu-memory-gb", type=float)
     args = parser.parse_args()
+    from gpu_memory import configure_gpu_memory
+    configure_gpu_memory(args.gpu_memory_gb)
     assigned = load_experiment(args.data, args.splits, args.augmentations, require_annotations=True,
                                allow_unreviewed=args.allow_unreviewed_augmentations)
     if args.eval_only:
@@ -173,7 +195,7 @@ def main():
         print(json.dumps(evaluate_loader(model, loader, torch.device("cpu")), indent=2))
     else:
         train_absa(assigned, args.output, encoder=args.encoder, epochs=args.epochs,
-                   batch_size=args.batch_size, max_length=args.max_length)
+                   batch_size=args.batch_size, max_length=args.max_length, low_memory=args.low_memory)
 
 
 if __name__ == "__main__":

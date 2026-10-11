@@ -184,3 +184,39 @@ For baseline API startup and the frontend developer handoff, see
 [run the APIs and connect the frontend](docs/PROJECT_GUIDE.md#6-run-the-apis-and-connect-the-frontend).
 The [browser extraction rules](docs/PROJECT_GUIDE.md#7-browser-extraction-and-interface-behavior)
 are in the same guide.
+
+### GPU training with a 3 GB target
+
+Use the CUDA environment and the original compiled dataset. Start v3 in fresh folders; v2 weights/OOF predictions do not match the v3 input contract. Approved augmentations remain optional; this command does not add augmentation data.
+
+```powershell
+$env:OMP_NUM_THREADS='2'
+$env:MKL_NUM_THREADS='2'
+$env:PYTHONFAULTHANDLER='1'
+.\.venv-gpu\Scripts\python.exe -u pipeline.py --data data/compiled_v1/cleaned.csv --splits data/compiled_v1/splits.json --output models/own_model_v3_gpu --work-dir data/training_v3_gpu --epochs 3 --batch-size 1 --max-length 128 --low-memory --gpu-memory-gb 3
+```
+
+The GPU target reserves 0.3 GB for CUDA overhead and caps each PyTorch allocator at 2.7 GB. It is not a global GPU memory limit; CUDA overhead and other applications can vary. A budget exhaustion raises an error rather than automatically enlarging the allocator. Run `scripts/check_gpu_training.py --gpu-memory-gb 3` before a long experiment.
+
+The pipeline prints stage starts; feature extraction prints every 10 reviews and ABSA every 50 batches. `--start-at features` skips completed neural quality stages only when their dataset/input-compatible artifacts already exist. Following a crash after final RoBERTa epochs, `scripts/recover_finished_roberta.py --data ... --splits ... --output models/own_model_v3_gpu/dost_roberta` validates saved run provenance and exports the validation-selected checkpoint.
+
+After completion, run `scripts/serve_local.py --bundle models/own_model_v3_gpu --check`, then omit `--check` to serve on port 8000. Stop any existing API on that port first.
+
+### User-supplied system test cases
+
+The 64 cases in `data/samples/authenticheck-test-cases.json` cover quality labels, aspect sentiment, language variation, and malformed inputs. They are diagnostic expectations, separate from training and held-out benchmark data. The source's missing NaN rating is represented as valid JSON null. Missing text, missing rating, and an invalid photo URL are expected API rejections (HTTP 422).
+
+Validate the fixture without a running service:
+
+```powershell
+.\.venv-gpu\Scripts\python.exe scripts/run_supplied_test_cases.py --validate-only
+.\.venv-gpu\Scripts\python.exe -m unittest discover -s tests -p test_supplied_cases.py
+```
+
+Once `http://127.0.0.1:8000/ready` reports ready, run:
+
+```powershell
+.\.venv-gpu\Scripts\python.exe -u scripts/run_supplied_test_cases.py
+```
+
+Results are written to `reports/generated/supplied_test_cases_results.json`, with quality and aspect/sentiment matches, HTTP errors, model versions, and borderline-case notes. Product descriptions longer than the API's 2,000-character limit are truncated only in transport and flagged in the report; original fixture descriptions are preserved. Missing text/images and rating are never fabricated. API success checks test transport; actual model mismatches are reported rather than assumed to pass.
