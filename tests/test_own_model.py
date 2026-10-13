@@ -14,12 +14,12 @@ from transformers import BatchEncoding
 
 from model_contract import (
     ASPECTS, CLASS_NAMES, FEATURE_COLUMNS, INPUT_VERSION, map_quality, normalize_rating,
-    parse_annotations, parse_image_urls, quality_input_text,
+    parse_annotations, parse_image_urls, quality_input_pairs, quality_input_parts, quality_input_text,
 )
 from model_data import fingerprint, load_experiment, load_reviews, prepare_splits, read_splits
 from training_augmentation import AUGMENTATION_COLUMNS, append_augmentations
 from stage1.generate_oof_features import generate_oof
-from stage1.train_roberta import predict_probabilities
+from stage1.train_roberta import predict_probabilities, tokenize_reviews
 from stage1.features import FeatureExtractor
 from stage2.absa_model import ABSAHeadModel, split_evidence_segments, tokenize_sentiment
 from stage2.fine_tune_absa import batch_forward, build_targets, detection_metrics, select_threshold
@@ -73,6 +73,23 @@ class FakeEncoder(nn.Module):
         return SimpleNamespace(last_hidden_state=self.embedding(input_ids))
 
 
+def quality_test_tokenizer():
+    from tokenizers import Tokenizer
+    from tokenizers.models import WordLevel
+    from tokenizers.pre_tokenizers import WhitespaceSplit
+    from tokenizers.processors import TemplateProcessing
+    from transformers import PreTrainedTokenizerFast
+    words = "good bad title description matibay sira foam cleanser Product 0 Advertised quality and value class".split()
+    vocabulary = {"<pad>": 0, "<s>": 1, "</s>": 2, "<unk>": 3}
+    vocabulary.update({word: index + 4 for index, word in enumerate(dict.fromkeys(words))})
+    backend = Tokenizer(WordLevel(vocabulary, unk_token="<unk>"))
+    backend.pre_tokenizer = WhitespaceSplit()
+    backend.post_processor = TemplateProcessing(single="<s> $A </s>", pair="<s> $A </s> </s> $B </s>",
+                                                special_tokens=[("<s>", 1), ("</s>", 2)])
+    return PreTrainedTokenizerFast(tokenizer_object=backend, pad_token="<pad>", bos_token="<s>",
+                                   eos_token="</s>", unk_token="<unk>", model_max_length=128)
+
+
 class ContractTests(unittest.TestCase):
     def test_quality_context_uses_listing_text_but_never_targets(self):
         row = {
@@ -80,12 +97,12 @@ class ContractTests(unittest.TestCase):
             "review_text": "  Matibay\tang casing  ", "ground_truth": "deceptive",
             "text_label": "irrelevant", "aspect_annotations": "positive", "star_rating": 5,
         }
-        self.assertEqual(quality_input_text(row), "Phone case Matte finish Matibay ang casing")
-        self.assertEqual(quality_input_text({"text": "Matibay."}), "Matibay.")
+        self.assertEqual(quality_input_parts(quality_input_text(row)), ("Matibay ang casing", "Phone case", "Matte finish"))
+        self.assertEqual(quality_input_parts(quality_input_text({"text": "Matibay."})), ("Matibay.", "", ""))
         self.assertEqual(quality_input_text({"prod_title": "Case", "prod_description": "", "text": "Matibay."}),
-                         "Case Matibay.")
+                         "Review: Matibay.\nProduct title: Case\nProduct description: ")
         self.assertEqual(quality_input_text({"product_title": float("nan"), "product_description": None,
-                                            "review_text": "Matibay."}), "Matibay.")
+                                            "review_text": "Matibay."}), "Review: Matibay.\nProduct title: \nProduct description: ")
         with self.assertRaisesRegex(ValueError, "Review text"):
             quality_input_text({"product_title": "A title", "review_text": " "})
 
@@ -99,12 +116,14 @@ class ContractTests(unittest.TestCase):
             def forward(self, input_ids, attention_mask):
                 return SimpleNamespace(logits=torch.zeros(len(input_ids), 4))
 
-        tokenizer = FakeTokenizer()
+        from unittest.mock import patch
+        tokenizer = quality_test_tokenizer()
         frame = fixture_frame(1)
-        probabilities = predict_probabilities(QualityEncoder(), tokenizer, frame, batch_size=2)
-        encoded = [text for first, _, _ in tokenizer.calls for text in first]
+        with patch("stage1.train_roberta.tokenize_reviews", wraps=tokenize_reviews) as tokenize:
+            probabilities = predict_probabilities(QualityEncoder(), tokenizer, frame, batch_size=2)
+        encoded = [text for call in tokenize.call_args_list for text in call.args[1]]
         self.assertEqual(encoded, [quality_input_text(row) for row in frame.to_dict("records")])
-        self.assertTrue(all(text.startswith("Product 0 Advertised quality and value ") for text in encoded))
+        self.assertTrue(all(text.startswith("Review: ") for text in encoded))
         self.assertEqual(probabilities.shape, (4, 4))
 
     def test_identifiers_preserve_leading_zeroes(self):
@@ -212,6 +231,99 @@ class ContractTests(unittest.TestCase):
             frame.to_csv(path, index=False)
             with self.assertRaisesRegex(ValueError, "uniquely"):
                 load_reviews(path)
+
+
+class ReviewBudgetTests(unittest.TestCase):
+    def input(self, review="matibay good"):
+        return quality_input_text({"product_title": "title " * 200,
+                                   "product_description": "description " * 500, "review_text": review})
+
+    def test_long_listing_preserves_review_and_both_context_fields(self):
+        tokenizer = quality_test_tokenizer()
+        encoded = tokenize_reviews(tokenizer, [self.input("matibay good"), self.input("sira bad")], 128)
+        first, second = [tokenizer.decode(ids, skip_special_tokens=True) for ids in encoded["input_ids"]]
+        self.assertTrue(first.startswith("matibay good"))
+        self.assertTrue(second.startswith("sira bad"))
+        self.assertIn("title", first)
+        self.assertIn("description", first)
+        self.assertNotEqual(encoded["input_ids"][0], encoded["input_ids"][1])
+        self.assertEqual([len(ids) for ids in encoded["input_ids"]], [128, 128])
+
+    def test_128_budget_has_96_review_28_context_and_four_separators(self):
+        tokenizer = quality_test_tokenizer()
+        encoded = tokenize_reviews(tokenizer, [self.input("good " * 500)], 128)
+        sequence_ids = encoded.sequence_ids(0)
+        self.assertEqual(sequence_ids.count(0), 96)
+        self.assertEqual(sequence_ids.count(1), 28)
+        self.assertEqual(sequence_ids.count(None), 4)
+        _, context = quality_input_pairs(tokenizer, [self.input("good " * 500)], 128)[0]
+        self.assertEqual(context.split().count("title"), 10)
+        self.assertEqual(context.split().count("description"), 18)
+
+    def test_missing_context_and_different_limits_still_preserve_review(self):
+        tokenizer = quality_test_tokenizer()
+        for limit in (8, 16, 32, 128):
+            with self.subTest(limit=limit):
+                encoded = tokenize_reviews(tokenizer, [self.input("good " * 500)], limit)
+                self.assertEqual(len(encoded["input_ids"][0]), limit)
+                self.assertGreater(encoded.sequence_ids(0).count(0), 0)
+        plain = tokenize_reviews(tokenizer, ["good " * 500], 128)
+        self.assertEqual(plain.sequence_ids(0).count(0), 124)
+        with self.assertRaisesRegex(ValueError, "at least 8"):
+            tokenize_reviews(tokenizer, [self.input()], 7)
+
+    def test_prediction_uses_identical_tokens_to_training(self):
+        tokenizer = quality_test_tokenizer()
+        text = self.input("matibay good")
+        expected = tokenize_reviews(tokenizer, [text], 128, return_tensors="pt")["input_ids"]
+        class Capture(nn.Module):
+            def __init__(self):
+                super().__init__()
+                self.anchor = nn.Parameter(torch.zeros(1))
+                self.config = SimpleNamespace(review_max_length=128)
+            def forward(self, input_ids, attention_mask):
+                self.seen = input_ids.clone()
+                return SimpleNamespace(logits=torch.zeros(len(input_ids), 4))
+        model = Capture()
+        extractor = FeatureExtractor("unused")
+        extractor.load_text = lambda: (tokenizer, model)
+        self.assertEqual(extractor.text_probabilities(text), [0.25] * 4)
+        torch.testing.assert_close(model.seen, expected)
+
+    def test_clip_preserves_review_at_its_own_limit_and_zero_for_missing_images(self):
+        tokenizer = quality_test_tokenizer()
+        class TextEncoder:
+            max_seq_length = 64
+            def __init__(self):
+                self.tokenizer = tokenizer
+            def encode(self, pairs, **kwargs):
+                self.seen = pairs
+                encoded = tokenizer([p[0] for p in pairs], [p[1] for p in pairs], return_offsets_mapping=True)
+                self.lengths = [len(ids) for ids in encoded["input_ids"]]
+                return torch.tensor([[1.0, 0.0]])
+        class ImageEncoder:
+            def encode(self, image, **kwargs):
+                return torch.tensor([1.0, 0.0])
+        text_encoder = TextEncoder()
+        extractor = FeatureExtractor("unused", image_loader=lambda _: object())
+        extractor.load_clip = lambda: (text_encoder, ImageEncoder())
+        score, best, _ = extractor.visual_features(self.input("matibay " * 500), ["photo"])
+        self.assertEqual(score, 1.0)
+        self.assertEqual(best, "photo")
+        self.assertTrue(text_encoder.seen[0][0].startswith("matibay"))
+        self.assertIn("title", text_encoder.seen[0][1])
+        self.assertIn("description", text_encoder.seen[0][1])
+        self.assertLessEqual(text_encoder.lengths[0], 64)
+        self.assertEqual(extractor.visual_features(self.input(), []), (0.0, None, []))
+
+    def test_old_quality_checkpoint_is_rejected_before_loading_weights(self):
+        from unittest.mock import patch
+        old = SimpleNamespace(input_contract_version="product-context-six-features-v3-missing-image-zero")
+        with patch("transformers.AutoConfig.from_pretrained", return_value=old), \
+             patch("transformers.AutoModelForSequenceClassification.from_pretrained") as load:
+            with self.assertRaisesRegex(ValueError, "input contract mismatch"):
+                FeatureExtractor("old-bundle").load_text()
+            load.assert_not_called()
 
 
 class SplitAndOofTests(unittest.TestCase):

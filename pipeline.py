@@ -11,6 +11,7 @@ from model_contract import (
     ASPECTS, BASE_MODEL, BATCH_SIZE, DEFAULT_BUNDLE, DEFAULT_DATA_PATH,
     DEFAULT_SPLITS_PATH, DEFAULT_WORK_DIR, EPOCHS, INPUT_VERSION, MAX_LENGTH,
     MODEL_VERSION, SENSORY_POLICY, SENTIMENT_TARGET_POLICY, TAXONOMY_VERSION,
+    QUALITY_TEXT_POLICY,
 )
 from model_data import load_experiment, load_reviews, prepare_splits
 from training_augmentation import augmentation_summary
@@ -104,7 +105,8 @@ def main():
                                 if args.allow_unreviewed_augmentations else "approved-training-only-source-product-and-fold-v1"),
         "augmentation_usage": augmentation_summary(assigned),
         "model_version": MODEL_VERSION,
-        "quality_text_input": "product_title + product_description + review_text",
+        "quality_text_input": "review_text paired with bounded product_title + product_description",
+        "quality_text_policy": QUALITY_TEXT_POLICY,
         "absa_text_input": "review_text",
         "environment": {name: version(name) for name in (
             "torch", "transformers", "datasets", "scikit-learn", "xgboost", "sentence-transformers",

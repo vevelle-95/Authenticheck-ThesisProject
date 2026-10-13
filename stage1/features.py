@@ -11,7 +11,7 @@ import numpy as np
 import requests
 from PIL import Image
 
-from model_contract import CLASS_NAMES, INPUT_VERSION, normalize_rating, parse_image_urls
+from model_contract import CLASS_NAMES, INPUT_VERSION, QUALITY_TEXT_POLICY, normalize_rating, parse_image_urls, quality_input_pairs
 
 MAX_IMAGE_BYTES = 5 * 1024 * 1024
 
@@ -58,13 +58,14 @@ class FeatureExtractor:
     def load_text(self):
         if self.model is None:
             import torch
-            from transformers import AutoModelForSequenceClassification, AutoTokenizer
+            from transformers import AutoConfig, AutoModelForSequenceClassification, AutoTokenizer
+            config = AutoConfig.from_pretrained(self.model_dir)
+            if getattr(config, "input_contract_version", None) != INPUT_VERSION or getattr(config, "quality_text_policy", None) != QUALITY_TEXT_POLICY:
+                raise ValueError("Stage 1 input contract mismatch; regenerate OOF/features and retrain RoBERTa/XGBoost with review-preserving token budgets")
+            if [config.id2label[i] for i in range(4)] != list(CLASS_NAMES):
+                raise ValueError("Stage 1 class order mismatch")
             self.tokenizer = AutoTokenizer.from_pretrained(self.model_dir)
             self.model = AutoModelForSequenceClassification.from_pretrained(self.model_dir)
-            if getattr(self.model.config, "input_contract_version", None) != INPUT_VERSION:
-                raise ValueError("Stage 1 input contract mismatch; retrain with product title + description + review text")
-            if [self.model.config.id2label[i] for i in range(4)] != list(CLASS_NAMES):
-                raise ValueError("Stage 1 class order mismatch")
             self.model.to("cuda" if torch.cuda.is_available() else "cpu").eval()
         return self.tokenizer, self.model
 
@@ -91,8 +92,10 @@ class FeatureExtractor:
         if not images:
             return 0.0, None, []
         text_encoder, image_encoder = self.load_clip()
+        # M-CLIP has a separate tokenizer/limit; apply the same review-first rule.
+        pairs = quality_input_pairs(text_encoder.tokenizer, [text], int(text_encoder.max_seq_length))
         with torch.inference_mode():
-            text_embedding = text_encoder.encode(text, convert_to_tensor=True)
+            text_embedding = text_encoder.encode(pairs, convert_to_tensor=True)[0]
             scores = []
             for url, image in images:
                 image_embedding = image_encoder.encode(image, convert_to_tensor=True)

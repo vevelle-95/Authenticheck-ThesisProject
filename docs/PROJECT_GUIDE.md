@@ -45,8 +45,8 @@ ABSA means **aspect-based sentiment analysis**. AuthentiCheck first applies this
 quality filter:
 
 ```text
-Product title + description + review -> DOST RoBERTa -> four quality probabilities
-The same combined text + usable buyer photos -> multilingual CLIP similarity
+Review + bounded title/description context -> DOST RoBERTa -> four quality probabilities
+The same review-first context policy + usable buyer photos -> multilingual CLIP similarity
 Stars -> (stars - 1) / 4
 Those six values -> XGBoost -> final quality label
 Authentic reviews -> independent DOST ABSA -> aspects and sentiments
@@ -57,17 +57,30 @@ trained independently; it does not reuse the quality classifier's fine-tuned
 weights. XGBoost belongs to the logical quality stage even though its script
 lives in `stage2/`. CLIP is pretrained and is not fine-tuned by this pipeline.
 The maximum combined-text/photo cosine similarity is used; no usable photos means
-`0`. The shared `quality_input_text()` helper in `model_contract.py` joins title,
-description, and review in that order and normalizes whitespace. Quality training,
-OOF predictions, feature generation, final evaluation, and the API all use it.
+`0`. The shared `quality_input_text()` helper in `model_contract.py` preserves
+review/title/description field boundaries and normalizes whitespace.
+`quality_input_pairs()` tokenizes the review separately from a bounded listing
+context. Quality training, OOF predictions, feature generation, final evaluation,
+and the API all use this policy.
 Missing listing context is treated as empty; a written buyer review is required.
 ABSA receives the buyer review alone, matching its opinion annotations, and API
 review text remains the buyer's text. Product category is not a model input.
 
-RoBERTa still has a configurable maximum input length (default 128 tokens).
-Long descriptions can use that budget before the review appears; inspect the
-tokenized inputs and choose a suitable `--max-length` during validation. M-CLIP
-has its own encoder limit, independent of the pipeline's RoBERTa setting.
+RoBERTa has a configurable maximum input length (default 128 tokens). With a
+long listing and review, the default paired input is 96 review tokens, 10 title
+tokens, 18 description tokens and four special tokens. Context is capped at
+28 tokens; shorter title/context frees room for description/review respectively.
+Small `--max-length` values proportionally reduce the context allocation.
+The review is always the first sequence; only that sequence can be shortened
+by the final tokenizer call. Long reviews can still be truncated, but a long
+description cannot remove the review. Full source fields remain in the CSV.
+M-CLIP uses the same bounded-pair helper with its own tokenizer, special tokens
+and encoder limit, independent of the RoBERTa setting. It stays pretrained.
+
+Quality artifacts now use `product-context-six-features-v4-review-budget`.
+Existing v3 quality weights and feature CSVs are incompatible: changing their
+version tags does not repair the training. The independent ABSA input and
+taxonomy are unchanged, so a compatible ABSA bundle can be retained.
 
 CLIP-CA-CG uses RoBERTa with a Bi-GRU, frozen ResNet image regions, cached frozen
 CLIP embeddings, cross-attention, gating, and aspect/sentiment heads. It has no
@@ -527,13 +540,13 @@ For a separate experiment, choose separate destinations:
 .\.venv\Scripts\python.exe pipeline.py --data data/test_reviews.csv --splits data/experiment_01/splits.json --work-dir data/experiment_01/features --output models/experiment_01 --epochs 3 --batch-size 2
 ```
 
-**After the combined-input change, regenerate the quality models and features.**
-The old `models/practice_run/` quality/XGBoost files use a review-only contract
-and are rejected by the current API. Renaming them or editing their version tags
-does not retrain them. Use a fresh destination while retaining the shared splits:
+**After the review-budget correction, regenerate the quality models and features.**
+The old review-only and v3 combined-input RoBERTa/XGBoost weights (including
+`models/augmented_experiment/`) are rejected by the current API. Use a fresh
+destination while retaining the shared splits and augmentation CSV:
 
 ```powershell
-.\.venv\Scripts\python.exe pipeline.py --data data/test_reviews.csv --splits data/splits_real_v2.json --work-dir data/context_run/features --output models/context_run --epochs 3 --batch-size 2
+.\.venv\Scripts\python.exe pipeline.py --data data/test_reviews.csv --splits data/splits_real_v2.json --augmentations data/augmented_reviews.csv --allow-unreviewed-augmentations --work-dir data/review_budget_v4/features --output models/review_budget_v4 --epochs 3 --batch-size 2
 ```
 
 This runs new OOF fits, final quality RoBERTa, six-feature extraction, XGBoost,
@@ -541,7 +554,7 @@ and ABSA. The independent ABSA input remains review text; a compatible saved
 ABSA model may also be retained when rebuilding the quality components manually.
 The CSV and split fingerprint policy are unchanged by this code update, so an
 unchanged CSV can keep its existing shared product assignments. Current quality
-artifacts use `product-context-six-features-v3-missing-image-zero`.
+artifacts use `product-context-six-features-v4-review-budget`.
 
 ### Train CLIP-CA-CG
 
