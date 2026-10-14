@@ -11,7 +11,7 @@ import pandas as pd
 from stage1.features import FeatureExtractor
 from model_contract import (
     DEFAULT_DATA_PATH, DEFAULT_FEATURES_PATH, DEFAULT_OOF_PATH, DEFAULT_ROBERTA_DIR,
-    DEFAULT_SPLITS_PATH, FEATURE_COLUMNS, INPUT_VERSION, quality_input_text,
+    DEFAULT_SPLITS_PATH, FEATURE_COLUMNS, INPUT_VERSION, ROBERTA_TARGET_COLUMN, quality_input_text,
 )
 from model_data import fingerprint, load_experiment
 
@@ -20,7 +20,8 @@ def build_features(assigned, oof_path, output, model_dir, extractor=None):
     oof_path = Path(oof_path)
     oof = pd.read_csv(oof_path, dtype={"review_id": str, "product_id": str})
     metadata = json.loads(oof_path.with_suffix(".metadata.json").read_text(encoding="utf-8"))
-    if metadata.get("dataset_sha256") != fingerprint(assigned) or metadata.get("input_version") != INPUT_VERSION:
+    if (metadata.get("dataset_sha256") != fingerprint(assigned) or metadata.get("input_version") != INPUT_VERSION
+            or metadata.get("target_column") != ROBERTA_TARGET_COLUMN):
         raise ValueError("OOF features belong to a different dataset/input contract")
     training = assigned[assigned.partition.eq("train")]
     folds = metadata.get("folds", [])
@@ -37,7 +38,9 @@ def build_features(assigned, oof_path, output, model_dir, extractor=None):
     if extractor is None:
         final_metadata = json.loads(Path(model_dir, "training_metadata.json").read_text(encoding="utf-8"))
         validation = assigned[assigned.partition.eq("validation")]
-        if (set(final_metadata.get("fit_review_ids", [])) != set(training.review_id)
+        if (final_metadata.get("target_column") != ROBERTA_TARGET_COLUMN
+                or final_metadata.get("input_version") != INPUT_VERSION
+                or set(final_metadata.get("fit_review_ids", [])) != set(training.review_id)
                 or set(final_metadata.get("validation_review_ids", [])) != set(validation.review_id)
                 or final_metadata.get("training_sha256") != fingerprint(training)):
             raise ValueError("Final RoBERTa checkpoint does not match this training/validation experiment")

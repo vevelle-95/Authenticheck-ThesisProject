@@ -11,7 +11,7 @@ import numpy as np
 import requests
 from PIL import Image
 
-from model_contract import CLASS_NAMES, INPUT_VERSION, QUALITY_TEXT_POLICY, normalize_rating, parse_image_urls, quality_input_pairs
+from model_contract import CLASS_NAMES, INPUT_VERSION, QUALITY_TEXT_POLICY, ROBERTA_TARGET_COLUMN, normalize_rating, parse_image_urls, quality_input_pairs
 
 MAX_IMAGE_BYTES = 5 * 1024 * 1024
 
@@ -60,8 +60,10 @@ class FeatureExtractor:
             import torch
             from transformers import AutoConfig, AutoModelForSequenceClassification, AutoTokenizer
             config = AutoConfig.from_pretrained(self.model_dir)
-            if getattr(config, "input_contract_version", None) != INPUT_VERSION or getattr(config, "quality_text_policy", None) != QUALITY_TEXT_POLICY:
-                raise ValueError("Stage 1 input contract mismatch; regenerate OOF/features and retrain RoBERTa/XGBoost with review-preserving token budgets")
+            if (getattr(config, "input_contract_version", None) != INPUT_VERSION
+                    or getattr(config, "quality_text_policy", None) != QUALITY_TEXT_POLICY
+                    or getattr(config, "quality_target_column", None) != ROBERTA_TARGET_COLUMN):
+                raise ValueError("Stage 1 input contract mismatch; regenerate OOF/features and retrain RoBERTa on text_label and XGBoost on ground_truth")
             if [config.id2label[i] for i in range(4)] != list(CLASS_NAMES):
                 raise ValueError("Stage 1 class order mismatch")
             self.tokenizer = AutoTokenizer.from_pretrained(self.model_dir)

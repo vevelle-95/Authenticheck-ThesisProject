@@ -24,7 +24,8 @@ MAX_LENGTH = 128
 SEED = 42
 
 # Shared label, feature, and artifact compatibility contracts.
-INPUT_VERSION = "product-context-six-features-v4-review-budget"
+INPUT_VERSION = "product-context-six-features-v5-text-target"
+ROBERTA_TARGET_COLUMN = "text_label"
 QUALITY_TEXT_POLICY = "review-first-bounded-context-v1"
 QUALITY_CONTEXT_TOKENS = 28
 QUALITY_TITLE_TOKENS = 10

@@ -6,7 +6,7 @@ import shutil
 import sys
 from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
-from model_contract import INPUT_VERSION
+from model_contract import INPUT_VERSION, ROBERTA_TARGET_COLUMN
 from model_data import fingerprint, load_experiment
 from training_augmentation import augmentation_summary
 
@@ -25,7 +25,8 @@ def main():
     val = frame[frame.partition.eq('validation')]
     output = Path(args.output).resolve()
     run = json.loads((output / 'run_metadata.json').read_text(encoding='utf-8'))
-    if (run['input_version'] != INPUT_VERSION or run['training_sha256'] != fingerprint(train)
+    if (run['input_version'] != INPUT_VERSION or run.get('target_column') != ROBERTA_TARGET_COLUMN
+            or run['training_sha256'] != fingerprint(train)
             or run['validation_sha256'] != fingerprint(val)):
         raise ValueError('Dataset, partitions, or input contract differ from the saved run')
     steps = math.ceil(len(train) / run['batch_size']) * run['epochs']

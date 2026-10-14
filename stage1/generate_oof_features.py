@@ -12,7 +12,7 @@ import pandas as pd
 from stage1.train_roberta import fit_roberta, predict_probabilities
 from model_contract import (
     BASE_MODEL, BATCH_SIZE, DEFAULT_BUNDLE, DEFAULT_DATA_PATH, DEFAULT_OOF_PATH,
-    DEFAULT_SPLITS_PATH, EPOCHS, FEATURE_COLUMNS, INPUT_VERSION, MAX_LENGTH, SEED,
+    DEFAULT_SPLITS_PATH, EPOCHS, FEATURE_COLUMNS, INPUT_VERSION, MAX_LENGTH, SEED, ROBERTA_TARGET_COLUMN,
 )
 from model_data import fingerprint, load_experiment
 
@@ -23,6 +23,9 @@ def generate_oof(assigned, output, fold_dir, *, base_model=BASE_MODEL,
     training = assigned[assigned.partition.eq("train")].copy()
     if set(training.fold) != set(range(5)):
         raise ValueError("Five saved training folds are required")
+    for fold in range(5):
+        if set(training.loc[training.fold.ne(fold), "text_target"]) != {0, 1, 2, 3}:
+            raise ValueError(f"OOF fold {fold} fitting requires all four text_label classes")
     rows, provenance = [], []
     for fold in range(5):
         fitting = training[training.fold.ne(fold)]
@@ -64,6 +67,7 @@ def generate_oof(assigned, output, fold_dir, *, base_model=BASE_MODEL,
     frame.to_csv(output, index=False)
     output.with_suffix(".metadata.json").write_text(json.dumps({
         "input_version": INPUT_VERSION, "dataset_sha256": fingerprint(assigned),
+        "target_column": ROBERTA_TARGET_COLUMN,
         "folds": provenance,
     }, indent=2), encoding="utf-8")
     return frame

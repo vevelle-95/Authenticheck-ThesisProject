@@ -12,7 +12,7 @@ import pandas as pd
 from model_contract import ASPECTS, map_polarity, map_quality, parse_image_urls
 
 AUGMENTATION_COLUMNS = (
-    "review_id", "source_review_id", "review_text", "ground_truth",
+    "review_id", "source_review_id", "review_text", "text_label", "ground_truth",
     "aspect_annotations", "image_mode", "image_source_review_id",
     "augmentation_method", "review_status", "reviewed_by", "review_notes",
 )
@@ -100,6 +100,9 @@ def append_augmentations(assigned, path=None, *, allow_unreviewed=False):
             label = map_quality(source.ground_truth)
             if map_quality(entry["ground_truth"]) != label:
                 raise ValueError("Preserve the source quality label; review source-label disputes separately")
+            text_target = map_quality(source.text_label)
+            if map_quality(entry["text_label"]) != text_target:
+                raise ValueError("Preserve the source text_label independently of ground_truth")
             method = entry["augmentation_method"]
             if method not in ("paraphrase", "controlled_image_mismatch"):
                 raise ValueError("augmentation_method must be paraphrase or controlled_image_mismatch")
@@ -139,6 +142,7 @@ def append_augmentations(assigned, path=None, *, allow_unreviewed=False):
             row.update({key: entry[key] for key in PROVENANCE_COLUMNS})
             row.update(
                 review_id=entry["review_id"], review_text=entry["review_text"],
+                text_target=text_target,
                 aspect_annotations=entry["aspect_annotations"],
                 review_image_urls=json.dumps(urls, ensure_ascii=False), image_urls=urls,
                 image_source_review_id=donor_id,

@@ -11,7 +11,7 @@ from model_contract import (
     ASPECTS, BASE_MODEL, BATCH_SIZE, DEFAULT_BUNDLE, DEFAULT_DATA_PATH,
     DEFAULT_SPLITS_PATH, DEFAULT_WORK_DIR, EPOCHS, INPUT_VERSION, MAX_LENGTH,
     MODEL_VERSION, SENSORY_POLICY, SENTIMENT_TARGET_POLICY, TAXONOMY_VERSION,
-    QUALITY_TEXT_POLICY,
+    QUALITY_TEXT_POLICY, ROBERTA_TARGET_COLUMN,
 )
 from model_data import load_experiment, load_reviews, prepare_splits
 from training_augmentation import augmentation_summary
@@ -107,6 +107,7 @@ def main():
         "model_version": MODEL_VERSION,
         "quality_text_input": "review_text paired with bounded product_title + product_description",
         "quality_text_policy": QUALITY_TEXT_POLICY,
+        "quality_target_columns": {"roberta": ROBERTA_TARGET_COLUMN, "xgboost": "ground_truth"},
         "absa_text_input": "review_text",
         "environment": {name: version(name) for name in (
             "torch", "transformers", "datasets", "scikit-learn", "xgboost", "sentence-transformers",

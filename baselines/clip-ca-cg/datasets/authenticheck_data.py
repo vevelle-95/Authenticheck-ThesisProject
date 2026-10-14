@@ -76,6 +76,10 @@ def load_reviews(path, require_annotations=False):
         frame['label'] = frame.ground_truth.str.strip().str.lower().map(quality)
         if frame.label.isna().any():
             raise ValueError('Unknown ground_truth review-quality label')
+        if 'text_label' in frame:
+            frame['text_target'] = frame.text_label.str.strip().str.lower().map(quality)
+            if frame.text_target.isna().any():
+                raise ValueError('Unknown text_label review-quality label')
         frame['annotations'] = [parse_annotations(row.aspect_annotations) if row.label == 0 else {}
                                 for row in frame.itertuples()]
     return frame.reset_index(drop=True)
@@ -83,7 +87,7 @@ def load_reviews(path, require_annotations=False):
 
 def fingerprint(frame):
     columns = sorted(column for column in frame if column not in {
-        'label', 'normalized_rating', 'image_urls', 'annotations', 'partition', 'fold',
+        'label', 'text_target', 'normalized_rating', 'image_urls', 'annotations', 'partition', 'fold',
     })
     records = frame.sort_values('review_id')[columns].astype(str).to_dict('records')
     return hashlib.sha256(json.dumps(records, sort_keys=True, ensure_ascii=False).encode()).hexdigest()

@@ -9,7 +9,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from model_contract import (
     BASE_MODEL, BATCH_SIZE, CLASS_NAMES, DEFAULT_DATA_PATH, DEFAULT_ROBERTA_DIR,
     DEFAULT_SPLITS_PATH, EPOCHS, INPUT_VERSION, LEARNING_RATE, MAX_LENGTH, SEED,
-    QUALITY_CONTEXT_TOKENS, QUALITY_TEXT_POLICY, QUALITY_TITLE_TOKENS,
+    QUALITY_CONTEXT_TOKENS, QUALITY_TEXT_POLICY, QUALITY_TITLE_TOKENS, ROBERTA_TARGET_COLUMN,
     quality_input_pairs, quality_input_text,
 )
 from model_data import fingerprint, load_experiment
@@ -32,8 +32,8 @@ def fit_roberta(train_frame, validation_frame, output, *, base_model=BASE_MODEL,
     from datasets import Dataset
     from transformers import AutoModelForSequenceClassification, AutoTokenizer, Trainer, TrainingArguments, set_seed
 
-    if set(train_frame.label) != {0, 1, 2, 3}:
-        raise ValueError("RoBERTa fitting requires all four quality classes")
+    if set(train_frame.text_target) != {0, 1, 2, 3}:
+        raise ValueError("RoBERTa fitting requires all four text_label classes")
     if epochs < 1 or batch_size < 1 or max_length < 8:
         raise ValueError("epochs/batch_size must be positive; max_length must be at least 8")
     set_seed(seed)
@@ -48,6 +48,7 @@ def fit_roberta(train_frame, validation_frame, output, *, base_model=BASE_MODEL,
     model.config.quality_text_policy = QUALITY_TEXT_POLICY
     model.config.quality_context_tokens = QUALITY_CONTEXT_TOKENS
     model.config.quality_title_tokens = QUALITY_TITLE_TOKENS
+    model.config.quality_target_column = ROBERTA_TARGET_COLUMN
     if low_memory:
         model.config.use_cache = False
     memory_options = {"gradient_checkpointing": True,
@@ -57,7 +58,7 @@ def fit_roberta(train_frame, validation_frame, output, *, base_model=BASE_MODEL,
     def dataset(frame):
         texts = [quality_input_text(row) for row in frame.to_dict("records")]
         encodings = tokenize_reviews(tokenizer, texts, max_length)
-        return Dataset.from_dict({**encodings, "labels": frame.label.tolist()})
+        return Dataset.from_dict({**encodings, "labels": frame.text_target.tolist()})
 
     def metrics(prediction):
         logits = prediction.predictions[0] if isinstance(prediction.predictions, tuple) else prediction.predictions
@@ -82,6 +83,7 @@ def fit_roberta(train_frame, validation_frame, output, *, base_model=BASE_MODEL,
     )
     output.mkdir(parents=True, exist_ok=True)
     run_metadata = {"input_version": INPUT_VERSION, "training_sha256": fingerprint(train_frame),
+        "target_column": ROBERTA_TARGET_COLUMN,
         "validation_sha256": fingerprint(validation_frame) if validating else None,
         "epochs": epochs, "batch_size": batch_size, "max_length": max_length,
         "quality_text_policy": QUALITY_TEXT_POLICY,
@@ -95,6 +97,7 @@ def fit_roberta(train_frame, validation_frame, output, *, base_model=BASE_MODEL,
     metadata = {
         "augmentation_usage": augmentation_summary(train_frame),
         "input_version": INPUT_VERSION, "max_length": max_length, "seed": seed,
+        "target_column": ROBERTA_TARGET_COLUMN,
         "base_model": str(base_model), "epochs": epochs,
         "low_memory_training": low_memory, "fp16": low_memory and torch.cuda.is_available(),
         "optimizer": "adafactor" if low_memory else "adamw_torch",

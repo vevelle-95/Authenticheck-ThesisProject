@@ -36,7 +36,7 @@ def fixture_frame(products=20):
                 "review_id": f"r{product}-{label}", "product_id": f"p{product}",
                 "product_title": f"Product {product}", "product_description": "Advertised quality and value",
                 "review_text": text, "review_image_urls": "https://example.invalid/photo.jpg",
-                "star_rating": 5, "ground_truth": CLASS_NAMES[label],
+                "star_rating": 5, "text_label": CLASS_NAMES[label], "ground_truth": CLASS_NAMES[label],
                 "aspect_annotations": json.dumps([{
                     "category": "product_quality", "text": "quality", "sentiment": product % 3,
                 }]) if label == 0 else "[]",
@@ -217,6 +217,20 @@ class ContractTests(unittest.TestCase):
             loaded = load_reviews(path, require_annotations=True)
             self.assertEqual(loaded.loc[0, "image_urls"], [])
             self.assertEqual(loaded.loc[1, "image_urls"], [])
+
+    def test_text_and_final_targets_are_independent_and_text_label_is_required(self):
+        with tempfile.TemporaryDirectory() as directory:
+            frame = fixture_frame(1)
+            frame.loc[0, "text_label"] = "deceptive"
+            path = Path(directory) / "data.csv"
+            frame.to_csv(path, index=False)
+            loaded = load_reviews(path, require_annotations=True)
+            self.assertEqual((loaded.loc[0, "text_target"], loaded.loc[0, "label"]), (1, 0))
+            self.assertTrue(loaded.loc[0, "annotations"])
+            self.assertEqual(fingerprint(loaded), fingerprint(loaded.drop(columns="text_target")))
+            frame.drop(columns="text_label").to_csv(path, index=False)
+            with self.assertRaisesRegex(ValueError, "text_label"):
+                load_reviews(path)
 
     def test_duplicate_text_keeps_records_but_ids_must_still_be_unique(self):
         with tempfile.TemporaryDirectory() as directory:
@@ -655,13 +669,15 @@ class AugmentationTests(unittest.TestCase):
         source = assigned[assigned.partition.eq("train") & assigned.label.eq(0)].iloc[0]
         row = dict(
             review_id="synthetic-1", source_review_id=source.review_id,
-            review_text="A new phrasing about quality.", ground_truth="authentic",
+            review_text="A new phrasing about quality.", text_label=source.text_label, ground_truth="authentic",
             aspect_annotations=json.dumps([{"category": "product_quality", "text": "quality",
                                              "sentiment": ("negative", "neutral", "positive")[source.annotations[0]["sentiment"]]}]),
             image_mode="source", image_source_review_id="", augmentation_method="paraphrase",
             review_status="approved", reviewed_by="human-reviewer", review_notes="Label, exact evidence and photo checked",
         )
         row.update(changes)
+        if "source_review_id" in changes and "text_label" not in changes:
+            row["text_label"] = assigned.set_index("review_id").loc[changes["source_review_id"], "text_label"]
         return pd.DataFrame([row], columns=AUGMENTATION_COLUMNS)
 
     def test_pending_drafts_do_not_change_dataset_or_fingerprint(self):
@@ -670,6 +686,21 @@ class AugmentationTests(unittest.TestCase):
             combined = append_augmentations(assigned, self.draft(assigned, review_status="pending", reviewed_by=""))
             pd.testing.assert_frame_equal(assigned, combined)
             self.assertEqual(fingerprint(assigned), fingerprint(combined))
+
+    def test_paraphrase_preserves_different_text_and_final_targets(self):
+        with tempfile.TemporaryDirectory() as directory:
+            assigned = self.assigned(directory)
+            source = assigned[assigned.partition.eq("train") & assigned.label.eq(0)].iloc[0]
+            assigned.loc[assigned.review_id.eq(source.review_id), ["text_label", "text_target"]] = ["deceptive", 1]
+            draft = self.draft(assigned)
+            combined = append_augmentations(assigned, draft)
+            generated = combined.iloc[-1]
+            self.assertEqual((generated.text_label, generated.ground_truth), ("deceptive", "authentic"))
+            self.assertEqual((generated.text_target, generated.label), (1, 0))
+            self.assertTrue(generated.annotations)
+            draft = draft.drop(columns="text_label")
+            with self.assertRaisesRegex(ValueError, "text_label"):
+                append_augmentations(assigned, draft)
 
     def test_experimental_pending_rows_keep_status_and_do_not_modify_csv(self):
         from training_augmentation import augmentation_summary
@@ -740,7 +771,7 @@ class AugmentationTests(unittest.TestCase):
             combined = load_experiment(Path(directory) / "real.csv", Path(directory) / "splits.json", path, True)
             original = assigned.set_index("review_id").loc[draft.iloc[0].source_review_id]
             generated = combined.iloc[-1]
-            for field in ("product_id", "product_title", "product_description", "star_rating", "fold", "partition", "ground_truth", "image_urls"):
+            for field in ("product_id", "product_title", "product_description", "star_rating", "fold", "partition", "text_label", "text_target", "ground_truth", "image_urls"):
                 self.assertEqual(generated[field], original[field])
             self.assertEqual(generated.annotations[0]["evidence"], ["quality"])
             self.assertEqual(len(combined), len(assigned) + 1)
@@ -812,6 +843,7 @@ class AugmentationTests(unittest.TestCase):
             for changes, error in [
                 ({"review_text": assigned.iloc[0].review_text.upper()}, "distinct"),
                 ({"ground_truth": "deceptive"}, "Preserve the source quality"),
+                ({"text_label": "deceptive"}, "Preserve the source text_label"),
                 ({"reviewed_by": ""}, "need reviewed_by"),
                 ({"review_notes": ""}, "need reviewed_by"),
             ]:
@@ -854,6 +886,8 @@ class AugmentationTests(unittest.TestCase):
                     fit, validation = fit[fit.label.eq(0)], validation[validation.label.eq(0)]
                 metadata = dict(fit_review_ids=fit.review_id.tolist(), validation_review_ids=validation.review_id.tolist())
                 if relative.startswith("dost_roberta"):
+                    metadata["input_version"] = INPUT_VERSION
+                    metadata["target_column"] = "text_label"
                     metadata["training_sha256"] = fingerprint(fit)
                 else:
                     metadata["dataset_sha256"] = fingerprint(combined)
