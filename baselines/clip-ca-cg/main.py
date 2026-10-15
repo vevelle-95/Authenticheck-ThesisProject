@@ -1,4 +1,4 @@
-"""Validate the shared dataset or train the adapted six-aspect baseline."""
+"""Validate the shared dataset or train the adapted ten-aspect multi-label baseline."""
 
 import argparse
 import json

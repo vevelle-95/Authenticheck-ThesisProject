@@ -21,7 +21,7 @@ training:
 
 data:
   csv: ../../data/test_reviews.csv
-  splits: ../../data/splits_v4_augmented_gpu.json
+  splits: ../../data/splits_dataset.json
   augmentations: ../../data/augmented_reviews.csv
   max_length: 128
   image_size: 224

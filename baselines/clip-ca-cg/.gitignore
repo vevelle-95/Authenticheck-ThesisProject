@@ -3,6 +3,7 @@
 *.py[cod]
 
 # Catch-all for checkpoints across nested structures
+/outputs/
 outputs/checkpoints/*.pt
 
 # Ignore generated evaluation/inference predictions spreadsheet

@@ -1,4 +1,4 @@
-"""Aspect BCE plus masked soft-label sentiment loss, with CUDA AMP and accumulation."""
+"""Aspect BCE plus masked multi-label sentiment BCE, with CUDA AMP and accumulation."""
 
 import torch
 import torch.nn.functional as F
@@ -13,7 +13,7 @@ def move_inputs(batch, device):
 def aspect_sentiment_loss(outputs, aspect_targets, sentiment_targets):
     detection = F.binary_cross_entropy_with_logits(outputs["aspect_logits"], aspect_targets)
     active = sentiment_targets.sum(-1) > 0
-    losses = -(sentiment_targets * F.log_softmax(outputs["sentiment_logits"], dim=-1)).sum(-1)
+    losses = F.binary_cross_entropy_with_logits(outputs["sentiment_logits"], sentiment_targets, reduction="none").mean(-1)
     sentiment = losses[active].mean() if active.any() else outputs["sentiment_logits"].sum() * 0
     return detection + sentiment
 

@@ -185,6 +185,13 @@ def lexical_key(text):
     return " ".join(re.findall(r"\w+", text.casefold()))
 
 
+def quality_gain(source, qualities, text_qualities, target, text_target=None):
+    """Prioritize sources that reduce deficits in both independent targets."""
+    labels = (int(source["label"]), int(source["text_target"]))
+    deficits = (target - qualities[labels[0]], (target if text_target is None else text_target) - text_qualities[labels[1]])
+    return sum(value > 0 for value in deficits), sum(max(0, value) for value in deficits)
+
+
 def source_annotation_issue(source):
     """Avoid multiplying known conflicts with the agreed annotation definitions."""
     if int(source["label"]) != 0:
@@ -250,6 +257,9 @@ def main():
     parser.add_argument("--splits", default=str(DEFAULT_SPLITS_PATH))
     parser.add_argument("--augmentations", default="data/augmented_reviews.csv")
     parser.add_argument("--base-augmentations", help="Optional earlier draft CSV to expand; output still goes to --augmentations")
+    parser.add_argument("--fresh", action="store_true", help="Rebuild from current original training sources; back up any existing output")
+    parser.add_argument("--quality-only", action="store_true", help="Expand Deceptive, LIV and Irrelevant sources only; do not augment Authentic/ABSA")
+    parser.add_argument("--balance-text-labels", action="store_true", help="Reach the quality target separately for text_label and ground_truth; counts need not be identical")
     parser.add_argument("--aspect-minimum", type=int, default=30)
     parser.add_argument("--quality-target", type=int, help="Minimum per quality class; final target also accommodates added Authentic ABSA rows")
     parser.add_argument("--seed", type=int, default=42)
@@ -257,10 +267,17 @@ def main():
     args = parser.parse_args()
     if args.aspect_minimum < 0 or (args.quality_target is not None and args.quality_target < 1):
         raise ValueError("Targets must be nonnegative (quality target positive)")
+    if args.fresh and args.base_augmentations:
+        parser.error("--fresh cannot be combined with --base-augmentations")
     original = load_experiment(args.data, args.splits, require_annotations=True)
     path = Path(args.augmentations)
+    output = Path(args.report)
+    backup = output.with_suffix(".previous.csv")
+    if output.exists() or (path.exists() and backup.exists()):
+        raise FileExistsError("Report/backup exists; choose a new --report name before regenerating")
     base_path = Path(args.base_augmentations) if args.base_augmentations else path
-    draft = pd.read_csv(base_path, dtype=str, keep_default_na=False, encoding="utf-8-sig") if base_path.exists() else pd.DataFrame(columns=AUGMENTATION_COLUMNS)
+    draft = (pd.read_csv(base_path, dtype=str, keep_default_na=False, encoding="utf-8-sig")
+             if base_path.exists() and not args.fresh else pd.DataFrame(columns=AUGMENTATION_COLUMNS))
     # Existing drafts are preserved. Their acceptance is projected, not persisted.
     projection = draft.copy()
     pending = projection.review_status.eq("pending")
@@ -269,7 +286,9 @@ def main():
     projection.loc[pending & projection.review_notes.eq(""), "review_notes"] = "Projection only"
     projected = append_augmentations(original, projection)
     train = original[original.partition.eq("train")]
-    all_sources = train.to_dict("records")
+    all_sources = train.loc[train.label.ne(0) if args.quality_only else train.label.ge(0)].to_dict("records")
+    if args.quality_only and not draft.empty and draft.ground_truth.map(lambda value: str(value).lower()).isin(("authentic", "0")).any():
+        raise ValueError("--quality-only cannot expand existing Authentic drafts; use --fresh")
     excluded_sources = [{"source_review_id": row["review_id"], "reason": issue}
                         for row in all_sources if (issue := source_annotation_issue(row))]
     excluded_ids = {row["source_review_id"] for row in excluded_sources}
@@ -279,6 +298,7 @@ def main():
     ids = set(original.review_id) | set(draft.review_id)
     source_use = Counter(draft.loc[draft.review_status.ne("rejected"), "source_review_id"])
     qualities = Counter(projected.loc[projected.partition.eq("train"), "label"])
+    text_qualities = Counter(projected.loc[projected.partition.eq("train"), "text_target"])
     aspects = Counter()
     for annotations in projected.loc[projected.partition.eq("train") & projected.label.eq(0), "annotations"]:
         aspects.update({(item["category"], item["sentiment"]) for item in annotations})
@@ -287,9 +307,12 @@ def main():
     source_pairs = {row["review_id"]: {(item["category"], item["sentiment"]) for item in row["annotations"]}
                     for row in sources if row["label"] == 0}
 
-    def add_from(candidates):
+    def add_from(candidates, quality_target=None):
         # Prefer the least reused real source before trying richer alternatives.
-        candidates = sorted(candidates, key=lambda row: (source_use[row["review_id"]], row["fold"], row["product_id"], row["review_id"]))
+        def priority(row):
+            gains, deficit = quality_gain(row, qualities, text_qualities, quality_target, text_target) if quality_target is not None else (0, 0)
+            return (-gains, source_use[row["review_id"]], -deficit, row["fold"], row["product_id"], row["review_id"])
+        candidates = sorted(candidates, key=priority)
         for source in candidates:
             source_id = source["review_id"]
             if source_id in exhausted:
@@ -307,7 +330,7 @@ def main():
                     continue
                 safe = bool(source["image_urls"]) and all(scopes[url] == {("train", int(source["fold"]))} for url in source["image_urls"])
                 label = int(source["label"])
-                note = "Rule-based paraphrase (seed=%s), pending human review; inherited source quality label, product context, rating and OOF fold. " % args.seed
+                note = "Rule-based paraphrase (seed=%s), pending human review; independently inherited source text_label and ground_truth, product context, rating and OOF fold. " % args.seed
                 if label == 1:
                     note += "Deceptive source label requires corroboration; rating/image mismatch or generic praise alone is insufficient. "
                 if label == 0:
@@ -319,6 +342,7 @@ def main():
                     image_mode="source" if safe else "none", image_source_review_id="",
                     augmentation_method="paraphrase", review_status="pending", reviewed_by="", review_notes=note))
                 seen.add(key); ids.add(row_id); source_use[source_id] += 1; qualities[label] += 1
+                text_qualities[int(source["text_target"])] += 1
                 if label == 0:
                     aspects.update(source_pairs[source_id])
                 return True
@@ -326,49 +350,67 @@ def main():
         return False
 
     unfillable = []
-    for pair in sorted([(category, index) for category in ASPECTS for index in range(3)], key=lambda pair: aspects[pair]):
+    aspect_pairs = [] if args.quality_only else [(category, index) for category in ASPECTS for index in range(3)]
+    for pair in sorted(aspect_pairs, key=lambda pair: aspects[pair]):
         candidates = [row for row in sources if row["label"] == 0 and pair in source_pairs[row["review_id"]]]
         while aspects[pair] < args.aspect_minimum:
             if not add_from(candidates):
                 unfillable.append({"category": pair[0], "sentiment": POLARITIES[pair[1]].lower(), "count": aspects[pair], "target": args.aspect_minimum})
                 break
     target = max([args.quality_target or 0, *qualities.values()])
-    for label in (1, 3, 2, 0):
-        candidates = [row for row in sources if row["label"] == label]
-        while qualities[label] < target:
-            if not add_from(candidates):
-                raise ValueError(f"Cannot generate enough distinct meaning-preserving {CLASS_NAMES[label]} variants: {qualities[label]}/{target}. No output overwritten.")
-        print(f"{CLASS_NAMES[label]} projected training count: {qualities[label]}", flush=True)
+    text_target = max([args.quality_target or 0, *text_qualities.values()])
+    if args.balance_text_labels:
+        while any(qualities[label] < target or text_qualities[label] < text_target for label in range(4)):
+            candidates = [row for row in sources if quality_gain(row, qualities, text_qualities, target, text_target)[0]]
+            if not add_from(candidates, quality_target=target):
+                counts = {"ground_truth": dict(qualities), "text_label": dict(text_qualities)}
+                raise ValueError(f"Cannot fill ground_truth to {target} and text_label to {text_target} using eligible distinct paraphrases: {counts}. No output overwritten.")
+    else:
+        for label in (1, 3, 2, 0):
+            candidates = [row for row in sources if row["label"] == label]
+            while qualities[label] < target:
+                if not add_from(candidates):
+                    raise ValueError(f"Cannot generate enough distinct meaning-preserving {CLASS_NAMES[label]} variants: {qualities[label]}/{target}. No output overwritten.")
+    for label, name in enumerate(CLASS_NAMES):
+        print(f"{name} projected training count: ground_truth={qualities[label]}, text_label={text_qualities[label]}", flush=True)
     next_draft = pd.concat([draft, pd.DataFrame(rows, columns=AUGMENTATION_COLUMNS)], ignore_index=True)
     validation = next_draft.copy()
     pending = validation.review_status.eq("pending")
     validation.loc[pending, "review_status"] = "approved"
     validation.loc[pending, "reviewed_by"] = "structural-check-only"
     verified = append_augmentations(original, validation)
-    assert Counter(verified.loc[verified.partition.eq("train"), "label"]) == Counter({label: target for label in range(4)})
+    for column, counts in (("label", qualities), ("text_target", text_qualities)):
+        assert Counter(verified.loc[verified.partition.eq("train"), column]) == counts
+        if column == "label" or args.balance_text_labels:
+            assert all(counts[label] >= (target if column == "label" else text_target) for label in range(4))
     assert set(verified.loc[verified.partition.ne("train"), "review_id"]) == set(original.loc[original.partition.ne("train"), "review_id"])
+    if args.quality_only:
+        assert not next_draft.ground_truth.eq("authentic").any()
     active = append_augmentations(original, next_draft)
-    # Keep an exact local backup before replacing the augmentation file.
-    backup = Path(args.report).with_suffix(".previous.csv")
-    if rows and path.exists():
-        if backup.exists():
-            raise FileExistsError(f"Backup exists: {backup}; choose a new --report name")
+    # Keep an exact local backup, including when --fresh replaces old drafts.
+    if path.exists() and (rows or args.fresh):
         backup.parent.mkdir(parents=True, exist_ok=True)
         backup.write_bytes(path.read_bytes())
-    path.parent.mkdir(parents=True, exist_ok=True)
-    next_draft.to_csv(path, index=False, encoding="utf-8-sig")
     report = balancing_report(original, active, next_draft)
     report["batch_policy"] = {
-        "mode": "full training-set balance; supersedes the small-batch pilot limits",
+        "mode": "non-Authentic quality balancing only" if args.quality_only else "full training-set balance; supersedes the small-batch pilot limits",
         "quality_target_per_class": target,
-        "aspect_minimum": args.aspect_minimum,
+        "text_quality_target_per_class": text_target if args.balance_text_labels else None,
+        "balance_text_labels": args.balance_text_labels,
+        "aspect_minimum": 0 if args.quality_only else args.aspect_minimum,
         "source_variants": "Not capped; reported explicitly and remain pending human review",
         "held_out_data": "Original validation and test rows only",
     }
     report["full_balance_generation"] = {
         "method": "offline rule-based lexical paraphrases and independent tagged-field ordering; not an LLM",
         "seed": args.seed, "new_rows": len(rows), "quality_target": target,
-        "aspect_minimum": args.aspect_minimum, "unfillable_aspect_targets": unfillable,
+        "aspect_minimum": 0 if args.quality_only else args.aspect_minimum, "unfillable_aspect_targets": unfillable,
+        "fresh": args.fresh, "quality_only": args.quality_only,
+        "balance_text_labels": args.balance_text_labels,
+        "label_target_policy": "Preserve source text_label and ground_truth independently; target floors, not forced identical marginals",
+        "text_quality_target": text_target if args.balance_text_labels else None,
+        "projected_ground_truth_counts": {name: qualities[label] for label, name in enumerate(CLASS_NAMES)},
+        "projected_text_label_counts": {name: text_qualities[label] for label, name in enumerate(CLASS_NAMES)},
         "source_annotation_exclusions": excluded_sources,
         "max_variants_per_source": max(source_use.values(), default=0),
         "source_coverage_by_class": {CLASS_NAMES[label]: {"original_reviews": int(train.label.eq(label).sum()),
@@ -376,10 +418,13 @@ def main():
         "approval": "New rows are pending, with no human reviewer recorded; projected balance is not active training balance",
         "original_dataset_sha256": fingerprint(original),
     }
-    output = Path(args.report)
+    if report["projection_validation_error"]:
+        raise ValueError(report["projection_validation_error"])
+    path.parent.mkdir(parents=True, exist_ok=True)
+    next_draft.to_csv(path, index=False, encoding="utf-8-sig")
     output.parent.mkdir(parents=True, exist_ok=True)
     output.write_text(json.dumps(report, indent=2, ensure_ascii=False), encoding="utf-8")
-    print(f"Saved {len(rows)} new drafts; {len(next_draft)} total. Projected train: {target} per class. Report: {output}")
+    print(f"Saved {len(rows)} new drafts; {len(next_draft)} total. Projected target: at least {target} per class. Report: {output}")
     if unfillable:
         print("Some ABSA targets lack distinct eligible paraphrases:", json.dumps(unfillable))
 

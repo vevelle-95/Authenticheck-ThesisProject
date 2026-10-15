@@ -8,11 +8,10 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 import numpy as np
 
-from model_contract import ASPECTS, CLASS_NAMES, DEFAULT_BUNDLE, DEFAULT_SPLITS_PATH, INPUT_VERSION, POLARITIES, ROBERTA_TARGET_COLUMN, SENSORY_POLICY, SENTIMENT_TARGET_POLICY, quality_input_text
+from model_contract import ASPECTS, CLASS_NAMES, DEFAULT_BUNDLE, DEFAULT_SPLITS_PATH, INPUT_VERSION, POLARITIES, ROBERTA_TARGET_COLUMN, SENSORY_POLICY, SENTIMENT_TARGET_POLICY, quality_input_text, sentiment_indices
 from model_data import fingerprint, load_experiment
 from training_augmentation import augmentation_summary
-from model_metrics import classification_metrics
-from stage2.fine_tune_absa import detection_metrics
+from model_metrics import classification_metrics, absa_evaluation_report
 from stage2.online_inference import OnlineInference, aggregate_products
 
 
@@ -45,9 +44,7 @@ def evaluate_own_models(test, pipe):
     absa, tokenizer = pipe._load_absa()
     aspect_predictions = absa.predict(test.review_text.tolist(), tokenizer)
     filtered, unfiltered, gold, quality_predictions, text_predictions = [], [], [], [], []
-    polarity_gold, polarity_predicted = [], []
-    per_review_polarity = {}
-    det_gold, det_predicted, det_eligible = [], [], []
+    absa_records = []
     for record, aspects in zip(test.to_dict("records"), aspect_predictions):
         features, _, _ = pipe.extractor.extract(quality_input_text(record), record["image_urls"], record["star_rating"])
         verdict, probabilities = pipe.classify(features)
@@ -71,31 +68,35 @@ def evaluate_own_models(test, pipe):
             ] if record["label"] == 0 else [],
         })
         if record["label"] == 0:
-            categories = [annotation["category"] for annotation in record["annotations"]]
+            categories = [category for category in ASPECTS if any(
+                annotation["category"] == category for annotation in record["annotations"])]
             probabilities = absa.predict_sentiment([record["review_text"]] * len(categories), categories, tokenizer)
-            targets = [annotation["sentiment"] for annotation in record["annotations"]]
-            predictions = [int(np.argmax(values)) for values in probabilities]
-            polarity_gold.extend(targets)
-            polarity_predicted.extend(predictions)
-            per_review_polarity[record["review_id"]] = (targets, predictions)
-            det_gold.append([int(category in categories) for category in ASPECTS])
-            detected = {aspect["category"] for aspect in aspects}
-            det_predicted.append([int(category in detected) for category in ASPECTS])
-            det_eligible.append([1] * len(ASPECTS))
+            absa_records.append({
+                "review_id": record["review_id"], "product_id": record["product_id"],
+                "review_text": record["review_text"],
+                "image_urls": record["image_urls"],
+                "gold_pairs": [{"category": annotation["category"], "sentiment": POLARITIES[annotation["sentiment"]].lower()}
+                               for annotation in record["annotations"]],
+                "predicted_categories": [category for category in ASPECTS if any(item["category"] == category for item in aspects)],
+                "predicted_pairs": [{"category": item["category"], "sentiment": item["sentiment"].lower()} for item in aspects],
+                "gold_category_predictions": [{"category": category, "sentiment": POLARITIES[polarity].lower()}
+                    for category, values in zip(categories, probabilities)
+                    for polarity in sentiment_indices(values, absa.sentiment_threshold)],
+            })
+    absa_report = absa_evaluation_report(absa_records, aspect_threshold=absa.threshold,
+                                          sentiment_threshold=absa.sentiment_threshold)
+    absa_products = {row["product_id"]: row for row in absa_report["per_product_metrics"]}
     by_id = {row["id"]: index for index, row in enumerate(filtered)}
     per_product = []
     for product, rows in test.groupby("product_id"):
         indices = [by_id[review_id] for review_id in rows.review_id]
         targets = rows.label.tolist()
-        pairs = [per_review_polarity[review_id] for review_id in rows.review_id if review_id in per_review_polarity]
         per_product.append({
             "product_id": product,
             "quality_xgboost": classification_metrics(targets, [quality_predictions[index] for index in indices], range(4)),
             "quality_text_only": classification_metrics(targets, [text_predictions[index] for index in indices], range(4)),
             "quality_roberta_text_target": classification_metrics(rows.text_target.tolist(), [text_predictions[index] for index in indices], range(4)),
-            "gold_category_sentiment": classification_metrics(
-                [value for pair in pairs for value in pair[0]], [value for pair in pairs for value in pair[1]], range(3),
-            ),
+            "gold_category_sentiment": absa_products.get(product, {}).get("gold_category_sentiment"),
         })
     filtered_scores = {row["product_id"]: row["aggregateSentiment"] for row in aggregate_products(filtered)}
     unfiltered_scores = {row["product_id"]: row["aggregateSentiment"] for row in aggregate_products(unfiltered, authentic_only=False)}
@@ -121,8 +122,10 @@ def evaluate_own_models(test, pipe):
             "quality_text_only": "ground_truth (RoBERTa-only ablation of final classification)",
             "quality_roberta_text_target": ROBERTA_TARGET_COLUMN,
         },
-        "gold_category_sentiment": classification_metrics(polarity_gold, polarity_predicted, range(3)),
-        "category_detection": detection_metrics(np.asarray(det_gold), np.asarray(det_predicted), np.asarray(det_eligible), 0.5) if det_gold else None,
+        "gold_category_sentiment": absa_report["metrics"]["gold_category_sentiment"],
+        "category_detection": absa_report["metrics"]["category_detection"],
+        "aspect_sentiment_pairs": absa_report["metrics"]["aspect_sentiment_pairs"],
+        "absa_evaluation": absa_report,
         "per_product_metrics": per_product, "filtering_ablation": errors,
         "excluded_ablation_products": sum(not row["paired_eligible"] for row in errors),
         "filtered_reviews": filtered, "unfiltered_reviews": unfiltered,
@@ -152,6 +155,11 @@ def main():
     pipe = OnlineInference(bundle / "dost_roberta", bundle / "xgboost_meta_classifier.json", bundle / "absa_model")
     result = evaluate_own_models(assigned[assigned.partition.eq("test")], pipe)
     result["augmentation_usage"] = augmentation_summary(assigned)
+    result["dataset_sha256"] = fingerprint(assigned)
+    for partition in ("train", "validation"):
+        cohort = assigned[assigned.partition.eq(partition) & assigned.label.eq(0)]
+        result["absa_evaluation"][f"{partition}_review_ids"] = sorted(cohort.review_id.tolist())
+        result["absa_evaluation"][f"{partition}_sha256"] = fingerprint(cohort)
     output.parent.mkdir(parents=True, exist_ok=True)
     output.write_text(json.dumps(result, indent=2, ensure_ascii=False, allow_nan=False), encoding="utf-8")
     print(f"Saved held-out results to {output}")

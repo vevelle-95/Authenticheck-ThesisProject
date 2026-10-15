@@ -1,10 +1,9 @@
 """Native category JSON and isolated checkpoint inference; no keyword projection."""
 
-import numpy as np
 from torch.utils.data import DataLoader
 from transformers import AutoTokenizer
 
-from datasets.authenticheck_data import ASPECTS, SENTIMENTS
+from datasets.authenticheck_data import ASPECTS, SENTIMENTS, sentiment_indices
 from datasets.clip_cache import ClipFeatureCache
 from datasets.multimodal_dataset import MultiModalDataset, multimodal_collate_fn
 from models.model import CLIPCACG
@@ -12,11 +11,12 @@ from runtime import load_checkpoint, resolve_path, select_device
 from training.eval import collect_predictions
 
 
-def format_aspects(review_text, aspect_probabilities, sentiment_probabilities, threshold):
+def format_aspects(review_text, aspect_probabilities, sentiment_probabilities, threshold, sentiment_threshold=0.5):
     return [
         {"category": category, "text": review_text,
-         "sentiment": SENTIMENTS[int(np.argmax(sentiment_probabilities[index]))]}
+         "sentiment": SENTIMENTS[polarity]}
         for index, category in enumerate(ASPECTS) if aspect_probabilities[index] >= threshold
+        for polarity in sentiment_indices(sentiment_probabilities[index], sentiment_threshold)
     ]
 
 
@@ -59,7 +59,7 @@ class BaselinePredictor:
         rows = [
             {"id": row["review_id"], "aspects": format_aspects(
                 row["review_text"], raw["aspect_probabilities"][index],
-                raw["sentiment_probabilities"][index], self.checkpoint["threshold"],
+                raw["sentiment_probabilities"][index], self.checkpoint["threshold"], self.checkpoint["sentiment_threshold"],
             )}
             for index, row in enumerate(frame.to_dict("records"))
         ]

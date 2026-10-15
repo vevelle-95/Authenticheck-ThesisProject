@@ -1,4 +1,4 @@
-"""Fixed ten-category detection and category-conditioned three-way sentiment."""
+"""Fixed ten-category detection and category-conditioned multi-label sentiment."""
 
 import json
 import re
@@ -14,7 +14,7 @@ from transformers import AutoConfig, AutoModel
 from model_contract import (
     ASPECTS, BASE_MODEL, DATA_DIR, DEFAULT_BUNDLE, DEFAULT_DATA_PATH, DEFAULT_ROBERTA_DIR,
     MAX_LENGTH, POLARITIES,
-    SENSORY_POLICY, SENTIMENT_TARGET_POLICY, TAXONOMY_VERSION, aspect_prompt, map_polarity,
+    SENSORY_POLICY, SENTIMENT_TARGET_POLICY, TAXONOMY_VERSION, aspect_prompt, map_polarity, sentiment_indices,
 )
 
 MODELS_DIR = DEFAULT_BUNDLE
@@ -22,7 +22,7 @@ STAGE1_MODEL_DIR = DEFAULT_ROBERTA_DIR
 DEFAULT_ABSA_MODEL_DIR = DEFAULT_BUNDLE / "absa_model"
 DEFAULT_RESULTS_PATH = DATA_DIR / "absa_sentiment_results.json"
 ABSA_MAX_LENGTH = MAX_LENGTH
-MODEL_VERSION = "fixed-category-v2"
+MODEL_VERSION = "fixed-category-multilabel-v3"
 POLARITY_LABELS = list(POLARITIES)
 SENTIMENT_IGNORE = -100
 polarity_index = map_polarity
@@ -90,10 +90,12 @@ def tokenize_sentiment(tokenizer, texts, categories, max_length):
 
 class ABSAHeadModel(nn.Module):
     def __init__(self, encoder_name_or_dir=BASE_MODEL, dropout=0.1, *, encoder=None,
-                 threshold=0.5, max_length=ABSA_MAX_LENGTH):
+                 threshold=0.5, sentiment_threshold=0.5, max_length=ABSA_MAX_LENGTH):
         super().__init__()
         if not 0 < threshold < 1:
             raise ValueError("Aspect threshold must lie strictly between 0 and 1")
+        if not 0 < sentiment_threshold < 1:
+            raise ValueError("Sentiment threshold must lie strictly between 0 and 1")
         self.encoder_name = str(encoder_name_or_dir)
         self.encoder = encoder if encoder is not None else AutoModel.from_pretrained(encoder_name_or_dir)
         self.hidden_size = self.encoder.config.hidden_size
@@ -102,6 +104,7 @@ class ABSAHeadModel(nn.Module):
         self.aspect_head = nn.Linear(self.hidden_size, len(ASPECTS))
         self.sentiment_head = nn.Linear(self.hidden_size, len(POLARITIES))
         self.threshold = threshold
+        self.sentiment_threshold = sentiment_threshold
         self.max_length = max_length
         self.tokenizer_dir = None
 
@@ -119,11 +122,9 @@ class ABSAHeadModel(nn.Module):
         loss = F.binary_cross_entropy_with_logits(aspect_logits, aspect_targets, reduction="none")
         loss = (loss * eligible).sum() / eligible.sum().clamp_min(1)
         if sentiment_logits is not None and sentiment_targets.numel():
-            if sentiment_targets.ndim == 2:
-                sentiment_targets = sentiment_targets / sentiment_targets.sum(-1, keepdim=True).clamp_min(1)
-            else:
-                sentiment_targets = sentiment_targets.long()
-            loss = loss + F.cross_entropy(sentiment_logits, sentiment_targets)
+            if sentiment_targets.shape != sentiment_logits.shape:
+                raise ValueError("Sentiment targets must be multi-hot polarity vectors")
+            loss = loss + F.binary_cross_entropy_with_logits(sentiment_logits, sentiment_targets.float())
         return loss
 
     @torch.inference_mode()
@@ -134,9 +135,9 @@ class ABSAHeadModel(nn.Module):
         for start in range(0, len(texts), batch_size):
             enc = tokenize_sentiment(tokenizer, texts[start:start + batch_size],
                                      categories[start:start + batch_size], self.max_length).to(device)
-            outputs.extend(torch.softmax(self.sentiment_head(self._pooled(
+            outputs.extend(torch.sigmoid(self.sentiment_head(self._pooled(
                 enc["input_ids"], enc["attention_mask"],
-            )), dim=-1).cpu().tolist())
+            ))).cpu().tolist())
         return outputs
 
     @torch.inference_mode()
@@ -200,26 +201,24 @@ class ABSAHeadModel(nn.Module):
             ) if evidence_texts else []
             evidence_cursor = 0
             for position, ((row, category, confidence), values) in enumerate(zip(candidates, probabilities)):
-                polarity = max(range(3), key=lambda index: values[index])
                 accepted = accepted_rows[position]
                 review_segments = segments[row]
                 scores = segment_scores[offsets[row]:offsets[row] + len(review_segments), aspect_indices[position]]
-                agreeing = [
-                    local for local in range(len(accepted))
-                    if max(range(3), key=lambda option: evidence_probabilities[evidence_cursor + local][option]) == polarity
-                ]
+                local_values = evidence_probabilities[evidence_cursor:evidence_cursor + len(accepted)]
                 evidence_cursor += len(accepted)
-                selection = agreeing or list(range(len(accepted)))
-                chosen = review_segments[accepted[max(
-                    selection, key=lambda local: float(scores[accepted[local]]),
-                )]]
-                rows[row].append({
-                    "text": chosen,
-                    "category": category, "aspect": category, "sentiment": POLARITIES[polarity],
-                    "aspect_confidence": round(confidence, 4),
-                    "sentiment_confidence": round(values[polarity], 4),
-                    "sentiment_probabilities": dict(zip(POLARITIES, (round(value, 4) for value in values))),
-                })
+                for polarity in sentiment_indices(values, self.sentiment_threshold):
+                    agreeing = [local for local, probabilities in enumerate(local_values)
+                                if polarity in sentiment_indices(probabilities, self.sentiment_threshold)]
+                    selection = agreeing or list(range(len(accepted)))
+                    chosen = review_segments[accepted[max(selection, key=lambda local: (
+                        local_values[local][polarity], float(scores[accepted[local]])))]]
+                    rows[row].append({
+                        "text": chosen,
+                        "category": category, "aspect": category, "sentiment": POLARITIES[polarity],
+                        "aspect_confidence": round(confidence, 4),
+                        "sentiment_confidence": round(values[polarity], 4),
+                        "sentiment_probabilities": dict(zip(POLARITIES, (round(value, 4) for value in values))),
+                    })
             results.extend(rows)
         return results
 
@@ -235,7 +234,7 @@ class ABSAHeadModel(nn.Module):
             "sentiment_target_policy": SENTIMENT_TARGET_POLICY,
             "aspects": list(ASPECTS), "polarities": list(POLARITIES), "encoder": self.encoder_name,
             "hidden_size": self.hidden_size, "dropout": self.dropout_rate,
-            "threshold": self.threshold, "max_length": self.max_length,
+            "threshold": self.threshold, "sentiment_threshold": self.sentiment_threshold, "max_length": self.max_length,
         }
         (save_dir / "absa_config.json").write_text(json.dumps(config, indent=2), encoding="utf-8")
 
@@ -253,7 +252,7 @@ class ABSAHeadModel(nn.Module):
             raise ValueError("ABSA sentiment target policy mismatch; retrain with mixed-polarity support")
         config = AutoConfig.from_pretrained(model_dir / "encoder", local_files_only=True)
         model = cls(saved["encoder"], saved["dropout"], encoder=AutoModel.from_config(config),
-                    threshold=saved["threshold"], max_length=saved["max_length"])
+                    threshold=saved["threshold"], sentiment_threshold=saved["sentiment_threshold"], max_length=saved["max_length"])
         model.load_state_dict(torch.load(model_dir / "model.pt", map_location="cpu", weights_only=True))
         model.tokenizer_dir = model_dir / "tokenizer"
         return model

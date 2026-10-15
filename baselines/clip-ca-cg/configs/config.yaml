@@ -21,14 +21,14 @@ training:
 
 data:
   csv: ../../data/test_reviews.csv
-  splits: ../../data/splits_real_v2.json
+  splits: ../../data/splits_dataset.json
   augmentations: null  # Set ../../data/augmented_reviews.csv to use approved training variants.
   max_length: 128
   image_size: 224
   max_images: 5
 
 output:
-  checkpoint_dir: outputs/checkpoints
+  checkpoint_dir: outputs/ten_aspect_multilabel_v2/checkpoints
   model_cache: outputs/model_cache
   image_cache: outputs/image_cache
   clip_cache: outputs/clip_cache
