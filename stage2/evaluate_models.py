@@ -8,7 +8,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 import numpy as np
 
-from model_contract import ASPECTS, CLASS_NAMES, DEFAULT_BUNDLE, DEFAULT_SPLITS_PATH, POLARITIES, SENSORY_POLICY, SENTIMENT_TARGET_POLICY, quality_input_text
+from model_contract import ASPECTS, CLASS_NAMES, DEFAULT_BUNDLE, DEFAULT_SPLITS_PATH, INPUT_VERSION, POLARITIES, ROBERTA_TARGET_COLUMN, SENSORY_POLICY, SENTIMENT_TARGET_POLICY, quality_input_text
 from model_data import fingerprint, load_experiment
 from training_augmentation import augmentation_summary
 from model_metrics import classification_metrics
@@ -26,6 +26,10 @@ def check_training_provenance(assigned, bundle):
         (bundle / "absa_model" / "training_metadata.json", True),
     ):
         metadata = json.loads(path.read_text(encoding="utf-8"))
+        if path.parent.name == "dost_roberta" and (
+                metadata.get("input_version") != INPUT_VERSION
+                or metadata.get("target_column") != ROBERTA_TARGET_COLUMN):
+            raise ValueError(f"{path}: RoBERTa input contract or text_label target does not match")
         fit = training[training.label.eq(0)] if authentic_only else training
         val = validation[validation.label.eq(0)] if authentic_only else validation
         if set(metadata.get("fit_review_ids", [])) != set(fit.review_id) or set(metadata.get("validation_review_ids", [])) != set(val.review_id):
@@ -53,6 +57,7 @@ def evaluate_own_models(test, pipe):
         common = {
             "id": record["review_id"], "product_id": record["product_id"], "text": record["review_text"],
             "label": CLASS_NAMES[verdict], "ground_truth": CLASS_NAMES[record["label"]],
+            "text_label": CLASS_NAMES[record["text_target"]], "roberta_prediction": CLASS_NAMES[text_verdict],
             "probabilities": dict(zip(CLASS_NAMES, probabilities)), "features": features,
         }
         unfiltered.append({**common, "aspectSentiment": aspects})
@@ -87,6 +92,7 @@ def evaluate_own_models(test, pipe):
             "product_id": product,
             "quality_xgboost": classification_metrics(targets, [quality_predictions[index] for index in indices], range(4)),
             "quality_text_only": classification_metrics(targets, [text_predictions[index] for index in indices], range(4)),
+            "quality_roberta_text_target": classification_metrics(rows.text_target.tolist(), [text_predictions[index] for index in indices], range(4)),
             "gold_category_sentiment": classification_metrics(
                 [value for pair in pairs for value in pair[0]], [value for pair in pairs for value in pair[1]], range(3),
             ),
@@ -109,6 +115,12 @@ def evaluate_own_models(test, pipe):
         "partition": "test", "review_count": len(test), "product_count": test.product_id.nunique(),
         "quality_xgboost": classification_metrics(test.label.tolist(), quality_predictions, range(4)),
         "quality_text_only": classification_metrics(test.label.tolist(), text_predictions, range(4)),
+        "quality_roberta_text_target": classification_metrics(test.text_target.tolist(), text_predictions, range(4)),
+        "quality_metric_targets": {
+            "quality_xgboost": "ground_truth",
+            "quality_text_only": "ground_truth (RoBERTa-only ablation of final classification)",
+            "quality_roberta_text_target": ROBERTA_TARGET_COLUMN,
+        },
         "gold_category_sentiment": classification_metrics(polarity_gold, polarity_predicted, range(3)),
         "category_detection": detection_metrics(np.asarray(det_gold), np.asarray(det_predicted), np.asarray(det_eligible), 0.5) if det_gold else None,
         "per_product_metrics": per_product, "filtering_ablation": errors,

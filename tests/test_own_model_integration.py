@@ -65,6 +65,10 @@ class OfflineTrainingIntegrationTests(unittest.TestCase):
                     base, bundle = root / "base", root / "bundle"
                     tokenizer = create_tiny_encoder(base)
                     frame = validated_fixture(root)
+                    # Deliberately different text/final targets reveal accidental
+                    # use of ground_truth by the RoBERTa trainer or evaluator.
+                    frame["text_target"] = (frame.label + 1) % 4
+                    frame["text_label"] = frame.text_target.map(dict(enumerate(("authentic", "deceptive", "liv", "irrelevant"))))
                     mixed = [
                         {"category": "sensory_experience", "text": "quality", "sentiment": "positive"},
                         {"category": "sensory_experience", "text": "value", "sentiment": "negative"},
@@ -76,12 +80,19 @@ class OfflineTrainingIntegrationTests(unittest.TestCase):
                     assigned = prepare_splits(frame, root / "splits.json")
                     oof_path = root / "oof.csv"
                     generate_oof(assigned, oof_path, root / "folds", base_model=str(base), epochs=1, batch_size=16)
-                    with patch("stage1.train_roberta.tokenize_reviews", wraps=tokenize_reviews) as tokenize:
+                    from datasets import Dataset
+                    with patch("stage1.train_roberta.tokenize_reviews", wraps=tokenize_reviews) as tokenize, \
+                            patch.object(Dataset, "from_dict", wraps=Dataset.from_dict) as datasets:
                         fit_roberta(
                             assigned[assigned.partition.eq("train")], assigned[assigned.partition.eq("validation")],
                             bundle / "dost_roberta", base_model=str(base), epochs=1, batch_size=16,
                         )
                     training_texts = tokenize.call_args_list[0].args[1]
+                    training = assigned[assigned.partition.eq("train")]
+                    validation = assigned[assigned.partition.eq("validation")]
+                    self.assertEqual(datasets.call_args_list[0].args[0]["labels"], training.text_target.tolist())
+                    self.assertEqual(datasets.call_args_list[1].args[0]["labels"], validation.text_target.tolist())
+                    self.assertNotEqual(training.text_target.tolist(), training.label.tolist())
                     self.assertEqual(training_texts, [quality_input_text(row) for row in
                         assigned[assigned.partition.eq("train")].to_dict("records")])
 
@@ -95,6 +106,7 @@ class OfflineTrainingIntegrationTests(unittest.TestCase):
                     features = build_features(assigned, oof_path, root / "features.csv",
                                               bundle / "dost_roberta", extractor=extractor)
                     self.assertNotIn("test", set(features.partition))
+                    self.assertEqual(features.ground_truth.tolist(), assigned[assigned.partition.ne("test")].label.tolist())
                     train_classifier(features, assigned, bundle / "xgboost_meta_classifier.json")
                     train_absa(assigned, bundle / "absa_model", encoder=str(base), epochs=1, batch_size=4)
                     with patch("stage2.absa_model.AutoModel.from_pretrained", side_effect=AssertionError("Saved ABSA must not fetch an external encoder")):
@@ -127,6 +139,12 @@ class OfflineTrainingIntegrationTests(unittest.TestCase):
                     self.assertEqual(output["partition"], "test")
                     self.assertEqual(len(output["filtering_ablation"]), 3)
                     self.assertEqual(len(output["quality_xgboost"]["support"]), 4)
+                    from model_metrics import classification_metrics
+                    text_predictions = [("authentic", "deceptive", "liv", "irrelevant").index(row["roberta_prediction"])
+                                        for row in output["filtered_reviews"]]
+                    self.assertEqual(output["quality_roberta_text_target"], classification_metrics(test.text_target.tolist(), text_predictions, range(4)))
+                    self.assertEqual(output["quality_text_only"], classification_metrics(test.label.tolist(), text_predictions, range(4)))
+                    self.assertEqual(json.loads((bundle / "dost_roberta" / "training_metadata.json").read_text())["target_column"], "text_label")
                     self.assertEqual(len(output["gold_category_sentiment"]["support"]), 3)
                     json.dumps(output, allow_nan=False)
                     pipeline_output = pipe.run(test)

@@ -16,7 +16,7 @@ SPLIT_VERSION = "product-70-15-15-oof5-v1"
 def load_reviews(path, require_annotations=False):
     frame = pd.read_csv(path, encoding="utf-8-sig", skipinitialspace=True, keep_default_na=False,
                         dtype={"review_id": str, "product_id": str})
-    required = {"review_id", "product_id", "review_text", "review_image_urls", "star_rating", "ground_truth"}
+    required = {"review_id", "product_id", "review_text", "review_image_urls", "star_rating", "text_label", "ground_truth"}
     if require_annotations:
         required.add("aspect_annotations")
     missing = required.difference(frame.columns)
@@ -31,6 +31,7 @@ def load_reviews(path, require_annotations=False):
     if frame.review_id.duplicated().any():
         raise ValueError("review_id must uniquely identify each review")
     frame["label"] = frame.ground_truth.map(map_quality)
+    frame["text_target"] = frame.text_label.map(map_quality)
     frame["normalized_rating"] = frame.star_rating.map(normalize_rating)
     frame["image_urls"] = frame.review_image_urls.map(parse_image_urls)
     if "product_description" not in frame:
@@ -47,7 +48,7 @@ def load_reviews(path, require_annotations=False):
 
 def fingerprint(frame):
     columns = sorted(column for column in frame if column not in {
-        "label", "normalized_rating", "image_urls", "annotations", "partition", "fold",
+        "label", "text_target", "normalized_rating", "image_urls", "annotations", "partition", "fold",
     })
     records = frame.sort_values("review_id")[columns].astype(str).to_dict("records")
     return hashlib.sha256(json.dumps(records, sort_keys=True, ensure_ascii=False).encode()).hexdigest()

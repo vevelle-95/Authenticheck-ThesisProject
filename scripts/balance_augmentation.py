@@ -314,7 +314,8 @@ def main():
                     note += "All source category/polarity pairs preserved; exact transformed evidence checked. Verify the source taxonomy and polarity labels. "
                 note += "Inspect reused source photos." if safe else "No photos selected because URLs are absent or shared across scopes; confirm label without visual support."
                 rows.append(dict(review_id=row_id, source_review_id=source_id, review_text=text,
-                    ground_truth=CLASS_NAMES[label], aspect_annotations=json.dumps(annotations, ensure_ascii=False),
+                    text_label=source["text_label"], ground_truth=CLASS_NAMES[label],
+                    aspect_annotations=json.dumps(annotations, ensure_ascii=False),
                     image_mode="source" if safe else "none", image_source_review_id="",
                     augmentation_method="paraphrase", review_status="pending", reviewed_by="", review_notes=note))
                 seen.add(key); ids.add(row_id); source_use[source_id] += 1; qualities[label] += 1

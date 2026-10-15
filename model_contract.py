@@ -24,7 +24,11 @@ MAX_LENGTH = 128
 SEED = 42
 
 # Shared label, feature, and artifact compatibility contracts.
-INPUT_VERSION = "product-context-six-features-v3-missing-image-zero"
+INPUT_VERSION = "product-context-six-features-v5-text-target"
+ROBERTA_TARGET_COLUMN = "text_label"
+QUALITY_TEXT_POLICY = "review-first-bounded-context-v1"
+QUALITY_CONTEXT_TOKENS = 28
+QUALITY_TITLE_TOKENS = 10
 MODEL_VERSION = "authenticheck-2.1"
 TAXONOMY_VERSION = "fixed-ten-v1"
 SENSORY_POLICY = "annotation-guidelines-only"
@@ -67,7 +71,7 @@ def get_inference_bundle():
 
 
 def quality_input_text(record):
-    """Use the same title + description + buyer review for every quality input.
+    """Keep field boundaries so tokenization can protect the buyer review.
 
     Missing listing context is allowed; the buyer review itself must be present.
     Only text fields are included, never labels, IDs, stars, or annotations.
@@ -86,9 +90,73 @@ def quality_input_text(record):
         value = " ".join(value.split())
         if index == 2 and not value:
             raise ValueError("Review text cannot be empty")
-        if value:
-            cleaned.append(value)
-    return " ".join(cleaned)
+        cleaned.append(value)
+    title, description, review = cleaned
+    return f"Review: {review}\nProduct title: {title}\nProduct description: {description}"
+
+
+def quality_input_parts(text):
+    """Read our three-field format; plain strings remain review-only inputs."""
+    if not isinstance(text, str) or not text.strip():
+        raise ValueError("Review text cannot be empty")
+    lines = text.splitlines()
+    prefixes = ("Review: ", "Product title: ", "Product description: ")
+    if len(lines) == 3 and all(line.startswith(prefix) for line, prefix in zip(lines, prefixes)):
+        review, title, description = [line[len(prefix):] for line, prefix in zip(lines, prefixes)]
+    else:
+        review, title, description = " ".join(text.split()), "", ""
+    if not review.strip():
+        raise ValueError("Review text cannot be empty")
+    return review, title, description
+
+
+def _token_count(tokenizer, text):
+    return len(tokenizer(text, add_special_tokens=False, truncation=False, verbose=False)["input_ids"])
+
+
+def _token_prefix(tokenizer, text, limit):
+    """Keep original characters up to a token boundary, without decode changes."""
+    if not text or limit <= 0:
+        return ""
+    encoded = tokenizer(text, add_special_tokens=False, truncation=True, max_length=limit,
+                        return_offsets_mapping=True, return_attention_mask=False,
+                        return_token_type_ids=False)
+    end = max((end for _, end in encoded["offset_mapping"]), default=0)
+    prefix = text[:end].rstrip()
+    # Cutting inside a word can change its BPE segmentation. Recheck the prefix.
+    while prefix and _token_count(tokenizer, prefix) > limit:
+        prefix = prefix[:-1].rstrip()
+    return prefix
+
+
+def quality_input_pairs(tokenizer, texts, max_length=MAX_LENGTH):
+    """Bound context before encoding (review, context) pairs with either encoder.
+
+    At 128 tokens RoBERTa reserves at least 96 review tokens, up to 28 context
+    tokens and four pair separators. Shorter context frees more review space.
+    Each encoder's own tokenizer counts tokens. No listing can remove the review.
+    """
+    if not isinstance(max_length, int) or max_length < 8:
+        raise ValueError("Quality max_length must be at least 8")
+    if not getattr(tokenizer, "is_fast", False):
+        raise ValueError("Review-preserving tokenization requires a fast tokenizer with character offsets")
+    tokenizer.truncation_side = "right"
+    content_limit = max_length - tokenizer.num_special_tokens_to_add(pair=True)
+    if content_limit < 3:
+        raise ValueError("Quality token budget must fit review and product context")
+    context_limit = min(QUALITY_CONTEXT_TOKENS, max(2, content_limit // 4), content_limit - 1)
+    title_limit = min(QUALITY_TITLE_TOKENS, max(1, context_limit * QUALITY_TITLE_TOKENS // QUALITY_CONTEXT_TOKENS))
+    pairs = []
+    for text in texts:
+        review, title, description = quality_input_parts(text)
+        title = _token_prefix(tokenizer, title, title_limit)
+        description = _token_prefix(tokenizer, description, context_limit - _token_count(tokenizer, title))
+        context = _token_prefix(tokenizer, " ".join(part for part in (title, description) if part), context_limit)
+        review = _token_prefix(tokenizer, review, content_limit - _token_count(tokenizer, context))
+        if not review:
+            raise ValueError("Tokenization removed the review; inspect the review/tokenizer")
+        pairs.append((review, context))
+    return pairs
 
 
 def _label(value, names, aliases):

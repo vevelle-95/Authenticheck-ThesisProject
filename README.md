@@ -72,8 +72,13 @@ Enable **Use model API** in the popup and provide a local endpoint such as `http
 
 The versioned API returns `authenticShare`, `verifiedRating`, `counts`, `sentimentCounts`, `aspects`, and classified `reviews`. Incomplete or incompatible model responses are rejected; they are never silently mixed with local heuristic values. Version 0.3 permits local API hosts only (`127.0.0.1` or `localhost`).
 
-The quality model and M-CLIP use product title + description + buyer review text,
-with the same combination in training, evaluation, and live prediction. XGBoost
+The quality model and M-CLIP use the buyer review paired with bounded product
+title/description context, with the same policy in training, evaluation and live
+prediction. At the default 128-token RoBERTa limit, up to 28 context tokens leave
+at least 96 tokens for the review plus four special tokens. M-CLIP counts its own
+tokens against its encoder limit. Existing quality bundles must be retrained for
+the v5 text-target contract. RoBERTa trains on `text_label`; XGBoost trains on
+`ground_truth`. Both original and augmented reviews provide these separate labels. XGBoost
 also uses the buyer's stars. ABSA uses the buyer review alone, and the interface
 displays that original review text.
 

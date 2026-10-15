@@ -19,8 +19,8 @@ def balancing_report(original, combined, draft):
     real_train = original[original.partition.eq("train")]
     active_train = combined[combined.partition.eq("train")]
 
-    def quality_counts(rows):
-        counts = rows.label.value_counts()
+    def quality_counts(rows, target="label"):
+        counts = rows[target].value_counts()
         return {name: int(counts.get(label, 0)) for label, name in enumerate(CLASS_NAMES)}
 
     def aspect_counts(rows):
@@ -40,13 +40,15 @@ def balancing_report(original, combined, draft):
         projected = append_augmentations(original, projection_draft)
         projected_train = projected[projected.partition.eq("train")]
         projected_quality, projected_aspects = quality_counts(projected_train), aspect_counts(projected_train)
+        projected_text_quality = quality_counts(projected_train, "text_target")
         projection_error = None
     except ValueError as error:
         projected_quality, projected_aspects = None, None
+        projected_text_quality = None
         projection_error = str(error)
     minority_sources = real_train[real_train.label.isin((1, 3))]
     source_review = [
-        {"source_review_id": row.review_id, "ground_truth": CLASS_NAMES[int(row.label)],
+        {"source_review_id": row.review_id, "text_label": row.text_label, "ground_truth": CLASS_NAMES[int(row.label)],
          "product_id": row.product_id, "fold": int(row.fold),
          "review_text": row.review_text, "star_rating": int(row.star_rating),
          "check": "Confirm corroborating deceptive indicators; rating/image mismatch alone is insufficient"
@@ -75,6 +77,9 @@ def balancing_report(original, combined, draft):
         "counts_unit": "ABSA counts distinct reviews containing each category/polarity, not repeated evidence spans",
         "original_training_quality": quality_counts(real_train),
         "active_training_quality": quality_counts(active_train),
+        "original_training_text_quality": quality_counts(real_train, "text_target"),
+        "active_training_text_quality": quality_counts(active_train, "text_target"),
+        "projected_training_text_quality_if_all_pending_pass_human_review": projected_text_quality,
         "projected_training_quality_if_all_pending_pass_human_review": projected_quality,
         "projection_validation_error": projection_error,
         "draft_status_counts": draft.review_status.value_counts().to_dict(),
@@ -194,7 +199,7 @@ def main():
                 sources.append({
                     "source_review_id": row["review_id"], "product_id": row["product_id"],
                     "product_title": row.get("product_title", ""), "product_description": row.get("product_description", ""),
-                    "review_text": row["review_text"], "ground_truth": quality,
+                    "review_text": row["review_text"], "text_label": row["text_label"], "ground_truth": quality,
                     "aspect_annotations": json.loads(row["aspect_annotations"]) if row["label"] == 0 else [],
                     "star_rating": int(row["star_rating"]), "fold": int(row["fold"]),
                     "image_mode": "source" if safe else "none",

@@ -326,6 +326,7 @@ class SharedAugmentationTests(unittest.TestCase):
                          product_title='Product', product_description='Listing context',
                          review_text=f'Product {product} feedback {label}: fragile but sturdy',
                          review_image_urls='[]', star_rating=3,
+                         text_label=('deceptive', 'authentic', 'liv', 'irrelevant')[label],
                          ground_truth=('authentic', 'deceptive', 'liv', 'irrelevant')[label],
                          aspect_annotations=json.dumps(annotations) if label == 0 else '[]')
                     for product in range(30) for label in range(4)]
@@ -334,7 +335,7 @@ class SharedAugmentationTests(unittest.TestCase):
             original = own_data.prepare_splits(own_data.load_reviews(csv, True), splits)
             source = original[original.partition.eq('train') & original.label.eq(0)].iloc[0]
             draft = dict(review_id='synthetic-1', source_review_id=source.review_id,
-                         review_text='It is fragile in places, yet sturdy elsewhere.', ground_truth='authentic',
+                         review_text='It is fragile in places, yet sturdy elsewhere.', text_label=source.text_label, ground_truth='authentic',
                          aspect_annotations=json.dumps(annotations), image_mode='none', image_source_review_id='',
                          augmentation_method='paraphrase', review_status='approved', reviewed_by='human',
                          review_notes='Mixed opinions and exact evidence checked')
@@ -342,6 +343,8 @@ class SharedAugmentationTests(unittest.TestCase):
             own = own_data.load_experiment(csv, splits, augmented, True)
             baseline = load_experiment(csv, splits, augmented)
             self.assertEqual(own_data.fingerprint(own), fingerprint(baseline))
+            self.assertEqual((own.iloc[-1].text_target, own.iloc[-1].label), (1, 0))
+            self.assertEqual(baseline.text_target.tolist(), own.text_target.tolist())
             for column in ('review_id', 'product_id', 'review_text', 'partition', 'fold', 'source_review_id', 'image_urls'):
                 self.assertEqual(own[column].tolist(), baseline[column].tolist())
             self.assertEqual(baseline.iloc[-1].annotations, {'product_quality': {0, 2}})

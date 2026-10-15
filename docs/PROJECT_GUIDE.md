@@ -45,8 +45,8 @@ ABSA means **aspect-based sentiment analysis**. AuthentiCheck first applies this
 quality filter:
 
 ```text
-Product title + description + review -> DOST RoBERTa -> four quality probabilities
-The same combined text + usable buyer photos -> multilingual CLIP similarity
+Review + bounded title/description context -> DOST RoBERTa -> four quality probabilities
+The same review-first context policy + usable buyer photos -> multilingual CLIP similarity
 Stars -> (stars - 1) / 4
 Those six values -> XGBoost -> final quality label
 Authentic reviews -> independent DOST ABSA -> aspects and sentiments
@@ -57,17 +57,30 @@ trained independently; it does not reuse the quality classifier's fine-tuned
 weights. XGBoost belongs to the logical quality stage even though its script
 lives in `stage2/`. CLIP is pretrained and is not fine-tuned by this pipeline.
 The maximum combined-text/photo cosine similarity is used; no usable photos means
-`0`. The shared `quality_input_text()` helper in `model_contract.py` joins title,
-description, and review in that order and normalizes whitespace. Quality training,
-OOF predictions, feature generation, final evaluation, and the API all use it.
+`0`. The shared `quality_input_text()` helper in `model_contract.py` preserves
+review/title/description field boundaries and normalizes whitespace.
+`quality_input_pairs()` tokenizes the review separately from a bounded listing
+context. Quality training, OOF predictions, feature generation, final evaluation,
+and the API all use this policy.
 Missing listing context is treated as empty; a written buyer review is required.
 ABSA receives the buyer review alone, matching its opinion annotations, and API
 review text remains the buyer's text. Product category is not a model input.
 
-RoBERTa still has a configurable maximum input length (default 128 tokens).
-Long descriptions can use that budget before the review appears; inspect the
-tokenized inputs and choose a suitable `--max-length` during validation. M-CLIP
-has its own encoder limit, independent of the pipeline's RoBERTa setting.
+RoBERTa has a configurable maximum input length (default 128 tokens). With a
+long listing and review, the default paired input is 96 review tokens, 10 title
+tokens, 18 description tokens and four special tokens. Context is capped at
+28 tokens; shorter title/context frees room for description/review respectively.
+Small `--max-length` values proportionally reduce the context allocation.
+The review is always the first sequence; only that sequence can be shortened
+by the final tokenizer call. Long reviews can still be truncated, but a long
+description cannot remove the review. Full source fields remain in the CSV.
+M-CLIP uses the same bounded-pair helper with its own tokenizer, special tokens
+and encoder limit, independent of the RoBERTa setting. It stays pretrained.
+
+Quality artifacts now use `product-context-six-features-v5-text-target`.
+Existing v3 quality weights and feature CSVs are incompatible: changing their
+version tags does not repair the training. The independent ABSA input and
+taxonomy are unchanged, so a compatible ABSA bundle can be retained.
 
 CLIP-CA-CG uses RoBERTa with a Bi-GRU, frozen ResNet image regions, cached frozen
 CLIP embeddings, cross-attention, gating, and aspect/sentiment heads. It has no
@@ -167,11 +180,30 @@ make every row a test example; the saved split manifest determines partitions.
 | `review_text` | Buyer-authored text |
 | `review_image_urls` | JSON list or pipe-separated buyer-photo URLs; blank if none |
 | `star_rating` | Integer from 1 to 5 |
-| `ground_truth` | Human quality label: `authentic`, `deceptive`, `liv`, or `irrelevant` |
+| `ground_truth` | Final review-quality target for XGBoost and Authentic-only ABSA selection: `authentic`, `deceptive`, `liv`, or `irrelevant` |
 | `aspect_annotations` | JSON list of category, evidence text, and sentiment |
 | `product_title`, `product_description` | Listing context included in AuthentiCheck quality/CLIP text; not opinion evidence for ABSA |
-| `text_label` | Source metadata; never a training target |
+| `text_label` | Human text-quality label used to train and validate RoBERTa, including OOF models |
 | `aspects`, `aspect_text`, `sentiment` | May remain in the CSV, but training reads `aspect_annotations` |
+
+Both real and augmented reviews carry the same two label columns. RoBERTa
+learns `text_label` from review text with bounded listing context. XGBoost
+learns `ground_truth` from RoBERTa probabilities, image similarity and stars.
+For example, detailed relevant text can be text-Authentic but finally Deceptive
+when its image evidence contradicts the review. Assign these labels independently;
+equal labels are valid when the evidence supports the same judgment.
+
+Augmented paraphrases inherit each source label separately. The loader verifies
+both labels and never replaces a missing text label with the final label.
+The v5 text-target contract requires new OOF predictions, a newly trained
+RoBERTa, new six-dimensional features and a newly trained XGBoost. Keep the
+existing real split manifest; adding a derived numeric text target does not
+change the split fingerprint. ABSA still selects ground-truth Authentic reviews.
+
+Evaluation reports `quality_roberta_text_target` against `text_label`.
+`quality_xgboost` and `quality_text_only` both use `ground_truth`; the latter
+measures how RoBERTa alone performs at the final classification task. Compare
+models using the same target and held-out reviews.
 
 Legitimate repeated review text is allowed; every row still needs a unique
 `review_id`. For splitting, text is compared ignoring case and whitespace
@@ -321,7 +353,8 @@ The augmentation file stores only the fields you need to author/review drafts:
 | `review_id` | Give each synthetic draft its own unique ID. |
 | `source_review_id` | Identify an original training review being paraphrased. |
 | `review_text` | Preserve the source experience, opinions, uncertainty and language style. |
-| `ground_truth` | Preserve the source quality label; disputed labels need separate review. |
+| `text_label` | Preserve the source text-quality target independently of its final label. |
+| `ground_truth` | Preserve the source final quality label; disputed labels need separate review. |
 | `aspect_annotations` | JSON annotations with exact evidence from the new text. Authentic paraphrases must retain all source category/sentiment pairs, including mixed sentiments. |
 | `image_mode` | `source` reuses original photos, `none` uses no photos, `donor` uses another original review's photos for a reviewed controlled mismatch. |
 | `image_source_review_id` | Leave blank for source/none; give the original donor's review ID for donor mode. |
@@ -478,7 +511,8 @@ and training:
 Alternatively set baseline `data.augmentations` in its YAML config to that path.
 Keep output folders separate when retaining earlier baseline runs. Selected
 Authentic additions affect baseline/own ABSA; deceptive/irrelevant additions help
-own quality training. Balance quality labels and aspect/sentiment pairs separately.
+own quality training. Balance text_label and ground_truth counts separately, as
+well as aspect/sentiment pairs.
 
 Pass the **same frozen augmentation CSV** to final evaluation so checkpoint
 provenance includes exactly the accepted training rows:
@@ -515,7 +549,8 @@ The pipeline generates OOF probabilities, trains final RoBERTa, extracts six
 features, fits XGBoost, then trains independent ABSA. Test products are excluded.
 All quality-text fitting and prediction uses title + description + buyer review.
 Fold training uses its fixed epoch setting; held-fold reviews do not select its
-checkpoint. Final RoBERTa and XGBoost are selected using validation macro-F1;
+checkpoint. Final RoBERTa is selected using validation macro-F1 against text_label;
+XGBoost is selected against ground_truth;
 XGBoost class weights come from training data. ABSA uses human-labeled Authentic
 reviews and selects its checkpoint using detection and sentiment validation
 macro-F1. Its validation-selected detection threshold controls which aspects
@@ -527,13 +562,13 @@ For a separate experiment, choose separate destinations:
 .\.venv\Scripts\python.exe pipeline.py --data data/test_reviews.csv --splits data/experiment_01/splits.json --work-dir data/experiment_01/features --output models/experiment_01 --epochs 3 --batch-size 2
 ```
 
-**After the combined-input change, regenerate the quality models and features.**
-The old `models/practice_run/` quality/XGBoost files use a review-only contract
-and are rejected by the current API. Renaming them or editing their version tags
-does not retrain them. Use a fresh destination while retaining the shared splits:
+**After the review-budget and separate-target corrections, regenerate quality models and features.**
+The old review-only, v3 combined-input and v4 ground-truth-trained RoBERTa/XGBoost weights (including
+`models/augmented_experiment/`) are rejected by the current API. Use a fresh
+destination while retaining the shared splits and augmentation CSV:
 
 ```powershell
-.\.venv\Scripts\python.exe pipeline.py --data data/test_reviews.csv --splits data/splits_real_v2.json --work-dir data/context_run/features --output models/context_run --epochs 3 --batch-size 2
+.\.venv\Scripts\python.exe pipeline.py --data data/test_reviews.csv --splits data/splits_real_v2.json --augmentations data/augmented_reviews.csv --allow-unreviewed-augmentations --work-dir data/text_target_v5/features --output models/text_target_v5 --epochs 3 --batch-size 2
 ```
 
 This runs new OOF fits, final quality RoBERTa, six-feature extraction, XGBoost,
@@ -541,7 +576,7 @@ and ABSA. The independent ABSA input remains review text; a compatible saved
 ABSA model may also be retained when rebuilding the quality components manually.
 The CSV and split fingerprint policy are unchanged by this code update, so an
 unchanged CSV can keep its existing shared product assignments. Current quality
-artifacts use `product-context-six-features-v3-missing-image-zero`.
+artifacts use `product-context-six-features-v5-text-target`.
 
 ### Train CLIP-CA-CG
 
@@ -996,7 +1031,7 @@ and reviews to score.
 | File | What it does | Used during |
 | --- | --- | --- |
 | [prepare_splits.py](../stage1/prepare_splits.py) | Checks the CSV and creates/reuses the shared train/validation/test and five-fold assignment. | Preparation command |
-| [train_roberta.py](../stage1/train_roberta.py) | Fine-tunes DOST RoBERTa on title + description + buyer review to predict four quality classes; OOF fitting uses the same code. | Training |
+| [train_roberta.py](../stage1/train_roberta.py) | Fine-tunes DOST RoBERTa on review + bounded title/description context to predict the four text_label classes; OOF fitting uses the same code. | Training |
 | [generate_oof_features.py](../stage1/generate_oof_features.py) | Trains five fold models and scores each held-out training fold. Those predictions become XGBoost training inputs. | Training-feature preparation |
 | [features.py](../stage1/features.py) | Produces the same six numbers during training and prediction: four combined-text probabilities, combined-text/photo similarity, and normalized stars. No usable photo gives similarity `0`. | Supporting code for training and prediction |
 | [extract_6d_features.py](../stage1/extract_6d_features.py) | Writes the training/validation feature CSV. Uses OOF probabilities for training and final RoBERTa probabilities for validation. | Training-feature preparation |

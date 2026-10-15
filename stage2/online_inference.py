@@ -49,7 +49,7 @@ class OnlineInference:
         meta = json.loads(self.xgb_path.with_suffix(".metadata.json").read_text(encoding="utf-8"))
         absa = json.loads((self.absa_dir / "absa_config.json").read_text(encoding="utf-8"))
         if text.get("input_contract_version") != INPUT_VERSION or meta.get("input_version") != INPUT_VERSION:
-            raise ValueError("Stage 1 input contract mismatch; regenerate OOF/features and retrain RoBERTa/XGBoost with product title + description + review text")
+            raise ValueError("Stage 1 input contract mismatch; regenerate OOF/features and retrain RoBERTa/XGBoost with review-preserving token budgets")
         if meta.get("feature_columns") != list(FEATURE_COLUMNS) or meta.get("class_order") != list(CLASS_NAMES):
             raise ValueError("XGBoost feature/class order mismatch")
         if absa.get("model_version") != absa_model.MODEL_VERSION or absa.get("taxonomy_version") != TAXONOMY_VERSION or absa.get("aspects") != list(ASPECTS):
