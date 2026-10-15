@@ -119,10 +119,59 @@
     return [...found];
   }
 
-  function extractReviewText(root, contentSelectors, exclusionSelectors, ratingSelectors = []) {
+  function findUsername(root, selectors, excludedElements = [], config = {}) {
+    const acceptable = element => !excludedElements.some(excluded => excluded === element || excluded.contains(element))
+      && !element.closest("[hidden], [aria-hidden='true'], button, time, [class*='badge'], [class*='verified']");
+    const readName = element => {
+      const clone = element.cloneNode(true);
+      clone.querySelectorAll("script, style, svg, img, [class*='badge'], [class*='verified']").forEach(child => child.remove());
+      return cleanText(clone.textContent).replace(/^by\s+/i, "");
+    };
+    for (const selector of selectors) {
+      for (const element of root.querySelectorAll(selector)) {
+        if (!acceptable(element)) continue;
+        const name = readName(element);
+        if (name && name.length <= 100) return { name, element };
+      }
+    }
+    // Marketplace classes change. Use structural evidence within this review
+    // card, retaining only the visible name (never the identity in its URL).
+    const contentElements = (config.contentSelectors || []).flatMap(selector => [...root.querySelectorAll(selector)]);
+    const inReviewBody = element => contentElements.some(body => body === element || body.contains(element));
+    const handle = name => /^[\p{L}\p{N}_.\-*•]{2,100}$/u.test(name)
+      && !/^(?:verified|purchase|helpful|report|reply|follow|variation|seller|shop|like|star|stars)$/i.test(name);
+    for (const element of root.querySelectorAll("a[href]")) {
+      if (!acceptable(element) || inReviewBody(element)) continue;
+      const name = readName(element);
+      if (!handle(name)) continue;
+      try {
+        const url = new URL(element.getAttribute("href"), location.href);
+        if (url.hostname !== location.hostname || !["https:", "http:"].includes(url.protocol)) continue;
+        if (/^\/(?:user|profile)\/[\w.-]+\/?$/i.test(url.pathname)
+            || /^\/[\w.-]{2,100}\/?$/.test(url.pathname) && !/^\/(?:shop|help|product|products|reviews|login)\/?$/i.test(url.pathname)) return { name, element };
+      } catch { /* Not a profile link. */ }
+    }
+    const rating = (config.ratingSelectors || []).map(selector => root.querySelector(selector)).find(Boolean);
+    if (rating) {
+      for (const element of root.querySelectorAll("a, span, div")) {
+        if (!acceptable(element) || inReviewBody(element) || element.children.length
+            || !(element.compareDocumentPosition(rating) & 4)) continue;
+        const name = readName(element);
+        if (handle(name)) return { name, element };
+      }
+    }
+    return { name: "", element: null };
+  }
+
+  function extractUsername(root, selectors, excludedElements = [], config = {}) {
+    return findUsername(root, selectors, excludedElements, config).name;
+  }
+
+  function extractReviewText(root, contentSelectors, exclusionSelectors, ratingSelectors = [], usernameSelectors = [], usernameElement = null) {
     const nonReviewTextSelectors = [
       ...exclusionSelectors,
       ...ratingSelectors,
+      ...usernameSelectors,
       "script", "style", "button", "svg", "img", "video", "time", "[hidden]", "[aria-hidden='true']",
       "[aria-label*='star' i]", "[class*='star']",
       "[class*='username']", "[class*='author']", "[class*='date']", "[class*='time']",
@@ -153,7 +202,12 @@
       ).join(" ");
     };
     const textFromElement = element => {
+      if (element === usernameElement) return "";
       const clone = element.cloneNode(true);
+      if (usernameElement && element.contains(usernameElement)) {
+        const index = [...element.querySelectorAll("*")].indexOf(usernameElement);
+        if (index >= 0) clone.querySelectorAll("*")[index]?.remove();
+      }
       findSellerResponseElements(clone, exclusionSelectors).forEach(excluded => excluded.remove());
       nonReviewTextSelectors.forEach(selector => clone.querySelectorAll(selector).forEach(child => child.remove()));
       return bodyText(clone);
@@ -268,6 +322,7 @@
     const contentSelectors = config.contentSelectors || ["[class*='comment']", "[class*='content']", "[class*='review-text']", "p"];
     const imageSelectors = config.imageSelectors || [];
     const ratingSelectors = config.ratingSelectors || [];
+    const usernameSelectors = config.usernameSelectors || ["[class*='username']", "[class*='author-name']", "[itemprop='author'] [itemprop='name']"];
     const reviewNodes = topLevelUniqueNodes(nodes);
     const reviews = [];
     const seen = new Set();
@@ -276,8 +331,11 @@
     let withoutWrittenText = 0;
 
     reviewNodes.forEach((node, index) => {
-      sellerResponsesExcluded += findSellerResponseElements(node, exclusionSelectors).length;
-      const text = extractReviewText(node, contentSelectors, exclusionSelectors, ratingSelectors);
+      const sellerElements = findSellerResponseElements(node, exclusionSelectors);
+      sellerResponsesExcluded += sellerElements.length;
+      const author = findUsername(node, usernameSelectors, sellerElements, config);
+      const username = author.name;
+      const text = extractReviewText(node, contentSelectors, exclusionSelectors, ratingSelectors, usernameSelectors, author.element);
       const rating = parseRatingFromNode(node, ratingSelectors);
       const imageUrls = extractImageUrls(node, imageSelectors, exclusionSelectors);
       if (!text && !Number.isFinite(rating) && !imageUrls.length) return;
@@ -299,6 +357,7 @@
       ];
       reviews.push({
         id: `${platform.toLowerCase()}-${sourceId}`,
+        username,
         text,
         rating,
         hasImage: imageUrls.length > 0,
@@ -324,7 +383,7 @@
     };
   }
 
-  registry.common = { metaContent, schemaProductPresent, titleFrom, descriptionFrom, ratingFromPage, discoverReviewNodes, extractReviews };
+  registry.common = { metaContent, schemaProductPresent, titleFrom, descriptionFrom, ratingFromPage, discoverReviewNodes, extractReviews, extractUsername };
   registry.register = adapter => registry.adapters.push(adapter);
   registry.getActive = () => registry.adapters.find(adapter => adapter.matches(location));
 })();

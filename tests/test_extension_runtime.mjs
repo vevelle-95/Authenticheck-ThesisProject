@@ -13,10 +13,51 @@ vm.runInContext(read("extension/content.js").replace("  start();", "  globalThis
 assert.doesNotThrow(() => context.check.applyEnabledState());
 assert.doesNotThrow(() => context.check.closePanel());
 
+// Closed panels must not leave invisible controls in the keyboard sequence.
+const panelNodes = new Map();
+function panelNode(selector) {
+  if (!panelNodes.has(selector)) {
+    const classes = new Set();
+    panelNodes.set(selector, { attributes: {}, focused: false,
+      classList: { add: name => classes.add(name), remove: name => classes.delete(name),
+        contains: name => classes.has(name),
+        toggle(name, on) { if (on) classes.add(name); else classes.delete(name); } },
+      setAttribute(name, value) { this.attributes[name] = value; },
+      focus() { this.focused = true; }
+    });
+  }
+  return panelNodes.get(selector);
+}
+const tabs = ["overview", "insights", "reviews", "performance", "testing"].map(name => Object.assign(panelNode(name), { dataset: { tab: name } }));
+const pages = tabs.map(tab => ({ dataset: { page: tab.dataset.tab }, classList: { toggle() {} } }));
+context.testRoot = { querySelector: panelNode, querySelectorAll: selector => selector === ".ac-tab" ? tabs : pages };
+context.window = {};
+vm.runInContext(read("extension/content.js").replace("  start();", "  root = globalThis.testRoot; globalThis.panelCheck = { openPanel, closePanel, showPage };"), context);
+context.panelCheck.openPanel();
+assert.equal(panelNode(".ac-panel").inert, false);
+assert.equal(panelNode(".ac-close").focused, true);
+assert.equal(panelNode(".ac-trigger").attributes["aria-expanded"], "true");
+context.panelCheck.showPage("reviews");
+assert.deepEqual(tabs.map(tab => tab.tabIndex), [-1, -1, 0, -1, -1]);
+assert.deepEqual(tabs.map(tab => tab.attributes["aria-selected"]), ["false", "false", "true", "false", "false"]);
+context.panelCheck.showPage("performance");
+assert.deepEqual(tabs.map(tab => tab.tabIndex), [-1, -1, -1, 0, -1]);
+assert.equal(tabs[3].attributes["aria-selected"], "true");
+context.panelCheck.showPage("testing");
+assert.deepEqual(tabs.map(tab => tab.tabIndex), [-1, -1, -1, -1, 0]);
+context.panelCheck.closePanel();
+assert.equal(panelNode(".ac-panel").inert, true);
+assert.equal(panelNode(".ac-trigger").inert, false);
+assert.equal(panelNode(".ac-trigger").focused, true);
+assert.equal(panelNode(".ac-trigger").attributes["aria-expanded"], "false");
+
 const request = JSON.parse(read("data/samples/extension_api_payload.json"));
 const response = JSON.parse(read("data/samples/extension_api_response.json"));
 const payload = { ...request, reviews: request.reviews.map(review => ({ ...review, analysisEligible: true })) };
 assert.equal(context.check.normalizeApiResult(response, payload).mode, "api");
+const namedPayload = { ...payload, reviews: payload.reviews.map(review => ({ ...review, username: "m***a" })) };
+const renamedResponse = { ...response, reviews: response.reviews.map(review => ({ ...review, username: "API must not rename buyers" })) };
+assert.equal(context.check.normalizeApiResult(renamedResponse, namedPayload).reviews[0].username, "m***a");
 const unratedPayload = { ...payload, reviews: [...payload.reviews,
   { id: "unrated", text: "Detailed feedback without stars", rating: null,
     analysisEligible: false, missingFields: ["rating", "image"] }] };

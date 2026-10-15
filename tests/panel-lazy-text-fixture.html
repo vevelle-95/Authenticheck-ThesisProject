@@ -45,7 +45,7 @@
         const shadow = document.querySelector("#authenticheck-extension-root")?.shadowRoot;
         shadow?.querySelector('[data-tab="reviews"]')?.click();
         const checks = {
-          sameCardReanalyzedAfterTextLoaded: shadow?.querySelector(".ac-status-text")?.textContent.includes("1 of 1 visible review analyzed") || false,
+          sameCardReanalyzedAfterTextLoaded: shadow?.querySelector(".ac-status-text")?.textContent.includes("1 of 1 loaded review analyzed") || false,
           loadedTextDisplayed: [...(shadow?.querySelectorAll(".ac-review > p") || [])].some(node => node.textContent.includes("Maganda ang quality")),
           noLongerMarkedUnavailable: shadow?.querySelectorAll(".ac-verdict.unavailable").length === 0
         };

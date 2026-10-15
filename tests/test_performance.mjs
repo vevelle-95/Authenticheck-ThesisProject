@@ -12,7 +12,8 @@ try {
   const quality = { macro_f1: 0.5, macro_precision: 0.5, macro_recall: 0.5, accuracy: 0.5,
     confusion_matrix: [[2, 1, 0, 0], [0, 1, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]] };
   const report = { partition: "test", review_count: 4, product_count: 2, quality_xgboost: quality,
-    filtered_reviews: [{ text: "PRIVATE REVIEW MUST NOT BE PUBLISHED" }] };
+    filtered_reviews: [{ id: "r-1", ground_truth: "authentic", label: "authentic", text: "PRIVATE REVIEW MUST NOT BE PUBLISHED", username: "PRIVATE USERNAME" },
+      { id: "r-2", ground_truth: "deceptive", label: "authentic" }] };
   const publish = () => spawnSync(process.execPath, ["scripts/publish_performance.mjs", "--own", source,
     "--bundle", "test-only", "--dataset", "test-data", "--split", "test-split",
     "--evaluated-at", "2026-10-15", "--output", output], { encoding: "utf8" });
@@ -21,6 +22,7 @@ try {
   assert.equal(run.status, 0, run.stderr);
   const published = readFileSync(output, "utf8");
   assert.ok(!published.includes("PRIVATE REVIEW"));
+  assert.ok(!published.includes("PRIVATE USERNAME"));
   const context = { window: {}, location: {},
     chrome: { runtime: { onMessage: { addListener() {} } }, storage: { onChanged: { addListener() {} } } },
     document: { addEventListener() {}, createElement() { return { set textContent(v) { this.innerHTML = String(v).replaceAll("<", "&lt;").replaceAll(">", "&gt;"); } }; } } };
@@ -31,9 +33,9 @@ try {
   assert.equal(metrics.per_class[0].precision, 1);
   assert.equal(metrics.per_class[0].recall, 2 / 3);
   assert.equal(metrics.per_class[2].f1, 0);
-  const summary = {}, body = {};
-  context.testRoot = { querySelector(selector) { return selector === ".ac-performance-score" ? summary : body; } };
-  const content = readFileSync("extension/content.js", "utf8").replace("  start();", "  root = globalThis.testRoot; globalThis.check = { renderPerformance, metricScore };");
+  const summary = {}, body = {}, testing = {};
+  context.testRoot = { querySelector(selector) { return selector === ".ac-performance-score" ? summary : selector === ".ac-testing-body" ? testing : body; } };
+  const content = readFileSync("extension/content.js", "utf8").replace("  start();", "  root = globalThis.testRoot; globalThis.check = { renderPerformance, renderTestResults, metricScore };");
   vm.runInContext(content, context);
   context.check.renderPerformance();
   assert.match(summary.textContent, /50.00%/);
@@ -41,12 +43,33 @@ try {
   assert.match(body.innerHTML, /different scopes/);
   assert.match(body.innerHTML, /CLIP-CA-CG/);
   assert.match(body.innerHTML, /Not evaluated/);
+  context.check.renderTestResults();
+  assert.match(testing.innerHTML, /Ground truth comes from the labeled CSV/);
+  assert.match(testing.innerHTML, /50.00%/);
+  assert.match(testing.innerHTML, /4 test reviews/);
+  assert.match(testing.innerHTML, /r-1/);
+  assert.match(testing.innerHTML, /Incorrect/);
+  assert.match(testing.innerHTML, /Target: ground_truth/);
+  assert.match(testing.innerHTML, /Confusion matrix/);
+  assert.doesNotMatch(testing.innerHTML, /PRIVATE/);
   assert.equal(context.check.metricScore(null), "Not evaluated");
   assert.equal(context.check.metricScore(0), "0.00%");
   context.AuthentiCheckPerformance = { models: [] };
   context.check.renderPerformance();
   assert.match(summary.textContent, /Not evaluated/);
   assert.ok(!body.innerHTML.includes("50.00%"));
+  context.check.renderTestResults();
+  assert.match(testing.innerHTML, /Not evaluated/);
+  assert.doesNotMatch(testing.innerHTML, /50.00%|r-1/);
+  writeFileSync(source, JSON.stringify({ ...report, review_count: 25, filtered_reviews: Array.from({ length: 25 }, (_, id) => ({ id, ground_truth: "authentic", label: "authentic" })) }));
+  assert.equal(publish().status, 0);
+  const capped = {};
+  vm.createContext(capped);
+  vm.runInContext(readFileSync(output, "utf8"), capped);
+  assert.equal(capped.AuthentiCheckPerformance.models[0].testEvaluation.samples.length, 20);
+  assert.equal(capped.AuthentiCheckPerformance.models[0].testEvaluation.comparisonCount, 25);
+  writeFileSync(source, JSON.stringify({ ...report, filtered_reviews: [{ id: "duplicate", ground_truth: "authentic", label: "authentic" }, { id: "duplicate", ground_truth: "authentic", label: "authentic" }] }));
+  assert.notEqual(publish().status, 0);
   writeFileSync(source, JSON.stringify({ ...report, partition: "validation" }));
   assert.notEqual(publish().status, 0);
   writeFileSync(source, JSON.stringify({ ...report, quality_xgboost: { macro_f1: 55 } }));

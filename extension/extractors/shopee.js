@@ -12,6 +12,11 @@
   ];
 
   const EXTRACTION_CONFIG = {
+    usernameSelectors: [
+      ".shopee-product-rating__author-name", "[class*='rating__author-name']",
+      "[class*='review-author']", "[class*='username']", "[data-testid='review-author']",
+      "[itemprop='author'] [itemprop='name']"
+    ],
     contentSelectors: [
       ".shopee-product-rating__content",
       ".shopee-product-rating__comment",

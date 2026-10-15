@@ -13,6 +13,7 @@
         <button class="rating-item">4 Star (23)</button>
       </nav>
       <div class="QkA17">
+        <a class="ObfuscatedAuthorA" href="/zhaoxi18">zhaoxi18</a>
         <img class="avatar" src="https://example.com/avatar-one.jpg" alt="Reviewer avatar" />
         <div aria-label="5 out of 5 stars"></div>
         <div class="product-rating-main">
@@ -23,6 +24,7 @@
         <div class="seller-response"><strong>Seller Response</strong><p>Thank you for your order and support.</p></div>
       </div>
       <div class="QkA18">
+        <span class="ObfuscatedAuthorB">&#x6A;*****&#x31;8</span>
         <img class="avatar" src="https://example.com/avatar-two.jpg" alt="Reviewer avatar" />
         <div aria-label="4 out of 5 stars"></div>
         <div class="product-rating-main">
@@ -41,6 +43,8 @@
       const checks = {
         ignoredRatingFilterFalsePositives: extraction.stats.candidateNodes === 2,
         foundTwoObfuscatedCards: extraction.reviews.length === 2,
+        plainUsernameRecovered: extraction.reviews[0]?.username === "zhaoxi18",
+        maskedUsernameRecovered: extraction.reviews[1]?.username === "j*****18",
         firstBuyerTextOnly: extraction.reviews[0]?.text === "Case looks charming and the matte finish feels durable.",
         secondBuyerTextOnly: extraction.reviews[1]?.text === "Okay ang buttons at sakto ang fit sa phone.",
         ratingsLinked: extraction.reviews[0]?.rating === 5 && extraction.reviews[1]?.rating === 4,

@@ -30,15 +30,16 @@ A dependency-free Manifest V3 browser extension plus a standalone frontend proto
 
 When extension source files change, select **Reload** on the extension card.
 
-The panel includes an expandable **Model performance** section with held-out
+The panel includes a **Model performance** tab to the right of **Reviews**, with held-out
 Macro-F1, secondary metrics, and task-scoped model comparison. Scores display as
 **Not evaluated** until real test reports are published. See
 [publishing performance results](docs/FRONTEND_PERFORMANCE.md).
 
-The panel includes an expandable **Model performance** section with held-out
-Macro-F1, secondary metrics, and task-scoped model comparison. Scores display as
-**Not evaluated** until real test reports are published. See
-[publishing performance results](docs/FRONTEND_PERFORMANCE.md).
+A separate **Test results** tab shows CSV test-split accuracy, macro precision,
+macro recall, macro F1, confusion matrices, and bounded review-ID examples of
+ground truth versus predictions. It uses published held-out reports rather than
+live marketplace reviews, whose annotated labels are unavailable. Scores remain
+**Not evaluated** until an actual compatible-model report is published.
 
 ## Analysis modes
 
@@ -87,10 +88,19 @@ When API mode is enabled, connection and response errors are shown explicitly. T
 ## Mock-defense readiness
 
 - Complete loading, empty, model-error, recovery, and result states.
-- Review evidence search and classification filters.
-- Input-coverage counts for reviews, ratings, and buyer media.
+- Review search with highlighted matches, classification shortcuts, clear filters, and batches of 20 with a Load more action.
+- Counted classification filters and sorting by original order, lowest/highest rating, or review length.
+- Readable review excerpts with full-text expansion, searchable snippets, and expandable classification explanations.
+- Per-view scroll positions, review expansions, search, and sorting retained across same-product rescans; previous results remain visible while an update runs.
+- Reviewers' displayed usernames (including masked names) and additional-review summaries after comparable scans.
+- Unified scan coverage with skipped-review reasons, valid ratings, and optional buyer media.
+- Scan timestamps and an update prompt when loaded reviews change with automatic analysis disabled.
+- Aspect evidence excerpts when per-review model assignments or local keyword matches are available.
 - JSON export containing the exact analysis input and displayed result.
 - Responsive and keyboard-friendly panel behavior.
+- Keyboard focus stays in the open analysis dialog; Escape closes it and returns focus to the badge.
+- Explicit saved-versus-unsaved settings and current-result mode reporting; save edits before rescanning.
+- Failed scans hide outdated output and disable export; local previews require an explicit choice using current-page inputs.
 - Stable local API boundary with a 60-second timeout and strict schema validation.
 
 The standalone prototype and local estimate are appropriate for demonstrating the proposed workflow and interface during the mock defense. They are not empirical model results and should not be used as thesis performance evidence. Replace the local preview with the trained API for the tool defense.
@@ -98,7 +108,7 @@ The standalone prototype and local estimate are appropriate for demonstrating th
 ## Privacy and scope
 
 - Reads only public review content already loaded in the current product page.
-- Extracts only buyer-authored review text, the star rating belonging to that review, and buyer-review pictures from the same review card.
+- Extracts buyer-authored review text, the displayed reviewer username, the star rating, and buyer-review pictures from the same review card. Usernames are display metadata and are omitted from model requests.
 - Explicitly removes seller or shop responses before review text and pictures are selected.
 - Uses separate Shopee and Lazada adapters so platform-specific page changes can be maintained independently.
 - Injects the floating interface only after detecting a supported product page.
@@ -109,7 +119,7 @@ The standalone prototype and local estimate are appropriate for demonstrating th
 ## User-facing terminology
 
 - **Authentic review share** is the percentage of analyzed reviews classified as authentic. It is not the classifier's statistical confidence score.
-- **Authenticity-adjusted rating** is the average star rating after excluding reviews classified as deceptive, irrelevant, or low-information.
+- **Loaded-review scope:** the extension does not show a marketplace-to-adjusted-rating comparison because a scan covers only the loaded review sample. Individual buyers' star ratings remain visible.
 - **Local estimate** means the bundled heuristic analyzer produced the result.
 - **Model API** means a connected AuthentiCheck inference service produced the result.
 

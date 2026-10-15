@@ -9,6 +9,11 @@
   ];
 
   const EXTRACTION_CONFIG = {
+    usernameSelectors: [
+      ".top .middle > span:first-child", "[class*='review-author']",
+      "[class*='username']", "[data-testid='review-author']",
+      "[itemprop='author'] [itemprop='name']"
+    ],
     contentSelectors: [
       ".item-content",
       ".review-content-sl",

@@ -9,6 +9,7 @@
       <h1>Extractor regression fixture</h1>
       <div class="shopee-product-rating" data-review-id="fixture-1">
         <div class="reviewer-profile">
+          <span class="shopee-product-rating__author-name">m***a</span>
           <img class="avatar" src="https://example.com/avatar.jpg" alt="Reviewer avatar" />
         </div>
         <div class="shopee-product-rating__rating" aria-label="5 out of 5 stars"></div>
@@ -24,6 +25,7 @@
       </div>
       <section class="mod-reviews">
         <article class="item" data-review-id="fixture-2">
+          <div class="top"><div class="middle"><span>by Juan D.</span><span class="verified">Verified Purchase</span></div></div>
           <img class="avatar" src="https://example.com/lazada-avatar.jpg" alt="Reviewer avatar" />
           <div class="starCtn" aria-label="4 out of 5 stars"></div>
           <div class="item-content">
@@ -57,6 +59,7 @@
         buyerTextOnly: review?.text === "Maganda ang sound quality at matagal ang battery.",
         sellerTextExcluded: !review?.text.includes("seller reply"),
         ratingLinked: review?.rating === 5,
+        shopeeUsernameLinked: review?.username === "m***a",
         buyerPhotoLinked: review?.imageUrls?.length === 1 && review.imageUrls[0].includes("buyer-headphones.jpg"),
         avatarExcluded: !review?.imageUrls?.some(url => url.includes("avatar")),
         sellerMediaExcluded: !review?.imageUrls?.some(url => url.includes("seller-logo")),
@@ -64,6 +67,7 @@
         lazadaExactlyOneReview: lazadaExtraction.reviews.length === 1,
         nestedSellerReplyExcluded: lazadaReview?.text === "Sulit ang presyo at maayos ang quality.",
         lazadaRatingLinked: lazadaReview?.rating === 4,
+        lazadaUsernameLinked: lazadaReview?.username === "Juan D.",
         lazadaBuyerPhotoLinked: lazadaReview?.imageUrls?.length === 1 && lazadaReview.imageUrls[0].includes("buyer-product.jpg"),
         lazadaAvatarExcluded: !lazadaReview?.imageUrls?.some(url => url.includes("avatar")),
         lazadaSellerMediaExcluded: !lazadaReview?.imageUrls?.some(url => url.includes("shop-logo")),

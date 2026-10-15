@@ -19,6 +19,7 @@
       <p>Noise-cancelling wireless headphones with long battery life.</p>
 
       <article class="shopee-product-rating" data-review-id="1">
+        <span class="shopee-product-rating__author-name">m***a</span>
         <div class="shopee-product-rating__rating" aria-label="5 out of 5 stars"></div>
         <p class="shopee-product-rating__content">Super linaw ng audio at matagal ang battery. Comfortable gamitin kahit ilang oras.</p>
         <div class="shopee-product-rating__image-list-wrapper"><img src="https://example.com/buyer-headphones.jpg" alt="Buyer headphones photo" /></div>
@@ -95,16 +96,26 @@
     <script>
       setTimeout(() => {
         const shadow = document.querySelector("#authenticheck-extension-root")?.shadowRoot;
+        const modeBeforeAbout = shadow?.querySelector(".ac-mode")?.textContent;
+        shadow?.querySelector(".ac-info")?.click();
+        const aboutOpened = shadow?.querySelector(".ac-about")?.hidden === false;
+        shadow?.querySelector(".ac-info")?.click();
         const checks = {
           panelInjected: Boolean(shadow?.querySelector(".ac-panel")),
-          fourOfFiveReviewsAnalyzed: shadow?.querySelector(".ac-status-text")?.textContent.includes("4 of 5 visible reviews analyzed") || false,
+          usernameDisplayed: shadow?.querySelector(".ac-review-user strong")?.textContent === "m***a",
+          noAggregateRatingComparison: !shadow?.querySelector(".ac-rating, .ac-rating-help"),
+          productContextDisplayed: shadow?.querySelector(".ac-product-title")?.textContent === "Auralite Wireless Headphones",
+          performanceBesideReviews: [...(shadow?.querySelectorAll(".ac-tab") || [])].map(tab => tab.dataset.tab).join(",") === "overview,insights,reviews,performance,testing",
+          separateHeldOutEvaluation: shadow?.querySelector('[data-page="testing"]')?.textContent.includes("Ground truth comes from the labeled CSV.") || false,
+          aboutExplainsWithoutChangingMode: aboutOpened && shadow?.querySelector(".ac-about")?.hidden === true && shadow?.querySelector(".ac-mode")?.textContent === modeBeforeAbout,
+          fourOfFiveReviewsAnalyzed: shadow?.querySelector(".ac-status-text")?.textContent.includes("4 of 5 loaded reviews analyzed") || false,
           incompleteReviewDisplayed: shadow?.querySelectorAll(".ac-review").length === 5,
           incompleteReviewNotAnalyzed: shadow?.querySelectorAll(".ac-verdict.unavailable").length === 1,
           missingTextExplained: [...(shadow?.querySelectorAll(".ac-review > p.missing") || [])].some(node => node.textContent.includes("No written buyer comment")),
           deceptiveLabelNamedClearly: [...(shadow?.querySelectorAll(".ac-verdict.deceptive") || [])].some(node => node.textContent === "Deceptive"),
-          filteredReviewsExplainSentimentGate: [...(shadow?.querySelectorAll(".ac-signals .warn") || [])].some(node => node.textContent.includes("Stage 2 sentiment skipped")),
+          filteredReviewsExplainSentimentGate: [...(shadow?.querySelectorAll(".ac-signals .warn") || [])].some(node => node.textContent.includes("Not included in sentiment analysis")),
           onlyTextReviewsSentToApi: globalThis.fixtureApiPayload?.reviews?.length === 4,
-          internalDisplayFieldsNotSent: globalThis.fixtureApiPayload?.reviews?.every(review => !("analysisEligible" in review) && !("missingFields" in review)) || false,
+          internalDisplayFieldsNotSent: globalThis.fixtureApiPayload?.reviews?.every(review => !("analysisEligible" in review) && !("missingFields" in review) && !("username" in review)) || false,
           sellerReplyExcluded: shadow?.querySelector(".ac-scope.excluded strong")?.textContent === "1",
           buyerImagesCounted: shadow?.querySelectorAll(".ac-scope strong")?.[2]?.textContent === "2"
         };

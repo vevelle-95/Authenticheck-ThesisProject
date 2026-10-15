@@ -1,4 +1,4 @@
-// Publish compact evaluation summaries; never include review text or predictions.
+// Publish held-out summaries and bounded ID/label comparisons; never review text.
 import { readFileSync, writeFileSync } from "node:fs";
 import { createHash } from "node:crypto";
 import { resolve } from "node:path";
@@ -43,14 +43,32 @@ function metrics(value, names = []) {
   }
   return result;
 }
+function testEvaluation(report) {
+  const comparisons = (Array.isArray(report.filtered_reviews) ? report.filtered_reviews : [])
+    .filter(row => row.id != null && row.ground_truth != null && row.label != null)
+    .map(row => {
+      if (!["authentic", "deceptive", "liv", "irrelevant"].includes(row.ground_truth)
+          || !["authentic", "deceptive", "liv", "irrelevant"].includes(row.label)) throw new Error("Invalid test comparison label");
+      return { id: String(row.id), groundTruth: row.ground_truth, prediction: row.label, correct: row.ground_truth === row.label };
+    });
+  if (new Set(comparisons.map(row => row.id)).size !== comparisons.length) throw new Error("Duplicate test review IDs");
+  if (Number.isInteger(report.review_count) && comparisons.length > report.review_count) throw new Error("Test comparisons exceed report coverage");
+  if (new Set(comparisons.map(row => row.id)).size !== comparisons.length) throw new Error("Duplicate test review IDs");
+  if (Number.isInteger(report.review_count) && comparisons.length > report.review_count) throw new Error("Test comparisons exceed report coverage");
+  if (new Set(comparisons.map(row => row.id)).size !== comparisons.length) throw new Error("Duplicate test review IDs");
+  if (Number.isInteger(report.review_count) && comparisons.length > report.review_count) throw new Error("Test comparisons exceed report coverage");
+  return { partition: "test", targetColumn: "ground_truth", comparisonCount: comparisons.length, samples: comparisons.slice(0, 20) };
+}
 const own = load(options.own);
 const provenance = { dataset: options.dataset, split: options.split, evaluatedAt: options["evaluated-at"] };
 const models = [{
   name: "AuthentiCheck", version: options.bundle, ...provenance, reportSha256: own.sha256,
   reviewCount: own.report.review_count, productCount: own.report.product_count,
+  testEvaluation: testEvaluation(own.report),
   tasks: [
-    { name: "Review quality · RoBERTa + XGBoost", scope: "Four quality classes", metrics: metrics(own.report.quality_xgboost, labels) },
-    { name: "Review quality · RoBERTa only", scope: "Same test reviews; text-only ablation", metrics: metrics(own.report.quality_text_only, labels) },
+    { name: "Review quality · RoBERTa + XGBoost", scope: "Four quality classes", targetColumn: "ground_truth", metrics: metrics(own.report.quality_xgboost, labels) },
+    { name: "Review quality · RoBERTa only", scope: "Same test reviews; text-only ablation", targetColumn: "ground_truth", metrics: metrics(own.report.quality_text_only, labels) },
+    ...(own.report.quality_roberta_text_target ? [{ name: "RoBERTa · text target", scope: "Text classifier evaluated against text_label", targetColumn: "text_label", metrics: metrics(own.report.quality_roberta_text_target, labels) }] : []),
     { name: "Aspect detection", scope: "Ten aspects · gold Authentic reviews", metrics: metrics(own.report.category_detection) },
     { name: "Sentiment", scope: "Gold categories · gold Authentic reviews", metrics: metrics(own.report.gold_category_sentiment, sentiments) }
   ]

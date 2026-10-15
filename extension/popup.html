@@ -12,12 +12,19 @@
         <svg viewBox="0 0 24 24"><path d="m12 2 8 3v6c0 5.1-3.4 9.6-8 11-4.6-1.4-8-5.9-8-11V5l8-3Z"/><path d="m8.5 12 2.2 2.2 4.8-5"/></svg>
       </span>
       <div><strong>AuthentiCheck</strong><small>Review intelligence</small></div>
-      <span class="version">v0.3.8</span>
+      <span class="version">Settings</span>
     </header>
 
     <main>
-      <div class="support" id="supportState"><i></i><span>Checking this page…</span></div>
-
+      <div class="support" id="supportState" role="status"><i aria-hidden="true"></i><span>Checking this page…</span></div>
+      <section class="mode-state" aria-label="Analysis mode">
+        <span>Current result</span><strong id="currentMode">Checking…</strong>
+        <small id="savedMode">Loading saved preference…</small>
+      </section>
+      <section class="preferences" aria-labelledby="preferencesTitle">
+      <h1 id="preferencesTitle">Your review assistant</h1>
+      <p class="intro">Choose how AuthentiCheck works while you shop.</p>
+      <div class="settings-card">
       <label class="setting">
         <span><strong>Show on product pages</strong><small>Display the floating trust badge</small></span>
         <input type="checkbox" id="enabled" checked />
@@ -29,28 +36,33 @@
         <input type="checkbox" id="autoAnalyze" checked />
         <i class="toggle"></i>
       </label>
-
+      </div>
+      </section>
+      <h2 class="section-label">Analysis</h2>
       <div class="api-card">
         <label class="setting api-switch">
-          <span><strong>Use model API</strong><small>Otherwise uses a local estimate</small></span>
+          <span><strong>Connect model API</strong><small>Off: local heuristic estimates</small></span>
           <input type="checkbox" id="useApi" />
           <i class="toggle"></i>
         </label>
         <label class="endpoint" id="endpointWrap">
           <span>Local API endpoint</span>
-          <input id="apiEndpoint" type="url" value="http://127.0.0.1:8000/analyze" />
+          <input id="apiEndpoint" type="url" value="http://127.0.0.1:8000/analyze" aria-describedby="endpointHelp endpointError" spellcheck="false" />
+          <small id="endpointHelp" class="api-note">Use HTTP with localhost or 127.0.0.1.</small>
+          <small id="endpointError" class="field-error" hidden></small>
           <small class="api-note">If the model is unavailable, the panel will show an error and let you explicitly choose a heuristic preview.</small>
         </label>
       </div>
 
+      <p class="settings-state" id="settingsState" role="status" aria-live="polite">Loading settings…</p>
       <div class="actions">
-        <button class="secondary" id="rescan">Rescan page</button>
-        <button class="primary" id="save">Save settings</button>
+        <button class="secondary" id="rescan" disabled>Rescan page</button>
+        <button class="primary" id="save" disabled>Save settings</button>
       </div>
-      <p class="notice" id="notice">Settings saved</p>
+      <p class="notice" id="notice" role="status" aria-live="polite" aria-atomic="true"></p>
     </main>
 
-    <footer>Designed for Shopee Philippines and Lazada Philippines</footer>
+    <footer><strong>Shopee PH &amp; Lazada PH</strong><span>Only loaded public reviews are analyzed.</span></footer>
     <script src="popup.js"></script>
   </body>
 </html>
