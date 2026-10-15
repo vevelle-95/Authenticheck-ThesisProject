@@ -85,6 +85,10 @@
           <div class="ac-head-actions"><button class="ac-icon-btn ac-info" aria-label="About this analysis">${infoIcon}</button><button class="ac-icon-btn ac-close" aria-label="Close AuthentiCheck">${closeIcon}</button></div>
         </header>
         <div class="ac-scroll">
+          <details class="ac-performance">
+            <summary><span>Model performance</span><strong class="ac-performance-score">Test Macro-F1 · Not evaluated</strong></summary>
+            <div class="ac-performance-body"></div>
+          </details>
           <section class="ac-state ac-loading" role="status" aria-live="polite"><span class="ac-spinner" aria-hidden="true"></span><h2>Analyzing reviews…</h2><p>Preparing review text, ratings, and available buyer media.</p><div class="ac-loading-tip"><strong>Review tip</strong><span></span></div></section>
           <section class="ac-state ac-empty"><span class="ac-empty-icon">${shield}</span><h2>Reviews aren't loaded yet</h2><p>Scroll to the product reviews so the marketplace loads them, then run the scan again.</p><button class="ac-rescan">Scan visible reviews</button></section>
           <section class="ac-state ac-error"><span class="ac-empty-icon ac-error-icon">!</span><h2>Model connection failed</h2><p class="ac-error-message">The local inference service could not be reached.</p><div class="ac-error-actions"><button class="ac-retry">Try model again</button><button class="ac-local-preview">Use local preview</button></div><small>Local preview is heuristic-only and is never presented as model output.</small></section>
@@ -105,6 +109,7 @@
       </aside>`;
     root.append(wrapper);
     document.documentElement.append(host);
+    renderPerformance();
 
     root.querySelector(".ac-trigger").addEventListener("click", openPanel);
     root.querySelector(".ac-close").addEventListener("click", closePanel);
@@ -584,9 +589,41 @@
     return `<article class="ac-review"><header><div class="ac-review-user"><span class="ac-avatar">${String(index+1).padStart(2,"0")}</span><div><strong>Visible buyer review</strong><span class="ac-stars">${stars}</span></div></div><span class="ac-verdict ${escapeHtml(review.label)}">${escapeHtml(verdictTitle(review.label))}</span></header><p class="${text ? "" : "missing"}">${text ? escapeHtml(text) : "No written buyer comment was provided."}</p><div class="ac-signals">${(review.signals || []).map(signal => `<span class="${review.label === "authentic" ? "" : "warn"}">${review.label === "authentic" ? "✓" : "!"} ${escapeHtml(signal)}</span>`).join("")}${stage2Status}${media}</div></article>`;
   }
 
+  function metricScore(value) {
+    return typeof value === "number" && Number.isFinite(value) && value >= 0 && value <= 1 ? `${(value * 100).toFixed(2)}%` : "Not evaluated";
+  }
+
+  function renderPerformance() {
+    const models = globalThis.AuthentiCheckPerformance?.models || [];
+    const own = models.find(model => model.name === "AuthentiCheck");
+    const quality = own?.tasks?.find(task => task.name === "Review quality · RoBERTa + XGBoost");
+    root.querySelector(".ac-performance-score").textContent = `Test Macro-F1 · ${metricScore(quality?.metrics?.macro_f1)}`;
+    const headings = "<tr><th scope='col'>Model / task</th><th scope='col'>Macro-F1</th><th scope='col'>Precision (macro)</th><th scope='col'>Recall (macro)</th><th scope='col'>Accuracy</th></tr>";
+    const rows = models.flatMap(model => (model.tasks || []).map(task => `<tr><th scope="row">${escapeHtml(model.name)}<br>${escapeHtml(task.name)}<small>${escapeHtml(task.scope)}</small></th>${["macro_f1", "macro_precision", "macro_recall", "accuracy"].map(key => `<td>${task.metrics?.[key] == null && key === "accuracy" && task.name === "Aspect detection" ? "Not reported" : metricScore(task.metrics?.[key])}</td>`).join("")}</tr>`));
+    if (!own) rows.unshift(`<tr><th scope="row">AuthentiCheck<small>Quality classification · ten-aspect ABSA</small></th><td colspan="4">Not evaluated</td></tr>`);
+    if (!models.some(model => model.name === "CLIP-CA-CG")) rows.push(`<tr><th scope="row">CLIP-CA-CG<small>Six-aspect ABSA · no quality classifier</small></th><td colspan="4">Not evaluated</td></tr>`);
+    root.querySelector(".ac-performance-body").innerHTML = `
+      <p class="ac-eval-note">Held-out test performance on labeled reviews. These scores stay fixed across product scans. Live review confidence and authentic share are separate measures.</p>
+      <div class="ac-metric-grid"><div><span>Quality Macro-F1</span><strong>${metricScore(quality?.metrics?.macro_f1)}</strong></div><div><span>Macro-precision</span><strong>${metricScore(quality?.metrics?.macro_precision)}</strong></div><div><span>Macro-recall</span><strong>${metricScore(quality?.metrics?.macro_recall)}</strong></div><div><span>Accuracy</span><strong>${metricScore(quality?.metrics?.accuracy)}</strong></div></div>
+      <h3>Model comparison</h3>
+      <p class="ac-eval-note">AuthentiCheck uses ten aspects; CLIP-CA-CG uses six. Their overall ABSA scores have different scopes. Direct comparison requires evaluation on shared aspects, labels, and held-out reviews. No winner is inferred here.</p>
+      <div class="ac-table-scroll" tabindex="0" role="region" aria-label="Model comparison table"><table class="ac-metrics-table"><caption>Held-out metrics by model and task</caption><thead>${headings}</thead><tbody>${rows.join("")}</tbody></table></div>
+      ${models.length ? models.map(model => `<section class="ac-eval-model"><h3>${escapeHtml(model.name)} · evaluation record</h3><dl><dt>Evaluated bundle / version</dt><dd>${escapeHtml(model.version)}</dd><dt>Dataset</dt><dd>${escapeHtml(model.dataset)}</dd><dt>Split</dt><dd>${escapeHtml(model.split)}</dd><dt>Evaluated</dt><dd>${escapeHtml(model.evaluatedAt)}</dd><dt>Test coverage</dt><dd>${escapeHtml(model.reviewCount ?? "Unknown")} reviews · ${escapeHtml(model.productCount ?? "Unknown")} products</dd></dl>${(model.tasks || []).map(task => renderMetricDetails(task)).join("")}</section>`).join("") : `<p class="ac-eval-note">No held-out reports have been published. Scores and confusion matrices will appear after evaluation. Missing scores are not zero.</p>`}
+      <p class="ac-eval-note">These are stored evaluation records for the named bundles. They do not certify the model connected to this browser session. Local preview has no measured test performance.</p>`;
+  }
+
+  function renderMetricDetails(task) {
+    const metrics = task.metrics;
+    if (!metrics?.per_class?.length) return "";
+    const names = metrics.labels;
+    return `<details class="ac-metric-details"><summary>${escapeHtml(task.name)} · class results &amp; confusion matrix</summary>
+      <div class="ac-table-scroll" tabindex="0" role="region" aria-label="Per-class metrics"><table class="ac-metrics-table"><caption>Per-class precision, recall, F1, and support</caption><thead><tr><th scope="col">Class</th><th scope="col">Precision</th><th scope="col">Recall</th><th scope="col">F1</th><th scope="col">Support</th></tr></thead><tbody>${metrics.per_class.map(row => `<tr><th scope="row">${escapeHtml(row.name)}</th><td>${metricScore(row.precision)}</td><td>${metricScore(row.recall)}</td><td>${metricScore(row.f1)}</td><td>${escapeHtml(row.support)}</td></tr>`).join("")}</tbody></table></div>
+      <div class="ac-table-scroll" tabindex="0" role="region" aria-label="Confusion matrix"><table class="ac-metrics-table"><caption>Confusion matrix · rows: actual, columns: predicted</caption><thead><tr><th scope="col">Actual / predicted</th>${names.map(name => `<th scope="col">${escapeHtml(name)}</th>`).join("")}</tr></thead><tbody>${metrics.confusion_matrix.map((row, i) => `<tr><th scope="row">${escapeHtml(names[i])}</th>${row.map(value => `<td>${escapeHtml(value)}</td>`).join("")}</tr>`).join("")}</tbody></table></div></details>`;
+  }
+
   function exportAnalysis() {
     if (!lastPayload || !lastResult) return;
-    const exportData = { schemaVersion: "1.0", exportedAt: new Date().toISOString(), input: lastPayload, analysis: lastResult };
+    const exportData = { schemaVersion: "1.0", exportedAt: new Date().toISOString(), input: lastPayload, analysis: lastResult, heldOutEvaluation: globalThis.AuthentiCheckPerformance || { schemaVersion: 1, models: [] } };
     const url = URL.createObjectURL(new Blob([JSON.stringify(exportData, null, 2)], { type: "application/json" }));
     const link = document.createElement("a");
     link.href = url;

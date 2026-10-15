@@ -10,6 +10,8 @@ const scripts = manifest.content_scripts[0].js;
 assert.equal(manifest.manifest_version, 3);
 assert.ok(scripts.includes("extractors/buyer-reviews.js"));
 assert.ok(scripts.indexOf("extractors/buyer-reviews.js") < scripts.indexOf("extractors/shopee.js"));
+assert.ok(scripts.includes("performance-data.js"));
+assert.ok(scripts.indexOf("performance-data.js") < scripts.indexOf("content.js"));
 assert.equal(request.schemaVersion, "1.0");
 assert.ok(["shopee", "lazada"].includes(request.platform));
 assert.ok(request.reviews.length >= 1 && request.reviews.length <= 20);

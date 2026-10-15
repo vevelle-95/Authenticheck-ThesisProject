@@ -30,6 +30,16 @@ A dependency-free Manifest V3 browser extension plus a standalone frontend proto
 
 When extension source files change, select **Reload** on the extension card.
 
+The panel includes an expandable **Model performance** section with held-out
+Macro-F1, secondary metrics, and task-scoped model comparison. Scores display as
+**Not evaluated** until real test reports are published. See
+[publishing performance results](docs/FRONTEND_PERFORMANCE.md).
+
+The panel includes an expandable **Model performance** section with held-out
+Macro-F1, secondary metrics, and task-scoped model comparison. Scores display as
+**Not evaluated** until real test reports are published. See
+[publishing performance results](docs/FRONTEND_PERFORMANCE.md).
+
 ## Analysis modes
 
 ### Local estimate (works immediately)

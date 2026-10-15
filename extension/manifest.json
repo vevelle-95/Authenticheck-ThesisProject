@@ -24,6 +24,7 @@
         "extractors/buyer-reviews.js",
         "extractors/shopee.js",
         "extractors/lazada.js",
+        "performance-data.js",
         "content.js"
       ],
       "run_at": "document_idle"
