@@ -26,6 +26,7 @@ from models.model import CLIPCACG
 from runtime import load_checkpoint, load_config
 from training.engine import aspect_sentiment_loss
 from training.train import main as train
+from training.eval import evaluation_report, compute_metrics
 
 
 class TinyTokenizer:
@@ -98,6 +99,23 @@ def fixture_frame():
 
 
 class AdaptationTests(unittest.TestCase):
+    def test_taxonomy_matches_authenticheck_and_includes_the_previous_four_omissions(self):
+        from model_contract import ASPECTS as own_aspects
+        self.assertEqual(ASPECTS, own_aspects)
+        annotations = parse_annotations([
+            {'category': category, 'text': 'explicit opinion', 'sentiment': 'positive'}
+            for category in ('functionality', 'performance', 'sensory_experience', 'packaging')])
+        aspects, sentiments = build_targets(annotations)
+        self.assertEqual(int(aspects.sum()), 4)
+        self.assertEqual(int(sentiments.sum()), 4)
+
+    def test_old_checkpoint_is_rejected_instead_of_relabeling_six_outputs(self):
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / 'old.pt'
+            torch.save({'model_version': 'adapted-clip-ca-cg-aspects-v1', 'aspects': list(ASPECTS[:6])}, path)
+            with self.assertRaisesRegex(ValueError, 'retrain the ten-aspect'):
+                load_checkpoint(path)
+
     def test_loader_preserves_duplicate_reviews_and_requires_unique_ids(self):
         with tempfile.TemporaryDirectory() as directory:
             frame = fixture_frame()
@@ -158,18 +176,24 @@ class AdaptationTests(unittest.TestCase):
             {'category': 'performance', 'text': 'fast', 'sentiment': 'positive'},
         ]))
         aspects, sentiments = build_targets(annotations)
-        self.assertEqual(aspects.sum(), 1)
-        np.testing.assert_allclose(sentiments[ASPECTS.index('design')], [0.5, 0, 0.5])
+        self.assertEqual(aspects.sum(), 2)
+        np.testing.assert_allclose(sentiments[ASPECTS.index('design')], [1, 0, 1])
+        self.assertEqual(sentiments[ASPECTS.index('performance'), 2], 1)
         self.assertEqual(sentiments[ASPECTS.index('value')].sum(), 0)
 
     def test_sentiment_loss_ignores_unannotated_aspects(self):
-        logits = torch.randn(1, 6, 3, requires_grad=True)
-        outputs = {'aspect_logits': torch.zeros(1, 6, requires_grad=True), 'sentiment_logits': logits}
-        targets = torch.zeros(1, 6, 3)
-        targets[0, 0, [0, 2]] = 0.5
-        aspect_sentiment_loss(outputs, torch.tensor([[1., 0, 0, 0, 0, 0]]), targets).backward()
+        logits = torch.zeros(1, len(ASPECTS), 3, requires_grad=True)
+        outputs = {'aspect_logits': torch.zeros(1, len(ASPECTS), requires_grad=True), 'sentiment_logits': logits}
+        targets = torch.zeros(1, len(ASPECTS), 3)
+        targets[0, 0, [0, 2]] = 1
+        aspects = torch.zeros(1, len(ASPECTS))
+        aspects[0, 0] = 1
+        aspect_sentiment_loss(outputs, aspects, targets).backward()
         self.assertGreater(float(logits.grad[0, 0].abs().sum()), 0)
         self.assertEqual(float(logits.grad[0, 1:].abs().sum()), 0)
+        self.assertLess(float(logits.grad[0, 0, 0]), 0)
+        self.assertLess(float(logits.grad[0, 0, 2]), 0)
+        self.assertGreater(float(logits.grad[0, 0, 1]), 0)
 
     def test_shared_manifest_rejects_product_leakage(self):
         frame = fixture_frame()
@@ -290,6 +314,8 @@ class AdaptationTests(unittest.TestCase):
             model = tiny_model(config)
             checkpoint_path = train(frame, config, tokenizer=TinyTokenizer(), model=model)
             checkpoint = load_checkpoint(checkpoint_path)
+            self.assertEqual(checkpoint['aspects'], list(ASPECTS))
+            self.assertTrue(0 < checkpoint['sentiment_threshold'] < 1)
             expected = set(frame.loc[frame.partition.eq('train') & frame.label.eq(0), 'review_id'])
             self.assertEqual(set(checkpoint['training_metadata']['fit_review_ids']), expected)
             self.assertFalse(set(checkpoint['training_metadata']['fit_review_ids']) & set(frame.loc[frame.partition.eq('test'), 'review_id']))
@@ -302,10 +328,22 @@ class AdaptationTests(unittest.TestCase):
                 second, _, _ = predictor.predict(selected)
             self.assertEqual(first, output)
             self.assertEqual(second, first)
-            forced = format_aspects('unseen context', np.ones(6), raw['sentiment_probabilities'][0], 0.5)
-            self.assertEqual(len(forced), 6)
+            self.assertEqual(raw['sentiment_probabilities'].shape[1:], (10, 3))
+            forced = format_aspects('unseen context', np.ones(len(ASPECTS)),
+                                    np.tile([0.9, 0.1, 0.8], (len(ASPECTS), 1)), 0.5)
+            self.assertEqual(len(forced), 20)
+            self.assertEqual({item['category'] for item in forced}, set(ASPECTS))
+            self.assertEqual({item['sentiment'] for item in forced}, {'negative', 'positive'})
             self.assertEqual(set(forced[0]), {'category', 'text', 'sentiment'})
             self.assertTrue(all(item['text'] == 'unseen context' for item in forced))
+            labeled_test = frame[frame.partition.eq('test') & frame.label.eq(0)]
+            _, labeled_raw, _ = predict_frame(labeled_test, checkpoint_path, tokenizer=TinyTokenizer(), model=tiny_model(config))
+            report = evaluation_report(labeled_test, labeled_raw, checkpoint)
+            metrics = compute_metrics(labeled_raw, checkpoint['threshold'], checkpoint['sentiment_threshold'])
+            self.assertEqual(report['metrics']['gold_category_sentiment']['macro_f1'], metrics['gold_category_sentiment']['macro_f1'])
+            self.assertEqual(len(report['records']), len(labeled_test))
+            self.assertEqual(report['records'][0]['product_id'], 'p3')
+            self.assertEqual(len(report['per_product_metrics']), 1)
 
 
 class SharedAugmentationTests(unittest.TestCase):

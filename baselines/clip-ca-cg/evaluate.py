@@ -4,8 +4,8 @@ import argparse
 
 from datasets.authenticheck_data import fingerprint, load_experiment
 from inference import predict_frame
-from runtime import load_checkpoint, load_config, resolve_path, write_json
-from training.eval import compute_metrics
+from runtime import load_checkpoint, load_config, resolve_path, write_json, default_checkpoint
+from training.eval import compute_metrics, evaluation_report
 
 
 def main():
@@ -15,7 +15,7 @@ def main():
     parser.add_argument("--splits")
     parser.add_argument("--augmentations", help="Training-only CSV; paths resolve from the baseline folder")
     parser.add_argument("--allow-unreviewed-augmentations", action="store_true", help="Match a checkpoint trained with pending experimental drafts")
-    parser.add_argument("--checkpoint", default="outputs/checkpoints/best.pt")
+    parser.add_argument("--checkpoint", help="Defaults to best.pt inside the configured checkpoint_dir")
     parser.add_argument("--output", default="outputs/test_metrics.json")
     args = parser.parse_args()
     output_path = resolve_path(args.output)
@@ -29,7 +29,7 @@ def main():
         resolve_path(augmentation_path) if augmentation_path else None,
         allow_unreviewed=args.allow_unreviewed_augmentations,
     )
-    checkpoint_path = resolve_path(args.checkpoint)
+    checkpoint_path = resolve_path(args.checkpoint) if args.checkpoint else default_checkpoint(config)
     checkpoint = load_checkpoint(checkpoint_path)
     metadata = checkpoint["training_metadata"]
     if metadata["dataset_sha256"] != fingerprint(assigned):
@@ -44,9 +44,15 @@ def main():
         "augmentation_usage": metadata.get("augmentation_usage"),
         "model_version": checkpoint["model_version"], "partition": "test",
         "review_count": len(test), "product_count": test.product_id.nunique(),
-        "scope": "standalone ABSA on ground-truth Authentic reviews, six shared aspects",
-        "metrics": compute_metrics(raw, checkpoint["threshold"]), "predictions": predictions,
+        "scope": "standalone ABSA on ground-truth Authentic reviews, ten shared aspects",
+        "dataset_sha256": fingerprint(assigned),
+        "metrics": compute_metrics(raw, checkpoint["threshold"], checkpoint["sentiment_threshold"]),
+        "absa_evaluation": evaluation_report(test, raw, checkpoint), "predictions": predictions,
     }
+    for partition in ("train", "validation"):
+        cohort = assigned[assigned.partition.eq(partition) & assigned.label.eq(0)]
+        report["absa_evaluation"][f"{partition}_review_ids"] = sorted(cohort.review_id.tolist())
+        report["absa_evaluation"][f"{partition}_sha256"] = fingerprint(cohort)
     write_json(output_path, report, overwrite=False)
     print("Held-out report saved:", output_path)
 

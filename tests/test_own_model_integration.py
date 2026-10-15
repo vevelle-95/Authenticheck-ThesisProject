@@ -113,6 +113,7 @@ class OfflineTrainingIntegrationTests(unittest.TestCase):
                         reloaded = ABSAHeadModel.from_pretrained(bundle / "absa_model")
                     self.assertEqual(reloaded.aspect_head.out_features, 10)
                     self.assertTrue(0 < reloaded.threshold < 1)
+                    self.assertTrue(0 < reloaded.sentiment_threshold < 1)
 
                     from transformers import AutoTokenizer
                     saved_tokenizer = AutoTokenizer.from_pretrained(reloaded.tokenizer_dir, local_files_only=True)
@@ -146,6 +147,9 @@ class OfflineTrainingIntegrationTests(unittest.TestCase):
                     self.assertEqual(output["quality_text_only"], classification_metrics(test.label.tolist(), text_predictions, range(4)))
                     self.assertEqual(json.loads((bundle / "dost_roberta" / "training_metadata.json").read_text())["target_column"], "text_label")
                     self.assertEqual(len(output["gold_category_sentiment"]["support"]), 3)
+                    self.assertEqual(output['absa_evaluation']['review_count'], int(test.label.eq(0).sum()))
+                    self.assertEqual(output['absa_evaluation']['aspects'], list(ASPECTS))
+                    self.assertEqual(len(output['absa_evaluation']['per_product_metrics']), 3)
                     json.dumps(output, allow_nan=False)
                     pipeline_output = pipe.run(test)
                     self.assertEqual(pipeline_output["reviewCount"], len(test))

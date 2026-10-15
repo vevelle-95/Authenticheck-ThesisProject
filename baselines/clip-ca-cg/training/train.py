@@ -13,7 +13,7 @@ import torch
 from torch.utils.data import DataLoader
 from transformers import AutoTokenizer
 
-from datasets.authenticheck_data import ASPECTS, MODEL_VERSION, SENTIMENTS, fingerprint
+from datasets.authenticheck_data import ASPECTS, MODEL_VERSION, SENTIMENTS, SENTIMENT_TARGET_POLICY, fingerprint
 from datasets.clip_cache import ClipFeatureCache
 from datasets.multimodal_dataset import MultiModalDataset, multimodal_collate_fn
 from models.model import CLIPCACG
@@ -75,7 +75,8 @@ def main(assigned, config, base_dir=None, *, tokenizer=None, model=None):
         "library_versions": {name: importlib.metadata.version(name)
                              for name in ("torch", "torchvision", "transformers", "numpy", "pandas")},
         "input": "review_text and buyer images; no quality labels, stars, or listing metadata",
-        "sentiment_targets": "distribution over distinct annotated polarities per category",
+        "sentiment_target_policy": SENTIMENT_TARGET_POLICY,
+        "sentiment_targets": "multi-hot distinct polarities per category; independent sigmoid/BCE",
         "evidence_policy": "full review context at prediction; no learned span extraction",
     }
     best_score, history = -1.0, []
@@ -97,6 +98,8 @@ def main(assigned, config, base_dir=None, *, tokenizer=None, model=None):
                 "model_state_dict": model.state_dict(), "config": config,
                 "text_backbone_config": model.text_encoder.backbone.config.to_dict(),
                 "clip_dimension": cache.dimension, "threshold": threshold,
+                "sentiment_threshold": metrics["sentiment_threshold"],
+                "sentiment_target_policy": SENTIMENT_TARGET_POLICY,
                 "epoch": epoch, "validation_metrics": metrics, "training_metadata": metadata,
             }
             temporary = directory / "best.pt.tmp"

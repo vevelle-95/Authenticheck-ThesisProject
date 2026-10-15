@@ -58,6 +58,8 @@ class OnlineInference:
             raise ValueError("ABSA sensory policy mismatch; retrain without product-category gating")
         if absa.get("sentiment_target_policy") != SENTIMENT_TARGET_POLICY:
             raise ValueError("ABSA sentiment target policy mismatch; retrain with mixed-polarity support")
+        if not 0 < absa.get("sentiment_threshold", 0) < 1:
+            raise ValueError("ABSA bundle needs a validation-selected sentiment threshold")
 
     def preload(self):
         self.check_artifacts()

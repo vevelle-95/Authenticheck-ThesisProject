@@ -79,14 +79,16 @@ and encoder limit, independent of the RoBERTa setting. It stays pretrained.
 
 Quality artifacts now use `product-context-six-features-v5-text-target`.
 Existing v3 quality weights and feature CSVs are incompatible: changing their
-version tags does not repair the training. The independent ABSA input and
-taxonomy are unchanged, so a compatible ABSA bundle can be retained.
+version tags does not repair the training. ABSA now uses
+`category-polarity-multilabel-v2` and needs fresh training too; old softmax
+checkpoints cannot be converted by editing their version tags.
 
 CLIP-CA-CG uses RoBERTa with a Bi-GRU, frozen ResNet image regions, cached frozen
 CLIP embeddings, cross-attention, gating, and aspect/sentiment heads. It has no
 quality classifier. Missing photos use zero CLIP image features and a masked
-visual path. Both models return one sentiment per detected category, rather
-than separate opinion spans.
+visual path. Both models use the same ten categories and can return multiple
+sentiments for one detected category. AuthentiCheck selects review clauses as
+evidence; the baseline returns full review context, not learned opinion spans.
 
 ### Explain the tool in everyday language
 
@@ -232,8 +234,11 @@ paraphrase the review; exact character matching is not required. An absent
 aspect is not a neutral sentiment. Multiple sentiments for the same category
 are allowed: preserve positive fragrance and negative texture, for example.
 Repeated evidence with the same category/polarity is grouped once. Training
-uses an equal-weight distribution over distinct polarities, while inference
-returns one sentiment per detected category.
+uses a multi-hot vector over distinct polarities, independent sigmoid scores,
+and binary cross-entropy. Inference keeps each sentiment above a threshold
+selected using validation data. If none passes for a detected aspect, the
+highest-scoring sentiment is kept. Both models use this same rule. Detection
+and sentiment have separate saved validation-selected thresholds.
 
 The reusable [LLM ABSA annotation prompt](../scripts/prompts/absa_annotation.txt)
 preserves separate sentiments for the same category and asks for exact evidence
@@ -282,11 +287,12 @@ be assigned to seller service or packaging. Mentioning a property alone does not
 establish an evaluative opinion. Aspect annotation and review-quality labeling
 are separate decisions; being outside this taxonomy does not determine quality.
 
-The baseline supports these six shared categories, in this order:
-`aesthetics`, `product_quality`, `accuracy_of_description`, `design`, `value`,
-`seller_service`. Its loader ignores the other four categories without merging
-them into these six. The thesis methods should describe the agreed taxonomy and
-the current annotation/target policy.
+Both models import the same ten-category order from `model_contract.py`:
+`product_quality`, `functionality`, `performance`, `design`, `aesthetics`,
+`sensory_experience`, `value`, `packaging`, `seller_service`,
+`accuracy_of_description`. The baseline now learns all ten; it no longer drops
+four annotation categories. Describe it in the thesis as an aspect-conditioned
+ten-aspect multi-label adaptation of CLIP-CA-CG.
 
 ## 4. Train, validate, and test
 
@@ -439,32 +445,56 @@ backup of the previous augmentation CSV beside the report before replacing it.
 It leaves the real CSV and split manifest intact. A rerun on an already balanced
 file adds nothing. Use a fresh report filename for a different experiment.
 
-The current full file contains 143 Authentic, 701 deceptive, 420 LIV and 684
-irrelevant synthetic drafts. Together with original training rows, that projects
-to 716 per class (2,864 training rows). The real 226 validation and 169 test rows
-stay unchanged. All drafts remain pending; structure checks are not human
-annotation approval. Full generation supersedes the pilot's three-variant limit;
-its largest source contributes 112 variants (see the current generation report).
-There are still only 15 original deceptive training reviews across seven products;
-the added deceptive wording variants do not become independent observations.
+The current experiment uses `data/splits_dataset.json` and focuses on quality
+classification. It rebuilds drafts from original training sources after the
+dataset/splits changed. Run this only when intentionally regenerating the file;
+choose an unused report name:
 
-The current report is `reports/generated/augmentation_full_balance_v2.json`.
-Twenty-nine of the 30 aspect/polarity combinations project to at least 30 review
-targets. Neutral accuracy_of_description remains at three original reviews:
-available evidence describes size surprise or other buyers' reviews without
-the required advertised/received comparison. That source-annotation issue must
-be resolved before generating additional examples for that cell. No original
-label or annotation was silently rewritten to achieve the count.
+```powershell
+.\.venv\Scripts\python.exe scripts/balance_augmentation.py --splits data/splits_dataset.json --fresh --quality-only --balance-text-labels --report reports/generated/quality_balance_dataset_next.json
+```
+
+`--fresh` ignores old drafts and saves an exact backup before replacement.
+`--quality-only` adds Deceptive, LIV and Irrelevant paraphrases, with no Authentic
+or ABSA augmentation. `--balance-text-labels` considers both label distributions
+when selecting sources. Each column uses its own largest original class as its
+target floor; label disagreement can make the final counts differ. It never
+copies `ground_truth` into `text_label` to force agreement. Source `text_label`
+trains RoBERTa/OOF; source `ground_truth` trains XGBoost and determines ABSA eligibility.
+
+The current `data/augmented_reviews.csv` contains 1,652 pending synthetic rows:
+668 Deceptive, 335 LIV and 649 Irrelevant by `ground_truth`. Combined with the
+1,100 original training reviews, the projected training distributions are:
+
+| Class | `text_label` | `ground_truth` |
+| --- | ---: | ---: |
+| Authentic | 682 | 688 |
+| Deceptive | 707 | 688 |
+| LIV | 674 | 688 |
+| Irrelevant | 689 | 688 |
+
+There are 2,752 training rows. Validation remains 226 original reviews and test
+remains 230 original reviews. ABSA still trains on the 688 original ground-truth
+Authentic training reviews. Of the drafts, 1,078 reference source images and 574
+have no selected images because URLs were absent or crossed partition/fold scopes.
+Image URL lineage checks do not establish image availability or visual correctness.
+
+The report is `reports/generated/quality_balance_dataset_20261015.json` and the
+previous file is backed up beside it as `.previous.csv`. The generator uses
+rule-based phrase substitutions, not an LLM. All drafts remain pending; there
+are no recorded human approvals. The largest source contributes 188 variants.
+There are only 20 original ground-truth Deceptive training reviews; paraphrases
+add wording variation, not independent reviews or evidence of deceptive intent.
 
 Generated outputs remain pending. By default, training includes only approved
 rows. For an immediate experimental run, explicitly include pending drafts:
 
 ```powershell
 # Project root: run all stages, preserving previous model outputs.
-python pipeline.py --augmentations data/augmented_reviews.csv --allow-unreviewed-augmentations --work-dir data/augmented_experiment/features --output models/augmented_experiment --epochs 3
+python pipeline.py --splits data/splits_dataset.json --augmentations data/augmented_reviews.csv --allow-unreviewed-augmentations --work-dir data/quality_balanced_v5/features --output models/quality_balanced_v5 --epochs 3
 ```
 
-This uses all 1,948 pending rows without changing their status or inventing a
+This uses all 1,652 pending rows without changing their status or inventing a
 human reviewer. Structural checks still run: source labels, exact aspect evidence,
 image URL scope, product separation and source OOF fold inheritance. Rejected
 rows are always excluded. Metadata records `unreviewed_rows`; this is an
@@ -486,7 +516,7 @@ When evaluating this experiment, use:
 
 ```powershell
 # Project root, after training finishes:
-python stage2/evaluate_models.py --data data/test_reviews.csv --augmentations data/augmented_reviews.csv --allow-unreviewed-augmentations --bundle models/augmented_experiment --output results/augmented_experiment_test.json
+python stage2/evaluate_models.py --data data/test_reviews.csv --splits data/splits_dataset.json --augmentations data/augmented_reviews.csv --allow-unreviewed-augmentations --bundle models/quality_balanced_v5 --output results/quality_balanced_v5_test.json
 # Baseline folder, after baseline training finishes:
 .\.venv\Scripts\python.exe evaluate.py --augmentations ../../data/augmented_reviews.csv --allow-unreviewed-augmentations --output outputs/augmented_experiment_test.json
 ```
@@ -580,13 +610,42 @@ artifacts use `product-context-six-features-v5-text-target`.
 
 ### Train CLIP-CA-CG
 
-Run from `baselines/clip-ca-cg` after preparing the shared splits:
+For a groupmate training the current ten-aspect multi-label model, start at the
+repository root, pull the shared CSV/splits/code, then enter the baseline folder:
 
 ```powershell
-.\.venv\Scripts\python.exe main.py --validate-only
-.\.venv\Scripts\python.exe cache_clip_features.py
-.\.venv\Scripts\python.exe main.py
+git pull origin main
+cd baselines\clip-ca-cg
 ```
+
+Set up the baseline's own environment once. On an NVIDIA machine:
+
+```powershell
+.\setup_environment.ps1
+```
+
+Use `.\setup_environment.ps1 -CpuOnly` on a CPU-only machine. The script prints
+whether CUDA is available. Then validate, cache train/validation CLIP features,
+and train for the current three-epoch experiment:
+
+```powershell
+.\.venv\Scripts\python.exe main.py --augmentations ../../data/augmented_reviews.csv --allow-unreviewed-augmentations --validate-only
+.\.venv\Scripts\python.exe cache_clip_features.py --augmentations ../../data/augmented_reviews.csv --allow-unreviewed-augmentations
+.\.venv\Scripts\python.exe main.py --augmentations ../../data/augmented_reviews.csv --allow-unreviewed-augmentations --epochs 3
+```
+
+These explicit Python paths do not require environment activation. Run the
+commands in order and stop if a command fails. The first cache run may download
+pretrained assets and buyer images. It prepares training/validation only, not
+the final test set. Passing the augmentation file preserves experiment
+provenance; the baseline still fits only ground-truth Authentic reviews.
+The current quality-only drafts add no ABSA training reviews, so baseline
+training uses 688 original Authentic reviews and validates on 126.
+The selected model is saved to
+`outputs/ten_aspect_multilabel_v2/checkpoints/best.pt`, with tokenizer, metadata
+and history beside it. These generated files are ignored by Git and are created
+locally; groupmates do not need to receive your `outputs` folder. Final testing
+is a separate step after training settings are frozen.
 
 [configs/config.yaml](../baselines/clip-ca-cg/configs/config.yaml) points to
 `../../data/test_reviews.csv` and `../../data/splits_real_v2.json`. It defaults to five
@@ -671,11 +730,40 @@ Existing final reports are not overwritten; use a new `--output` for a separate
 experiment. Freeze training choices before final testing. A new filename does
 not make a test set used for tuning an unbiased final evaluation set.
 
-For ABSA comparison, score the same human-labeled Authentic test IDs and six
-shared categories, supplying the same human target categories for sentiment
-metrics. Compare detection separately and assess the quality filter separately.
-Sentiment accuracy alone does not establish correct aspect detection. There is
-no general paired-comparison CLI or completed formal statistical protocol yet.
+For ABSA comparison, score the same human-labeled Authentic test IDs and all ten
+categories. Both reports contain `absa_evaluation`, with ground-truth pairs,
+predicted pairs, sentiment given human target categories, and per-product
+results. Detection and end-to-end aspect/sentiment pairs are measured separately.
+Multi-label sentiment reports give TP/FP/FN/TN and a 2-by-2 confusion matrix per
+polarity; a single 3-by-3 exclusive-class matrix is not appropriate. Accuracy
+means exact agreement of the predicted and gold sentiment sets.
+
+After training, use matching frozen data/splits/augmentations for both evaluation
+commands. For the quality-balanced experiment, run from the project root:
+
+```powershell
+.\.venv\Scripts\python.exe stage2/evaluate_models.py --data data/test_reviews.csv --splits data/splits_dataset.json --augmentations data/augmented_reviews.csv --allow-unreviewed-augmentations --bundle models/quality_balanced_v5 --output results/quality_balanced_v5_test.json
+```
+
+Then, from `baselines/clip-ca-cg`:
+
+```powershell
+.\.venv\Scripts\python.exe cache_clip_features.py --partition test --augmentations ../../data/augmented_reviews.csv --allow-unreviewed-augmentations
+.\.venv\Scripts\python.exe evaluate.py --augmentations ../../data/augmented_reviews.csv --allow-unreviewed-augmentations --output outputs/ten_aspect_multilabel_v2/test_metrics.json
+```
+
+Finally, from the project root:
+
+```powershell
+.\.venv\Scripts\python.exe scripts/compare_absa.py --own results/quality_balanced_v5_test.json --baseline baselines/clip-ca-cg/outputs/ten_aspect_multilabel_v2/test_metrics.json --output results/absa_ten_aspect_comparison.json
+```
+
+The comparison rejects incompatible taxonomies, policies, test review IDs,
+review text, image URLs, gold labels, and ABSA training/validation cohorts or
+contents. It pairs products and retains the raw records and confusion counts.
+It does not perform a significance test; the statistical protocol still needs
+finalization. The SOP 2 quality comparison and SOP 3 filtering ablation remain
+in the AuthentiCheck report.
 
 ## 5. Saved files and new-review prediction
 
@@ -693,7 +781,7 @@ no general paired-comparison CLI or completed formal statistical protocol yet.
 | `models/context_run/` | Suggested destination for new combined-input training; created when that training command is run |
 | `results/*.json` | AuthentiCheck prediction/evaluation reports |
 | `reports/generated/*.json` | Draft annotation/synthetic generation records |
-| `baselines/clip-ca-cg/outputs/checkpoints/` | `best.pt`, tokenizer, training metadata, and epoch history |
+| `baselines/clip-ca-cg/outputs/ten_aspect_multilabel_v2/checkpoints/` | New ten-aspect multi-label `best.pt`, tokenizer, training metadata, and epoch history |
 | `baselines/clip-ca-cg/outputs/clip_cache/` | Content-keyed features and `encoder.json` with pinned CLIP revision |
 | `baselines/clip-ca-cg/outputs/image_cache/` | Cached buyer photos |
 | `baselines/clip-ca-cg/outputs/model_cache/` | Downloaded pretrained model assets |
@@ -702,17 +790,18 @@ no general paired-comparison CLI or completed formal statistical protocol yet.
 Final RoBERTa saves epoch checkpoints under its `checkpoints/` directory, limits
 retention, and exports the selected model in `dost_roberta/`. ABSA saves the best
 validation model to `absa_model/model.pt`; its history is in training metadata.
-The baseline saves its best model to `outputs/checkpoints/best.pt` and records
+The baseline saves its new best model to `outputs/ten_aspect_multilabel_v2/checkpoints/best.pt` and records
 epoch results in `training_history.json`.
 
 The existing `models/practice_run/` quality weights are historical review-only
 weights. Keep them with their original metadata; the current API rejects their
 input contract. Retraining to `models/context_run/` creates a compatible bundle.
 
-If restoring an existing baseline, keep `outputs/checkpoints/`,
+If restoring an existing baseline, keep its configured checkpoint directory,
 `outputs/clip_cache/`, and `outputs/image_cache/` together. The model cache can
 also be copied; otherwise uncached reviews may download CLIP assets. The saved
-CLIP revision must match training. An empty `outputs` directory is created as
+CLIP revision must match training. Old six-aspect checkpoints stay in
+`outputs/checkpoints/` and are rejected by the new model contract. An empty `outputs` directory is created as
 needed during training; cloning source alone does not provide trained files.
 
 The tracked `models/manifest.json` and [scripts/setup_models.py](../scripts/setup_models.py)
@@ -779,7 +868,7 @@ cd baselines\clip-ca-cg
 .\.venv\Scripts\python.exe -m uvicorn api:app --host 127.0.0.1 --port 8001
 ```
 
-The baseline loads `outputs/checkpoints/best.pt` once and serializes predictions.
+The baseline loads `best.pt` from its configured `output.checkpoint_dir` once and serializes predictions.
 `CLIP_CA_CG_CHECKPOINT` can select another checkpoint before startup; relative
 paths resolve from the baseline folder. The tokenizer path is recorded in the
 checkpoint configuration. Keep matching CLIP metadata available at startup.
@@ -867,7 +956,7 @@ The baseline HTTP service is implemented. The remaining frontend work is:
 
 1. Send the same IDs, text, and buyer-photo URLs to both endpoints.
 2. Join responses by ID and show results on the same review row.
-3. Compare the six shared categories and normalize sentiment names to lowercase.
+3. Compare the ten shared categories and normalize sentiment names to lowercase.
 4. For reviews AuthentiCheck rejects, show **ABSA skipped by quality filter**.
    Distinguish this from an analyzed review with no detected aspects.
 5. Keep AuthentiCheck's quality summaries with AuthentiCheck. Show loading,
@@ -1005,7 +1094,7 @@ All paths in this table start at `Authenticheck-ThesisProject/`.
 
 **Two folders named `models` have different jobs:** root `models/` stores
 AuthentiCheck's trained files; baseline `models/` defines how its neural network
-works. The baseline's trained files are in `outputs/checkpoints/`.
+works. The baseline's new trained files go to `outputs/ten_aspect_multilabel_v2/checkpoints/`.
 
 ### Files at the project root
 
@@ -1017,7 +1106,8 @@ works. The baseline's trained files are in `outputs/checkpoints/`.
 | [model_contract.py](../model_contract.py) | Shared settings and rulebook: dataset/model paths, epochs, batch size, learning rate, quality labels, ten aspects, sentiments, six-feature order, combined quality-text builder, input version, rating/photo formats, and API bundle selection. |
 | [model_data.py](../model_data.py) | Reads and checks the CSV, identifies dataset changes, and assigns products to saved partitions/folds. |
 | [training_augmentation.py](../training_augmentation.py) | Shared by both models. Adds approved synthetic training reviews, inherits original context/product/fold, validates exact evidence and image lineage, and blocks held-out sources/images. |
-| [model_metrics.py](../model_metrics.py) | Compares predictions with reference labels and calculates accuracy, precision, recall, F1, and the confusion matrix. |
+| [model_metrics.py](../model_metrics.py) | Calculates quality scores and shared multi-label ABSA scores, TP/FP/FN/TN counts, cohort signatures and per-product results for both models. |
+| [scripts/compare_absa.py](../scripts/compare_absa.py) | Checks that both held-out ABSA reports use matching data and labels, then produces paired product metrics and retains the ground-truth/prediction records. |
 | [requirements.txt](../requirements.txt) | Python libraries needed by AuthentiCheck training and its API. |
 | [.gitignore](../.gitignore) | Tells Git to leave out environments, large weights, caches, generated reports, and other local files. It does not delete them. |
 
@@ -1045,7 +1135,7 @@ handles new reviews. They are separate fits with separate purposes.
 | --- | --- | --- |
 | [train_xgboost.py](../stage2/train_xgboost.py) | Learns the final quality decision from the six features and selects settings using validation reviews. | Training |
 | [absa_model.py](../stage2/absa_model.py) | Defines the ten-aspect detector and sentiment classifier, including how their trained weights are saved and loaded. | Supporting model code |
-| [fine_tune_absa.py](../stage2/fine_tune_absa.py) | Trains independent DOST ABSA on human-labeled Authentic training reviews; chooses the checkpoint and aspect-detection threshold using validation. | Training |
+| [fine_tune_absa.py](../stage2/fine_tune_absa.py) | Trains independent DOST ABSA on human-labeled Authentic training reviews; chooses the checkpoint, aspect threshold and multi-label sentiment threshold using validation. | Training |
 | [online_inference.py](../stage2/online_inference.py) | Uses combined listing/review text for quality and CLIP, sends the buyer review alone to ABSA if predicted Authentic, and builds summaries. The API uses this prediction code. | New-review prediction / API |
 | [predict_absa.py](../stage2/predict_absa.py) | Runs ABSA separately for diagnosis. Can filter by an existing predicted quality label; it does not run the full quality classifier itself. | Optional prediction command |
 | [evaluate_models.py](../stage2/evaluate_models.py) | Checks model/data provenance and scores selected models on reserved test products, including ABSA with and without the predicted quality filter. | Final evaluation command |
@@ -1083,7 +1173,7 @@ These are supporting files called automatically by the baseline entry points.
 | [datasets/multimodal_dataset.py](../baselines/clip-ca-cg/datasets/multimodal_dataset.py) | Packages text tokens, real photos, cached CLIP vectors, and aspect labels into batches. Marks absent/padded photos so the model can ignore them. |
 | [datasets/image_store.py](../baselines/clip-ca-cg/datasets/image_store.py) | Downloads and reuses public buyer photos locally. Unavailable photos stay missing. |
 | [datasets/clip_cache.py](../baselines/clip-ca-cg/datasets/clip_cache.py) | Stores frozen text/image features keyed by review content and checks which CLIP version created them. |
-| [models/model.py](../baselines/clip-ca-cg/models/model.py) | Assembles the whole baseline network and its six-aspect/three-sentiment output heads. |
+| [models/model.py](../baselines/clip-ca-cg/models/model.py) | Assembles the baseline network with ten aspect outputs and three independent sentiment outputs per aspect. |
 | [models/encoders/text_encoder.py](../baselines/clip-ca-cg/models/encoders/text_encoder.py) | Uses pretrained RoBERTa and a bidirectional GRU to represent review words with surrounding context. |
 | [models/encoders/image_encoder.py](../baselines/clip-ca-cg/models/encoders/image_encoder.py) | Uses ResNet50 to represent regions of real buyer photos. Frozen by default. |
 | [models/encoders/clip_encoder.py](../baselines/clip-ca-cg/models/encoders/clip_encoder.py) | Computes frozen pretrained CLIP text/photo vectors for the cache. Supplies a zero image vector and score for missing photos. |

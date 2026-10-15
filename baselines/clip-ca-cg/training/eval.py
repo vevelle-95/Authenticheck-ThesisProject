@@ -1,10 +1,10 @@
-"""Shared six-aspect detection and gold-category polarity metrics."""
+"""Ten-aspect detection and multi-label polarity metrics shared with AuthentiCheck."""
 
 import numpy as np
 import torch
-from sklearn.metrics import precision_recall_fscore_support, accuracy_score, confusion_matrix
 
 from datasets.authenticheck_data import ASPECTS, SENTIMENTS
+from model_metrics import multilabel_metrics, sentiment_predictions, select_sentiment_threshold, absa_evaluation_report
 from training.engine import move_inputs
 
 
@@ -15,7 +15,7 @@ def collect_predictions(model, dataloader, device):
     for batch in dataloader:
         outputs = model(**move_inputs(batch, device))
         detection.append(torch.sigmoid(outputs["aspect_logits"]).float().cpu().numpy())
-        sentiments.append(torch.softmax(outputs["sentiment_logits"], dim=-1).float().cpu().numpy())
+        sentiments.append(torch.sigmoid(outputs["sentiment_logits"]).float().cpu().numpy())
         if "aspect_targets" in batch:
             gold_aspects.append(batch["aspect_targets"].numpy())
             gold_sentiments.append(batch["sentiment_targets"].numpy())
@@ -29,46 +29,48 @@ def collect_predictions(model, dataloader, device):
     }
 
 
-def compute_metrics(outputs, threshold):
+def compute_metrics(outputs, threshold, sentiment_threshold=0.5):
     gold = outputs["aspect_targets"]
-    predicted = outputs["aspect_probabilities"] >= threshold
-    precision, recall, f1, support = precision_recall_fscore_support(
-        gold, predicted, average=None, zero_division=0,
-    )
-    truth, guesses = [], []
-    for row, targets in enumerate(outputs["sentiment_targets"]):
-        for aspect, distribution in enumerate(targets):
-            for polarity in np.flatnonzero(distribution):
-                truth.append(int(polarity))
-                guesses.append(int(outputs["sentiment_probabilities"][row, aspect].argmax()))
-    if truth:
-        p, r, f, s = precision_recall_fscore_support(truth, guesses, labels=[0, 1, 2], zero_division=0)
-        polarity = {
-            "count": len(truth), "accuracy": float(accuracy_score(truth, guesses)),
-            "macro_precision": float(p.mean()), "macro_recall": float(r.mean()),
-            "macro_f1": float(f.mean()), "support": s.tolist(),
-            "confusion_matrix": confusion_matrix(truth, guesses, labels=[0, 1, 2]).tolist(),
-        }
-    else:
-        polarity = {"count": 0, "accuracy": None, "macro_f1": 0.0}
+    detection = multilabel_metrics(gold, outputs["aspect_probabilities"] >= threshold, ASPECTS)
+    detection["per_category"] = detection["per_label"]
+    active = gold.astype(bool)
+    polarity = multilabel_metrics(outputs["sentiment_targets"][active],
+        sentiment_predictions(outputs["sentiment_probabilities"][active], sentiment_threshold), SENTIMENTS)
     return {
         "aspects": list(ASPECTS), "sentiments": list(SENTIMENTS), "threshold": float(threshold),
-        "category_detection": {
-            "macro_precision": float(precision.mean()), "macro_recall": float(recall.mean()),
-            "macro_f1": float(f1.mean()),
-            "per_category": {
-                category: {"precision": float(precision[i]), "recall": float(recall[i]),
-                           "f1": float(f1[i]), "support": int(support[i])}
-                for i, category in enumerate(ASPECTS)
-            },
-        },
+        "sentiment_threshold": float(sentiment_threshold),
+        "category_detection": detection,
         "gold_category_sentiment": polarity,
     }
 
 
 def select_threshold(outputs):
-    candidates = [(compute_metrics(outputs, value), float(value)) for value in np.linspace(0.1, 0.9, 17)]
+    active = outputs["aspect_targets"].astype(bool)
+    sentiment_threshold = select_sentiment_threshold(outputs["sentiment_targets"][active],
+                                                     outputs["sentiment_probabilities"][active])
+    candidates = [(compute_metrics(outputs, value, sentiment_threshold), float(value)) for value in np.linspace(0.1, 0.9, 17)]
     metrics, threshold = max(candidates, key=lambda pair: (
         pair[0]["category_detection"]["macro_f1"], -abs(pair[1] - 0.5),
     ))
     return threshold, metrics
+
+
+def evaluation_report(frame, outputs, checkpoint):
+    records = []
+    masks = sentiment_predictions(outputs["sentiment_probabilities"], checkpoint["sentiment_threshold"])
+    masks = masks.reshape(-1, len(ASPECTS), len(SENTIMENTS))
+    for index, row in enumerate(frame.to_dict("records")):
+        gold = outputs["sentiment_targets"][index].astype(bool)
+        detected = outputs["aspect_probabilities"][index] >= checkpoint["threshold"]
+        def pairs(mask):
+            return [{"category": category, "sentiment": sentiment}
+                    for aspect, category in enumerate(ASPECTS)
+                    for polarity, sentiment in enumerate(SENTIMENTS) if mask[aspect, polarity]]
+        records.append({"review_id": row["review_id"], "product_id": row["product_id"],
+                        "image_urls": row.get("image_urls", []),
+                        "review_text": row["review_text"], "gold_pairs": pairs(gold),
+                        "predicted_categories": [category for aspect, category in enumerate(ASPECTS) if detected[aspect]],
+                        "predicted_pairs": pairs(masks[index] & detected[:, None]),
+                        "gold_category_predictions": pairs(masks[index] & gold.any(-1)[:, None])})
+    return absa_evaluation_report(records, aspect_threshold=checkpoint["threshold"],
+                                 sentiment_threshold=checkpoint["sentiment_threshold"])

@@ -8,7 +8,7 @@ from pathlib import Path
 PROJECT_ROOT = Path(__file__).resolve().parent
 DATA_DIR = PROJECT_ROOT / "data"
 DEFAULT_DATA_PATH = DATA_DIR / "test_reviews.csv"
-DEFAULT_SPLITS_PATH = DATA_DIR / "splits_real_v2.json"
+DEFAULT_SPLITS_PATH = DATA_DIR / "splits_dataset.json"
 DEFAULT_BUNDLE = PROJECT_ROOT / "models" / "own_model_v2"
 DEFAULT_ROBERTA_DIR = DEFAULT_BUNDLE / "dost_roberta"
 DEFAULT_OOF_PATH = DATA_DIR / "oof_probabilities.csv"
@@ -29,10 +29,11 @@ ROBERTA_TARGET_COLUMN = "text_label"
 QUALITY_TEXT_POLICY = "review-first-bounded-context-v1"
 QUALITY_CONTEXT_TOKENS = 28
 QUALITY_TITLE_TOKENS = 10
-MODEL_VERSION = "authenticheck-2.1"
+MODEL_VERSION = "authenticheck-2.2"
 TAXONOMY_VERSION = "fixed-ten-v1"
 SENSORY_POLICY = "annotation-guidelines-only"
-SENTIMENT_TARGET_POLICY = "category-polarity-distribution-v1"
+SENTIMENT_TARGET_POLICY = "category-polarity-multilabel-v2"
+ABSA_EVALUATION_PROTOCOL = "ten-aspect-multilabel-v2"
 CLASS_NAMES = ("authentic", "deceptive", "liv", "irrelevant")
 POLARITIES = ("Negative", "Neutral", "Positive")
 ASPECTS = (
@@ -178,6 +179,17 @@ def map_quality(value):
 
 def map_polarity(value):
     return _label(value, POLARITIES, {name.lower(): i for i, name in enumerate(POLARITIES)})
+
+
+def sentiment_indices(probabilities, threshold=0.5):
+    """Keep every supported polarity; a present aspect gets at least one label."""
+    if not 0 < threshold < 1:
+        raise ValueError("Sentiment threshold must lie strictly between 0 and 1")
+    if len(probabilities) != len(POLARITIES) or any(
+            not math.isfinite(float(value)) or not 0 <= value <= 1 for value in probabilities):
+        raise ValueError("Expected three finite sentiment probabilities from 0 to 1")
+    selected = [index for index, value in enumerate(probabilities) if value >= threshold]
+    return selected or [max(range(len(POLARITIES)), key=lambda index: probabilities[index])]
 
 
 def normalize_rating(value):

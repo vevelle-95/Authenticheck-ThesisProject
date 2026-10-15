@@ -481,7 +481,7 @@ class AbsaTests(unittest.TestCase):
         model.aspect_head.weight.data.zero_()
         model.aspect_head.bias.data.fill_(10)
         results = model.predict(["review", "review"], FakeTokenizer())
-        self.assertTrue(all(len(row) == 10 for row in results))
+        self.assertTrue(all({item["category"] for item in row} == set(ASPECTS) for row in results))
         self.assertIn("sensory_experience", {row["category"] for row in results[0]})
         self.assertTrue(all(row["category"] in ASPECTS for row in results[1]))
         legacy = model.predict(["review", "review"], FakeTokenizer(), ["electronics", "skincare"])
@@ -531,10 +531,29 @@ class AbsaTests(unittest.TestCase):
         self.assertTrue(torch.equal(polarities, torch.tensor([[1.0, 0.0, 1.0]])))
         logits = torch.tensor([[1.0, -2.0, 0.0]], requires_grad=True)
         loss = model.compute_loss(torch.zeros(1, 10), logits, dataset.tensors[2], polarities, dataset.tensors[6])
-        expected = np.log(2) - torch.log_softmax(logits, -1)[0, [0, 2]].mean()
+        expected = np.log(2) + torch.nn.functional.binary_cross_entropy_with_logits(logits, polarities)
         self.assertTrue(torch.allclose(loss, expected))
         loss.backward()
         self.assertGreater(float(logits.grad[0, 1]), 0)
+        self.assertLess(float(logits.grad[0, 0]), 0)
+        self.assertLess(float(logits.grad[0, 2]), 0)
+
+    def test_mixed_sentiments_return_separate_matching_evidence_spans(self):
+        model = ABSAHeadModel(encoder=FakeEncoder(), dropout=0)
+        sensory = ASPECTS.index("sensory_experience")
+        def scores(texts, tokenizer, batch_size=16):
+            result = torch.zeros(len(texts), len(ASPECTS))
+            result[:, sensory] = 0.9
+            return result
+        def polarities(texts, categories, tokenizer, batch_size=16):
+            return [[0.9 if "malagkit" in text else 0.1, 0.1, 0.9 if "mabango" in text else 0.1] for text in texts]
+        model.aspect_scores, model.predict_sentiment = scores, polarities
+        result = model.predict(["mabango pero malagkit"], FakeTokenizer())[0]
+        self.assertEqual({(row["category"], row["sentiment"]) for row in result},
+                         {("sensory_experience", "Negative"), ("sensory_experience", "Positive")})
+        evidence = {row["sentiment"]: row["text"] for row in result}
+        self.assertEqual(evidence["Positive"], "mabango")
+        self.assertEqual(evidence["Negative"], "pero malagkit")
 
     def test_validation_threshold_is_selected_from_probabilities(self):
         targets = np.zeros((2, 10))
@@ -553,7 +572,7 @@ class AbsaTests(unittest.TestCase):
         model.aspect_head.weight.data.zero_()
         model.aspect_head.bias.data.fill_(10)
         model.sentiment_head.weight.data.zero_()
-        model.sentiment_head.bias.data.copy_(torch.tensor([3.0, 0.0, -3.0]))
+        model.sentiment_head.bias.data.copy_(torch.tensor([3.0, -3.0, -3.0]))
         review = "Matibay ang build quality at maganda ang finish. Pero mabilis ma-drain ang battery."
         results = model.predict([review], FakeTokenizer())
         self.assertTrue(results[0])
@@ -903,7 +922,122 @@ class AugmentationTests(unittest.TestCase):
                 check_training_provenance(changed, bundle)
 
 
+class AbsaEvaluationTests(unittest.TestCase):
+    def report(self, **changes):
+        from model_metrics import absa_evaluation_report
+        record = dict(review_id="r1", product_id="p1", review_text="mabango pero malagkit", image_urls=[],
+            gold_pairs=[{"category": "sensory_experience", "sentiment": value} for value in ("negative", "positive")],
+            predicted_categories=["sensory_experience", "value"],
+            predicted_pairs=[{"category": category, "sentiment": "positive"} for category in ("sensory_experience", "value")],
+            gold_category_predictions=[{"category": "sensory_experience", "sentiment": "positive"}])
+        record.update(changes)
+        report = absa_evaluation_report([record], aspect_threshold=0.5, sentiment_threshold=0.5)
+        report.update(train_review_ids=["train1"], validation_review_ids=["val1"],
+                      train_sha256="same-training-data", validation_sha256="same-validation-data")
+        return {"partition": "test", "absa_evaluation": report}
+
+    def test_counts_penalize_missing_polarities_and_false_detected_aspects(self):
+        metrics = self.report()["absa_evaluation"]["metrics"]
+        self.assertEqual(metrics["gold_category_sentiment"]["per_label"]["Negative"]["fn"], 1)
+        self.assertEqual(metrics["gold_category_sentiment"]["per_label"]["Positive"]["tp"], 1)
+        self.assertEqual(metrics["category_detection"]["per_label"]["value"]["fp"], 1)
+        self.assertEqual(metrics["aspect_sentiment_pairs"]["per_label"]["value/positive"]["fp"], 1)
+        self.assertEqual(metrics["gold_category_sentiment"]["accuracy"], 0)
+        self.assertEqual(len(metrics["gold_category_sentiment"]["multilabel_confusion_matrices"]), 3)
+
+    def test_comparison_pairs_products_and_rejects_different_cohorts_or_training(self):
+        from scripts.compare_absa import compare_reports
+        own, baseline = self.report(), self.report()
+        result = compare_reports(own, baseline)
+        self.assertEqual(result["per_product_pairs"][0]["gold_category_sentiment"]["macro_f1_difference"], 0)
+        self.assertEqual(result["review_count"], 1)
+        with self.assertRaisesRegex(ValueError, "test review IDs"):
+            compare_reports(own, self.report(review_text="different text"))
+        baseline["absa_evaluation"]["train_review_ids"] = ["different-source"]
+        with self.assertRaisesRegex(ValueError, "train review IDs"):
+            compare_reports(own, baseline)
+
+    def test_threshold_can_keep_mixed_polarities_and_falls_back_for_a_present_aspect(self):
+        from model_contract import sentiment_indices
+        from model_metrics import select_sentiment_threshold, sentiment_predictions
+        self.assertEqual(sentiment_indices([0.8, 0.1, 0.7]), [0, 2])
+        self.assertEqual(sentiment_indices([0.1, 0.2, 0.15]), [1])
+        gold = [[1, 0, 1], [0, 1, 0]]
+        probabilities = [[0.4, 0.05, 0.35], [0.1, 0.4, 0.05]]
+        threshold = select_sentiment_threshold(gold, probabilities)
+        np.testing.assert_array_equal(sentiment_predictions(probabilities, threshold), gold)
+
+
 class RuleAugmentationTests(unittest.TestCase):
+    def test_quality_priority_counts_text_and_final_targets_independently(self):
+        from collections import Counter
+        from scripts.balance_augmentation import quality_gain
+
+        final = Counter({0: 10, 1: 2, 2: 10, 3: 10})
+        text = Counter({0: 10, 1: 3, 2: 10, 3: 10})
+        self.assertEqual(quality_gain(dict(label=1, text_target=1), final, text, 10), (2, 15))
+        self.assertEqual(quality_gain(dict(label=1, text_target=0), final, text, 10), (1, 8))
+        self.assertEqual(quality_gain(dict(label=0, text_target=1), final, text, 10, 6), (1, 3))
+
+    def run_quality_rebuild(self, directory, *, missing_text_class=False):
+        from unittest.mock import patch
+        from scripts import balance_augmentation
+
+        directory = Path(directory)
+        records = []
+        pairs = [(0, 0), (0, 0), (1, 1), (2, 2), (3, 3), (0, 1), (0, 0), (0, 0)]
+        for index, (text_label, final_label) in enumerate(pairs):
+            records.append(dict(
+                review_id=f"source-{index}", product_id=f"product-{index}",
+                product_title="Product", product_description="Listing context",
+                review_text=f"Review {index}: good product, thank you seller, very affordable item.",
+                review_image_urls=f"https://example.invalid/{index}.jpg", star_rating=3,
+                text_label=CLASS_NAMES[0 if missing_text_class and text_label == 1 else text_label],
+                ground_truth=CLASS_NAMES[final_label], aspect_annotations="[]"))
+        source_path = directory / "original.csv"
+        pd.DataFrame(records).to_csv(source_path, index=False)
+        original = load_reviews(source_path, require_annotations=True)
+        original["partition"] = ["train"] * 6 + ["validation", "test"]
+        original["fold"] = [index % 5 for index in range(6)] + [-1, -1]
+        output = directory / "drafts.csv"
+        output.write_bytes(b"obsolete drafts from another split")
+        report = directory / "balance.json"
+        args = ["balance_augmentation.py", "--fresh", "--quality-only", "--balance-text-labels",
+                "--augmentations", str(output), "--report", str(report)]
+        with patch("sys.argv", args), patch.object(balance_augmentation, "load_experiment", return_value=original):
+            balance_augmentation.main()
+        return original, output, report
+
+    def test_fresh_quality_rebuild_preserves_labels_images_and_held_out_rows(self):
+        with tempfile.TemporaryDirectory() as directory:
+            original, output, report_path = self.run_quality_rebuild(directory)
+            draft = pd.read_csv(output, dtype=str, keep_default_na=False)
+            combined = append_augmentations(original, draft, allow_unreviewed=True)
+            generated = combined[combined.source_review_id.ne("")]
+            self.assertTrue(generated.label.ne(0).all())
+            self.assertTrue(draft.review_status.eq("pending").all())
+            self.assertTrue(draft.reviewed_by.eq("").all())
+            sources = original.set_index("review_id")
+            for row in generated.itertuples():
+                source = sources.loc[row.source_review_id]
+                for column in ("text_label", "ground_truth", "text_target", "star_rating", "product_id", "fold", "image_urls"):
+                    self.assertEqual(getattr(row, column), source[column])
+            pd.testing.assert_frame_equal(
+                combined.loc[combined.partition.ne("train"), original.columns].reset_index(drop=True),
+                original.loc[original.partition.ne("train")].reset_index(drop=True))
+            report = json.loads(report_path.read_text(encoding="utf-8"))
+            generation = report["full_balance_generation"]
+            self.assertTrue(all(value >= 2 for value in generation["projected_ground_truth_counts"].values()))
+            self.assertTrue(all(value >= 3 for value in generation["projected_text_label_counts"].values()))
+            self.assertEqual(report_path.with_suffix(".previous.csv").read_bytes(), b"obsolete drafts from another split")
+
+    def test_unfillable_text_class_does_not_replace_previous_drafts(self):
+        with tempfile.TemporaryDirectory() as directory:
+            with self.assertRaisesRegex(ValueError, "Cannot fill ground_truth"):
+                self.run_quality_rebuild(directory, missing_text_class=True)
+            self.assertEqual((Path(directory) / "drafts.csv").read_bytes(), b"obsolete drafts from another split")
+            self.assertFalse((Path(directory) / "balance.json").exists())
+
     def test_variant_is_seeded_and_preserves_mixed_exact_targets(self):
         import random
         from scripts.balance_augmentation import variant

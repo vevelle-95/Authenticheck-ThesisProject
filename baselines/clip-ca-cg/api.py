@@ -1,4 +1,4 @@
-"""Local HTTP inference for the trained six-aspect CLIP-CA-CG baseline."""
+"""Local HTTP inference for the trained ten-aspect CLIP-CA-CG adaptation."""
 
 from contextlib import asynccontextmanager
 import logging
@@ -13,7 +13,7 @@ from pydantic import BaseModel, ConfigDict, Field, HttpUrl, field_validator
 
 from datasets.authenticheck_data import MODEL_VERSION
 from inference import BaselinePredictor
-from runtime import resolve_path
+from runtime import resolve_path, default_checkpoint
 
 SCHEMA_VERSION = "1.0"
 logger = logging.getLogger(__name__)
@@ -25,7 +25,7 @@ async def lifespan(app):
     app.state.predictor = None
     app.state.model_error = None
     try:
-        checkpoint = os.getenv("CLIP_CA_CG_CHECKPOINT", "").strip() or "outputs/checkpoints/best.pt"
+        checkpoint = os.getenv("CLIP_CA_CG_CHECKPOINT", "").strip() or default_checkpoint()
         predictor = BaselinePredictor(resolve_path(checkpoint))
         predictor.validate_cache()
         app.state.predictor = predictor

@@ -8,13 +8,14 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
-ASPECTS = (
-    'aesthetics', 'product_quality', 'accuracy_of_description',
-    'design', 'value', 'seller_service',
-)
-ALL_ASPECTS = set(ASPECTS) | {'functionality', 'performance', 'sensory_experience', 'packaging'}
-SENTIMENTS = ('negative', 'neutral', 'positive')
-MODEL_VERSION = 'adapted-clip-ca-cg-aspects-v1'
+PROJECT_ROOT = Path(__file__).resolve().parents[3]
+if str(PROJECT_ROOT) not in sys.path:
+    sys.path.append(str(PROJECT_ROOT))
+from model_contract import ASPECTS, POLARITIES, SENTIMENT_TARGET_POLICY, sentiment_indices
+
+ALL_ASPECTS = set(ASPECTS)
+SENTIMENTS = tuple(value.lower() for value in POLARITIES)
+MODEL_VERSION = 'adapted-clip-ca-cg-ten-aspect-multilabel-v2'
 SPLIT_VERSION = 'product-70-15-15-oof5-v1'
 
 
@@ -126,7 +127,7 @@ def build_targets(annotations):
         if polarities:
             aspects[index] = 1
             for polarity in polarities:
-                sentiments[index, polarity] = 1 / len(polarities)
+                sentiments[index, polarity] = 1
     return aspects, sentiments
 
 

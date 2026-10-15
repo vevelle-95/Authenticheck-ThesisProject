@@ -19,7 +19,8 @@ from model_contract import (
 )
 from model_data import fingerprint, load_experiment
 from training_augmentation import augmentation_summary
-from model_metrics import classification_metrics
+from model_metrics import multilabel_metrics, select_sentiment_threshold, sentiment_predictions
+from model_contract import POLARITIES
 
 
 def build_targets(frame, tokenizer, max_length):
@@ -73,7 +74,7 @@ def select_threshold(targets, probabilities, eligible):
 @torch.inference_mode()
 def evaluate_loader(model, loader, device, tune=False, fp16=False):
     model.eval()
-    target_rows, probabilities, eligible_rows, sentiment_targets, sentiment_predictions = [], [], [], [], []
+    target_rows, probabilities, eligible_rows, sentiment_targets, sentiment_probabilities = [], [], [], [], []
     for batch in loader:
         with torch.autocast(device_type=device.type, dtype=torch.float16, enabled=fp16):
             logits, sentiments, targets, polarities, eligible = batch_forward(model, batch, device)
@@ -81,16 +82,17 @@ def evaluate_loader(model, loader, device, tune=False, fp16=False):
         probabilities.extend(torch.sigmoid(logits).cpu().tolist())
         eligible_rows.extend(eligible.cpu().tolist())
         if sentiments is not None:
-            for alternatives, prediction in zip(polarities.cpu(), sentiments.argmax(-1).cpu()):
-                labels = alternatives.nonzero().flatten().tolist()
-                sentiment_targets.extend(labels)
-                sentiment_predictions.extend([int(prediction)] * len(labels))
+            sentiment_targets.extend(polarities.cpu().tolist())
+            sentiment_probabilities.extend(torch.sigmoid(sentiments).float().cpu().tolist())
     targets, probabilities, eligible = map(np.asarray, (target_rows, probabilities, eligible_rows))
     threshold = select_threshold(targets, probabilities, eligible) if tune else model.threshold
+    sentiment_threshold = select_sentiment_threshold(sentiment_targets, sentiment_probabilities) if tune else model.sentiment_threshold
     return {
         "threshold": threshold,
+        "sentiment_threshold": sentiment_threshold,
         "detection": detection_metrics(targets, probabilities, eligible, threshold),
-        "sentiment": classification_metrics(sentiment_targets, sentiment_predictions, range(3)),
+        "sentiment": multilabel_metrics(sentiment_targets,
+            sentiment_predictions(sentiment_probabilities, sentiment_threshold), POLARITIES),
     }
 
 
@@ -149,6 +151,7 @@ def train_absa(assigned, output, *, encoder=BASE_MODEL, epochs=EPOCHS, batch_siz
         if score > best:
             best = score
             model.threshold = metrics["threshold"]
+            model.sentiment_threshold = metrics["sentiment_threshold"]
             model.save_pretrained(output, tokenizer)
             best_epoch = epoch + 1
             best_metrics = metrics
