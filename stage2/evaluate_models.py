@@ -11,7 +11,7 @@ import numpy as np
 from model_contract import ASPECTS, CLASS_NAMES, DEFAULT_BUNDLE, DEFAULT_SPLITS_PATH, INPUT_VERSION, POLARITIES, ROBERTA_TARGET_COLUMN, SENSORY_POLICY, SENTIMENT_TARGET_POLICY, quality_input_text, sentiment_indices
 from model_data import fingerprint, load_experiment
 from training_augmentation import augmentation_summary
-from model_metrics import classification_metrics, absa_evaluation_report
+from model_metrics import classification_metrics, absa_evaluation_report, aspect_filtering_ablation
 from stage2.online_inference import OnlineInference, aggregate_products
 
 
@@ -37,6 +37,27 @@ def check_training_provenance(assigned, bundle):
             raise ValueError(f"{path}: dataset fingerprint mismatch")
         if "training_sha256" in metadata and metadata["training_sha256"] != fingerprint(fit):
             raise ValueError(f"{path}: training contents or augmentation lineage changed")
+
+
+def add_aspect_ablation_from_report(report):
+    """Re-score frozen predictions; never reload models, labels, images or splits."""
+    if report.get('partition') != 'test':
+        raise ValueError('Expected a held-out test report')
+    filtered, unfiltered = report['filtered_reviews'], report['unfiltered_reviews']
+    if len(unfiltered) != report['review_count']:
+        raise ValueError('Saved review count does not match predictions')
+    authentic = {row['id']: row for row in unfiltered if row['ground_truth'] == 'authentic'}
+    records = report['absa_evaluation']['records']
+    if len({row['review_id'] for row in records}) != len(records) or {row['review_id'] for row in records} != set(authentic):
+        raise ValueError('Saved gold annotations must cover ground-truth Authentic reviews exactly once')
+    annotations = {row['review_id']: row for row in records}
+    for review_id, row in authentic.items():
+        if annotations[review_id]['product_id'] != row['product_id']:
+            raise ValueError('Saved gold product IDs disagree with predictions')
+    gold = [{'id': row['id'], 'product_id': row['product_id'], 'label': row['ground_truth'],
+             'aspectSentiment': annotations[row['id']]['gold_pairs'] if row['ground_truth'] == 'authentic' else []}
+            for row in unfiltered]
+    return {**report, 'aspect_filtering_ablation': aspect_filtering_ablation(gold, filtered, unfiltered)}
 
 
 def evaluate_own_models(test, pipe):
@@ -127,6 +148,7 @@ def evaluate_own_models(test, pipe):
         "aspect_sentiment_pairs": absa_report["metrics"]["aspect_sentiment_pairs"],
         "absa_evaluation": absa_report,
         "per_product_metrics": per_product, "filtering_ablation": errors,
+        "aspect_filtering_ablation": aspect_filtering_ablation(gold, filtered, unfiltered),
         "excluded_ablation_products": sum(not row["paired_eligible"] for row in errors),
         "filtered_reviews": filtered, "unfiltered_reviews": unfiltered,
         "aggregation_unit": "one_review_category_polarity_group",
@@ -138,7 +160,9 @@ def evaluate_own_models(test, pipe):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--data", required=True)
+    source = parser.add_mutually_exclusive_group(required=True)
+    source.add_argument("--data")
+    source.add_argument("--from-report", help="Add per-aspect errors to saved test predictions without model inference")
     parser.add_argument("--splits", default=str(DEFAULT_SPLITS_PATH))
     parser.add_argument("--augmentations", help="Approved training-only augmentation CSV; use the same file throughout the experiment")
     parser.add_argument("--allow-unreviewed-augmentations", action="store_true", help="Experimental run: include pending drafts without marking them approved")
@@ -148,6 +172,12 @@ def main():
     output = Path(args.output)
     if output.exists():
         raise FileExistsError("A final test report already exists at this path; use a new experiment output")
+    if args.from_report:
+        result = add_aspect_ablation_from_report(json.loads(Path(args.from_report).read_text(encoding='utf-8')))
+        output.parent.mkdir(parents=True, exist_ok=True)
+        output.write_text(json.dumps(result, indent=2, ensure_ascii=False, allow_nan=False), encoding='utf-8')
+        print(f"Saved report with per-aspect errors to {output}; existing predictions unchanged")
+        return
     assigned = load_experiment(args.data, args.splits, args.augmentations, require_annotations=True,
                                allow_unreviewed=args.allow_unreviewed_augmentations)
     check_training_provenance(assigned, args.bundle)

@@ -1425,3 +1425,74 @@ $env:AUTHENTICHECK_MODEL_BUNDLE = "models/augmented_experiment"
 
 The API loads the selected bundle when it starts. Frozen multilingual CLIP models
 are downloaded separately on first use; no CLIP fine-tuning weights were produced.
+
+### Diagnose Stage 1 before another full training run
+
+From the repository root:
+
+```powershell
+.\.venv\Scripts\python.exe scripts/audit_stage1.py --allow-unreviewed-augmentations
+```
+
+This checks the `quality_balanced_v5` bundle and saved feature provenance, then
+fits 24 small diagnostic XGBoost candidates using training rows and scores them
+on validation rows. It compares probabilities alone, probabilities with rating,
+probabilities with image similarity, and all six features, with three tree
+settings and two training populations. The original-only population removes
+synthetic rows from XGBoost fitting; its OOF encoders still used eligible
+synthetic rows, so this is not a complete no-augmentation experiment.
+
+Read `reports/generated/stage1_validation_audit.json`: `validation_baselines`
+contains the current models' validation scores, `candidate_trials` ranks the
+diagnostic fits by validation macro-F1, and `validation_errors` lists incorrect
+current XGBoost predictions with their review text and features. No test
+predictions are computed and no model weights are replaced. Choose a new
+`--output` path to preserve a previous audit. A better validation score is a
+candidate for a future experiment, not a new test result.
+
+### SOP 3: compare product sentiment separately for each aspect
+
+New runs of `stage2/evaluate_models.py` include `aspect_filtering_ablation` in
+addition to the existing pooled `filtering_ablation`. To add this section to
+an existing report without retraining, image downloads, or model inference:
+
+```powershell
+.\.venv\Scripts\python.exe stage2/evaluate_models.py --from-report results/quality_balanced_v5_test.json --output results/quality_balanced_v5_test_per_aspect.json
+```
+
+The source report is preserved. The new report contains all its original sections
+plus the new per-aspect evaluation. The saved human gold pairs must cover all
+ground-truth Authentic test reviews. Both prediction approaches must cover the
+same reviews and use the same ABSA predictions, with only the quality gate changed.
+
+For every review and aspect, distinct Negative, Neutral, and Positive labels map
+to -1, 0, and +1. Average those values within the review first, then average the
+review scores within each product/aspect. For example, a review with both Positive
+and Negative for performance contributes 0 once; it does not count as two reviews.
+Repeated evidence for the same polarity does not add weight. The reference uses
+human annotations only from ground-truth Authentic reviews. The filtered score
+uses reviews predicted Authentic; the unfiltered score uses every review. Both
+approaches use our same trained ABSA model, not the separate CLIP-CA-CG model.
+
+Inside `aspect_filtering_ablation`:
+
+| Field | What to read |
+| --- | --- |
+| `per_product_aspect` | All product/aspect reference and predicted scores, review counts, absolute errors, paired eligibility, and exclusion reasons. |
+| `by_aspect` | Paired filtered and unfiltered MAEs for each of the ten aspects, with reference, eligible, excluded, and missing-prediction counts. |
+| `overall.macro_mae_across_aspects` | Average of aspect MAEs, giving each aspect with an eligible pair equal weight. |
+| `overall.pooled_product_aspect_mae` | Average across all eligible product/aspect errors; aspects with more eligible products have more weight. |
+
+Lower MAE means closer to the human reference. Positive `improvement` means
+unfiltered error minus filtered error is positive, so filtering helped.
+Both approaches' MAEs always use the same eligible product/aspect pairs.
+Undefined scores are JSON `null`, never zero. Missing-prediction counts are
+reported among products with a reference; predictions for aspects with no
+reference are recorded separately as `*_without_ground_truth_count`. Exclusions
+must be reported alongside MAE, because missed aspects would otherwise disappear
+from the error comparison. An aspect without evaluable pairs has null MAEs.
+
+These scores use a different aggregation unit from the old pooled product score,
+so their numerical values need not match `filtering_ablation`. Statistical tests
+remain pending; multiple aspects of the same product must not automatically be
+treated as independent product samples.

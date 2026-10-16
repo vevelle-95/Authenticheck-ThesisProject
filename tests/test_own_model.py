@@ -1034,6 +1034,95 @@ class AbsaEvaluationTests(unittest.TestCase):
         np.testing.assert_array_equal(sentiment_predictions(probabilities, threshold), gold)
 
 
+class AspectAggregationTests(unittest.TestCase):
+    def row(self, review_id, product, label, sentiments, category='performance'):
+        return {'id': review_id, 'product_id': product, 'label': label,
+                'aspectSentiment': [{'category': category, 'sentiment': value} for value in sentiments]}
+
+    def test_mixed_polarities_and_duplicate_evidence_have_equal_review_weight(self):
+        from model_metrics import aspect_filtering_ablation
+        gold = [self.row('r1', 'p1', 'authentic', ['positive', 'negative', 'positive']),
+                self.row('r2', 'p1', 'authentic', ['positive'])]
+        predicted = [self.row('r1', 'p1', 'authentic', ['positive']),
+                     self.row('r2', 'p1', 'authentic', ['negative'])]
+        report = aspect_filtering_ablation(gold, predicted, predicted)
+        pair = next(row for row in report['per_product_aspect'] if row['category'] == 'performance')
+        self.assertEqual(pair['ground_truth'], 0.5)
+        self.assertEqual(pair['filtered'], 0)
+        self.assertEqual(pair['filtered_absolute_error'], 0.5)
+        self.assertEqual(pair['ground_truth_review_count'], 2)
+        self.assertEqual(len(report['by_aspect']), 10)
+
+    def test_missing_predictions_are_null_and_excluded_from_both_maes(self):
+        from model_metrics import aspect_filtering_ablation
+        gold = [self.row('r1', 'p1', 'authentic', ['positive'])]
+        unfiltered = [self.row('r1', 'p1', 'liv', ['positive'])]
+        filtered = [self.row('r1', 'p1', 'liv', [])]
+        report = aspect_filtering_ablation(gold, filtered, unfiltered)
+        aspect = next(row for row in report['by_aspect'] if row['category'] == 'performance')
+        self.assertEqual(aspect['missing_filtered_prediction_count'], 1)
+        self.assertEqual(aspect['paired_product_count'], 0)
+        self.assertIsNone(aspect['filtered_mae'])
+        self.assertIsNone(aspect['unfiltered_mae'])
+        self.assertIn('no_filtered_prediction', next(row for row in report['per_product_aspect']
+                      if row['category'] == 'performance')['exclusion_reasons'])
+        json.dumps(report, allow_nan=False)
+
+    def test_absa_only_includes_non_authentic_reviews_but_gold_does_not(self):
+        from model_metrics import aspect_filtering_ablation
+        gold = [self.row('r1', 'p1', 'authentic', ['positive']),
+                self.row('r2', 'p1', 'deceptive', ['negative'])]
+        unfiltered = [self.row('r1', 'p1', 'authentic', ['positive']),
+                      self.row('r2', 'p1', 'deceptive', ['negative'])]
+        filtered = [unfiltered[0], self.row('r2', 'p1', 'deceptive', [])]
+        report = aspect_filtering_ablation(gold, filtered, unfiltered)
+        pair = next(row for row in report['per_product_aspect'] if row['category'] == 'performance')
+        self.assertEqual(pair['ground_truth'], 1)
+        self.assertEqual(pair['unfiltered'], 0)
+        self.assertEqual(pair['improvement'], 1)
+        absent = next(row for row in report['by_aspect'] if row['category'] == 'sensory_experience')
+        self.assertEqual(absent['ground_truth_product_count'], 0)
+        self.assertIsNone(absent['filtered_mae'])
+
+    def test_macro_and_pooled_maes_use_the_same_pairs_but_different_weights(self):
+        from model_metrics import aspect_filtering_ablation
+        gold = [self.row('r1', 'p1', 'authentic', ['positive']),
+                self.row('r2', 'p2', 'authentic', ['positive']),
+                self.row('r3', 'p1', 'authentic', ['positive'], 'value')]
+        predicted = [gold[0], gold[1], self.row('r3', 'p1', 'authentic', ['negative'], 'value')]
+        report = aspect_filtering_ablation(gold, predicted, predicted)
+        self.assertEqual(report['overall']['paired_product_aspect_count'], 3)
+        self.assertAlmostEqual(report['overall']['pooled_product_aspect_mae']['filtered'], 2 / 3)
+        self.assertEqual(report['overall']['macro_mae_across_aspects']['filtered'], 1)
+
+    def test_cohort_and_gate_mismatches_are_rejected(self):
+        from model_metrics import aspect_filtering_ablation
+        rows = [self.row('r1', 'p1', 'authentic', ['positive'])]
+        with self.assertRaisesRegex(ValueError, 'identical review cohorts'):
+            aspect_filtering_ablation(rows, [], rows)
+        with self.assertRaisesRegex(ValueError, 'unique'):
+            aspect_filtering_ablation(rows * 2, rows, rows)
+        with self.assertRaisesRegex(ValueError, 'same ABSA predictions'):
+            aspect_filtering_ablation(rows, [self.row('r1', 'p1', 'authentic', ['negative'])], rows)
+
+    def test_saved_report_recalculation_preserves_existing_sections(self):
+        from stage2.evaluate_models import add_aspect_ablation_from_report
+        rows = [self.row('r1', 'p1', 'authentic', ['positive'])]
+        rows[0]['ground_truth'] = 'authentic'
+        report = {'partition': 'test', 'review_count': 1, 'filtered_reviews': rows,
+                  'unfiltered_reviews': rows, 'filtering_ablation': [{'original': True}],
+                  'absa_evaluation': {'records': [{'review_id': 'r1', 'product_id': 'p1',
+                                                  'gold_pairs': rows[0]['aspectSentiment']}]}}
+        original = json.dumps(report, sort_keys=True)
+        enriched = add_aspect_ablation_from_report(report)
+        self.assertEqual(enriched['filtering_ablation'], report['filtering_ablation'])
+        self.assertEqual(json.dumps(report, sort_keys=True), original)
+        self.assertEqual(enriched['aspect_filtering_ablation']['overall']['paired_product_aspect_count'], 1)
+        report['absa_evaluation']['records'] = []
+        with self.assertRaisesRegex(ValueError, 'exactly once'):
+            add_aspect_ablation_from_report(report)
+
+
 class RuleAugmentationTests(unittest.TestCase):
     def test_quality_priority_counts_text_and_final_targets_independently(self):
         from collections import Counter

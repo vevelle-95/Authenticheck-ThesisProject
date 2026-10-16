@@ -6,7 +6,7 @@ import json
 import numpy as np
 from sklearn.metrics import accuracy_score, confusion_matrix, precision_recall_fscore_support, multilabel_confusion_matrix
 
-from model_contract import ASPECTS, POLARITIES, ABSA_EVALUATION_PROTOCOL, SENTIMENT_TARGET_POLICY, sentiment_indices
+from model_contract import ASPECTS, CLASS_NAMES, POLARITIES, ABSA_EVALUATION_PROTOCOL, SENTIMENT_TARGET_POLICY, sentiment_indices
 
 
 def classification_metrics(targets, predictions, labels):
@@ -21,6 +21,113 @@ def classification_metrics(targets, predictions, labels):
         "macro_f1": float(f1.mean()), "support": support.astype(int).tolist(),
         "confusion_matrix": confusion_matrix(targets, predictions, labels=list(labels)).tolist(),
     }
+
+
+def aspect_filtering_ablation(gold, filtered, unfiltered):
+    """Paired product/aspect errors, weighting each review equally within an aspect.
+
+    Each distinct polarity contributes once to a review/aspect mean. Undefined
+    scores remain None; summaries use the intersection of defined model scores
+    and gold scores, and explicitly report exclusions and missing predictions.
+    """
+    def index(rows):
+        result = {row['id']: row for row in rows}
+        if len(result) != len(rows):
+            raise ValueError('Aggregation review IDs must be unique')
+        return result
+
+    indexed = [index(rows) for rows in (gold, filtered, unfiltered)]
+    if not all(set(rows) == set(indexed[0]) for rows in indexed):
+        raise ValueError('Aggregation requires identical review cohorts')
+    for review_id in indexed[0]:
+        if len({rows[review_id]['product_id'] for rows in indexed}) != 1:
+            raise ValueError('Aggregation product IDs disagree')
+        if any(rows[review_id]['label'] not in CLASS_NAMES for rows in indexed):
+            raise ValueError('Invalid quality label in aggregation')
+        if indexed[1][review_id]['label'] != indexed[2][review_id]['label']:
+            raise ValueError('Filtered and unfiltered quality predictions disagree')
+
+    products = sorted({row['product_id'] for row in gold})
+
+    def aggregates(rows, authentic_only):
+        values = {}
+        for row in rows:
+            if authentic_only and row['label'] != 'authentic':
+                continue
+            polarities = {}
+            for item in row['aspectSentiment']:
+                category, sentiment = item['category'], item['sentiment'].lower()
+                if category not in ASPECTS or sentiment not in ('negative', 'neutral', 'positive'):
+                    raise ValueError('Invalid aspect/sentiment in aggregation')
+                polarities.setdefault(category, set()).add({'negative': -1, 'neutral': 0, 'positive': 1}[sentiment])
+            for category, distinct in polarities.items():
+                values.setdefault((row['product_id'], category), []).append(sum(distinct) / len(distinct))
+        return values
+
+    cohorts = [aggregates(gold, True), aggregates(filtered, True), aggregates(unfiltered, False)]
+    def pairs(row):
+        return {(item['category'], item['sentiment'].lower()) for item in row['aspectSentiment']}
+    for review_id in indexed[0]:
+        expected = pairs(indexed[2][review_id]) if indexed[1][review_id]['label'] == 'authentic' else set()
+        if pairs(indexed[1][review_id]) != expected:
+            raise ValueError('Filtered predictions must apply only the Stage 1 gate to the same ABSA predictions')
+    pairs = []
+    for product in products:
+        for category in ASPECTS:
+            entries = [cohort.get((product, category), []) for cohort in cohorts]
+            truth, with_filter, without_filter = [sum(values) / len(values) if values else None for values in entries]
+            reasons = [name for name, score in zip(
+                ('no_ground_truth', 'no_filtered_prediction', 'no_unfiltered_prediction'),
+                (truth, with_filter, without_filter)) if score is None]
+            eligible = not reasons
+            filtered_error = abs(with_filter - truth) if truth is not None and with_filter is not None else None
+            unfiltered_error = abs(without_filter - truth) if truth is not None and without_filter is not None else None
+            pairs.append({'product_id': product, 'category': category,
+                          'ground_truth': truth, 'filtered': with_filter, 'unfiltered': without_filter,
+                          'ground_truth_review_count': len(entries[0]), 'filtered_review_count': len(entries[1]),
+                          'unfiltered_review_count': len(entries[2]),
+                          'filtered_absolute_error': filtered_error, 'unfiltered_absolute_error': unfiltered_error,
+                          'paired_eligible': eligible, 'exclusion_reasons': reasons,
+                          'improvement': unfiltered_error - filtered_error if eligible else None})
+
+    def mean(values):
+        return sum(values) / len(values) if values else None
+
+    summaries = []
+    for category in ASPECTS:
+        rows = [row for row in pairs if row['category'] == category]
+        referenced = [row for row in rows if row['ground_truth'] is not None]
+        eligible = [row for row in rows if row['paired_eligible']]
+        summaries.append({'category': category, 'product_count': len(rows),
+                          'ground_truth_product_count': len(referenced), 'paired_product_count': len(eligible),
+                          'excluded_ground_truth_product_count': len(referenced) - len(eligible),
+                          'no_ground_truth_product_count': len(rows) - len(referenced),
+                          'missing_filtered_prediction_count': sum(row['filtered'] is None for row in referenced),
+                          'missing_unfiltered_prediction_count': sum(row['unfiltered'] is None for row in referenced),
+                          'filtered_without_ground_truth_count': sum(row['ground_truth'] is None and row['filtered'] is not None for row in rows),
+                          'unfiltered_without_ground_truth_count': sum(row['ground_truth'] is None and row['unfiltered'] is not None for row in rows),
+                          'filtered_mae': mean([row['filtered_absolute_error'] for row in eligible]),
+                          'unfiltered_mae': mean([row['unfiltered_absolute_error'] for row in eligible]),
+                          'improvement': mean([row['improvement'] for row in eligible])})
+    eligible = [row for row in pairs if row['paired_eligible']]
+    evaluable_aspects = [row for row in summaries if row['paired_product_count']]
+    return {'protocol': 'product-aspect-equal-review-v1', 'aspects': list(ASPECTS),
+            'score_range': [-1, 1], 'aggregation_unit': 'mean_distinct_polarities_per_review_then_mean_reviews_per_aspect',
+            'baseline': 'same trained ABSA model without Stage 1 filtering',
+            'exclusion_policy': 'Paired MAEs use only product/aspect rows with all three scores defined; missing scores are null, not zero.',
+            'per_product_aspect': pairs, 'by_aspect': summaries,
+            'overall': {'product_count': len(products), 'product_aspect_count': len(pairs),
+                        'ground_truth_product_aspect_count': sum(row['ground_truth'] is not None for row in pairs),
+                        'paired_product_aspect_count': len(eligible), 'evaluable_aspect_count': len(evaluable_aspects),
+                        'pooled_product_aspect_mae': {
+                            'filtered': mean([row['filtered_absolute_error'] for row in eligible]),
+                            'unfiltered': mean([row['unfiltered_absolute_error'] for row in eligible]),
+                            'improvement': mean([row['improvement'] for row in eligible])},
+                        'macro_mae_across_aspects': {
+                            'filtered': mean([row['filtered_mae'] for row in evaluable_aspects]),
+                            'unfiltered': mean([row['unfiltered_mae'] for row in evaluable_aspects]),
+                            'improvement': mean([row['improvement'] for row in evaluable_aspects])}},
+            'statistical_tests': 'Not performed. Product/aspect rows within a product are not independent product samples.'}
 
 
 def multilabel_metrics(targets, predictions, labels):
