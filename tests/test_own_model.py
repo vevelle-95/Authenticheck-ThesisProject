@@ -475,6 +475,72 @@ class SplitAndOofTests(unittest.TestCase):
             self.assertIsNone(extractor.clip_text)
 
 
+class RobertaResumeTests(unittest.TestCase):
+    def checkpoint(self, directory):
+        from model_contract import BASE_MODEL, QUALITY_TEXT_POLICY, ROBERTA_TARGET_COLUMN, SEED
+        root = Path(directory)
+        frame = validated_fixture(root, products=2)
+        train, validation = frame.iloc[:4].copy(), frame.iloc[4:].copy()
+        output = root / "bundle"
+        checkpoint = output / "checkpoints" / "checkpoint-2"
+        checkpoint.mkdir(parents=True)
+        metadata = dict(input_version=INPUT_VERSION, target_column=ROBERTA_TARGET_COLUMN,
+            quality_text_policy=QUALITY_TEXT_POLICY, training_sha256=fingerprint(train),
+            validation_sha256=fingerprint(validation), base_model=BASE_MODEL, epochs=10,
+            batch_size=2, max_length=128, seed=SEED, low_memory_training=False)
+        (output / "run_metadata.json").write_text(json.dumps(metadata), encoding="utf-8")
+        (checkpoint / "trainer_state.json").write_text(json.dumps(dict(epoch=1, global_step=2, max_steps=20)))
+        (checkpoint / "config.json").write_text(json.dumps(dict(
+            input_contract_version=INPUT_VERSION, quality_target_column=ROBERTA_TARGET_COLUMN)))
+        for name in ("optimizer.pt", "scheduler.pt", "rng_state.pth", "model.safetensors"):
+            (checkpoint / name).touch()
+        settings = dict(base_model=BASE_MODEL, epochs=10, batch_size=2, max_length=128, seed=SEED, low_memory=False)
+        return checkpoint, output, train, validation, settings
+
+    def test_resume_checks_data_settings_and_complete_state(self):
+        from stage1.train_roberta import validate_resume_checkpoint
+        with tempfile.TemporaryDirectory() as directory:
+            checkpoint, output, train, val, settings = self.checkpoint(directory)
+            path, previous, state = validate_resume_checkpoint(checkpoint, output, train, val, **settings)
+            self.assertEqual(path, checkpoint.resolve())
+            self.assertEqual(state["global_step"], 2)
+            for changed in (dict(batch_size=4), dict(low_memory=True), dict(epochs=3)):
+                with self.assertRaisesRegex(ValueError, "experiment differs"):
+                    validate_resume_checkpoint(checkpoint, output, train, val, **{**settings, **changed})
+            changed = train.copy()
+            changed.loc[changed.index[0], "review_text"] = "different buyer feedback"
+            with self.assertRaisesRegex(ValueError, "training_sha256"):
+                validate_resume_checkpoint(checkpoint, output, changed, val, **settings)
+            (checkpoint / "optimizer.pt").unlink()
+            with self.assertRaisesRegex(ValueError, "Incomplete resume"):
+                validate_resume_checkpoint(checkpoint, output, train, val, **settings)
+
+    def test_pipeline_resume_skips_oof_and_forwards_checkpoint(self):
+        import pipeline
+        from unittest.mock import patch
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            frame = validated_fixture(root)
+            prepare_splits(frame, root / "splits.json")
+            checkpoint = root / "bundle" / "dost_roberta" / "checkpoints" / "checkpoint-2"
+            args = ["pipeline.py", "--data", str(root / "reviews.csv"), "--splits", str(root / "splits.json"),
+                    "--output", str(root / "bundle"), "--work-dir", str(root / "features"),
+                    "--epochs", "10", "--start-at", "roberta", "--resume-roberta", str(checkpoint)]
+            with patch("sys.argv", args), patch.object(pipeline, "run_script") as run, patch.object(pipeline, "version", return_value="test"):
+                pipeline.main()
+            self.assertEqual(run.call_count, 4)
+            self.assertEqual(run.call_args_list[0].args[0], "stage1/train_roberta.py")
+            self.assertIn("--resume-from-checkpoint", run.call_args_list[0].args)
+            self.assertIn(str(checkpoint), run.call_args_list[0].args)
+            with patch("sys.argv", [*args, "--require-cuda"]), patch("torch.cuda.is_available", return_value=False), patch.object(pipeline, "run_script") as run:
+                with self.assertRaisesRegex(RuntimeError, "CUDA is unavailable"):
+                    pipeline.main()
+                run.assert_not_called()
+            with patch("sys.argv", ["pipeline.py", "--resume-roberta", str(checkpoint)]):
+                with self.assertRaises(SystemExit):
+                    pipeline.main()
+
+
 class AbsaTests(unittest.TestCase):
     def test_all_ten_outputs_are_available_without_product_metadata(self):
         model = ABSAHeadModel(encoder=FakeEncoder(), dropout=0)

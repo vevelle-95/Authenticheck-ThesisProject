@@ -608,6 +608,47 @@ The CSV and split fingerprint policy are unchanged by this code update, so an
 unchanged CSV can keep its existing shared product assignments. Current quality
 artifacts use `product-context-six-features-v5-text-target`.
 
+### Continue interrupted RoBERTa training on the GPU
+
+AuthentiCheck and the baseline have separate environments. A CUDA-enabled
+baseline environment does not enable CUDA in the root `.venv`. Check the
+Python environment that will actually run AuthentiCheck:
+
+```powershell
+.\.venv\Scripts\python.exe -c "import torch; print(torch.__version__); print(torch.cuda.is_available()); print(torch.cuda.get_device_name(0) if torch.cuda.is_available() else 'CPU')"
+```
+
+For this RTX 4060 setup, the verified CUDA build is `torch==2.11.0+cu128`.
+Stop Python training before replacing PyTorch. To install that build in the
+root environment, use the official CUDA package index:
+
+```powershell
+.\.venv\Scripts\python.exe -m pip install --force-reinstall --no-deps torch==2.11.0+cu128 --index-url https://download.pytorch.org/whl/cu128
+```
+
+The interrupted quality-balanced run saved the final RoBERTa at epoch 2,
+step 2,752. Its five OOF models and OOF probability table are already complete.
+After CUDA verifies as available, continue that same ten-epoch run:
+
+```powershell
+.\.venv\Scripts\python.exe pipeline.py --splits data/splits_dataset.json --augmentations data/augmented_reviews.csv --allow-unreviewed-augmentations --work-dir data/quality_balanced_v5/features --output models/quality_balanced_v5 --epochs 10 --batch-size 2 --start-at roberta --resume-roberta models/quality_balanced_v5/dost_roberta/checkpoints/checkpoint-2752 --require-cuda
+```
+
+Ten epochs means ten total, including the two completed epochs. The command
+restores weights, optimizer, scheduler and training progress, skips OOF, then
+continues feature extraction, XGBoost and ABSA. For a later interruption,
+replace the checkpoint path with that run's latest complete saved checkpoint.
+Do not use a deleted or partial checkpoint. The resume validator rejects
+changed data, labels, batch size, epoch target, token limit or optimizer mode.
+In particular, do not add `--low-memory` to a run originally using AdamW;
+that switches to Adafactor. `--require-cuda` prevents silent CPU training.
+The run records its resume checkpoint, prior metadata and new device/version.
+A CPU checkpoint has no CUDA random-number-generator state. On the first
+CPU-to-GPU resume, Transformers may log that it could not restore CUDA RNG
+state. Weights, optimizer, scheduler and step progress still restore; the GPU
+random sequence differs from uninterrupted CPU training. Record the device and
+package change when describing the experiment.
+
 ### Train CLIP-CA-CG
 
 For a groupmate training the current ten-aspect multi-label model, start at the

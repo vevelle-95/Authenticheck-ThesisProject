@@ -54,6 +54,57 @@ def create_tiny_encoder(directory):
     return tokenizer
 
 
+class RobertaResumeIntegrationTests(unittest.TestCase):
+    def test_resume_restores_the_saved_step_instead_of_restarting(self):
+        from transformers import Trainer, TrainerCallback
+
+        class StopAfterFirstEpoch(TrainerCallback):
+            def on_epoch_end(self, args, state, control, **kwargs):
+                control.should_training_stop = True
+                return control
+
+        resumed_steps = []
+        class RecordResumedStep(TrainerCallback):
+            def on_step_begin(self, args, state, control, **kwargs):
+                resumed_steps.append(state.global_step)
+
+        original_train = Trainer.train
+        def interrupted(trainer, *args, **kwargs):
+            trainer.add_callback(StopAfterFirstEpoch())
+            return original_train(trainer, *args, **kwargs)
+        def resumed(trainer, *args, **kwargs):
+            self.assertIn("resume_from_checkpoint", kwargs)
+            trainer.add_callback(RecordResumedStep())
+            return original_train(trainer, *args, **kwargs)
+
+        threads = torch.get_num_threads()
+        torch.set_num_threads(2)
+        try:
+            with patch.dict(os.environ, {"HF_HUB_OFFLINE": "1", "TRANSFORMERS_OFFLINE": "1"}), \
+                    tempfile.TemporaryDirectory() as directory:
+                root = Path(directory)
+                base, output = root / "base", root / "model"
+                create_tiny_encoder(base)
+                frame = validated_fixture(root, products=3)
+                training, validation = frame.iloc[:8], frame.iloc[8:]
+                with patch.object(Trainer, "train", interrupted):
+                    fit_roberta(training, validation, output, base_model=str(base), epochs=2, batch_size=4)
+                checkpoint = output / "checkpoints" / "checkpoint-2"
+                state = json.loads((checkpoint / "trainer_state.json").read_text())
+                self.assertEqual((state["global_step"], state["max_steps"]), (2, 4))
+                with patch.object(Trainer, "train", resumed):
+                    fit_roberta(training, validation, output, base_model=str(base), epochs=2, batch_size=4,
+                                resume_from_checkpoint=checkpoint)
+                self.assertEqual(resumed_steps[0], 2)
+                self.assertEqual(resumed_steps[-1], 3)
+                metadata = json.loads((output / "training_metadata.json").read_text())
+                self.assertEqual(metadata["resumed_global_step"], 2)
+                self.assertEqual(Path(metadata["resume_from_checkpoint"]), checkpoint.resolve())
+                self.assertEqual(json.loads((output / "resume_metadata.json").read_text())["epoch"], 1)
+        finally:
+            torch.set_num_threads(threads)
+
+
 class OfflineTrainingIntegrationTests(unittest.TestCase):
     def test_training_round_trip_and_held_out_evaluation(self):
         previous_threads = torch.get_num_threads()

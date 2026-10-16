@@ -25,9 +25,42 @@ def tokenize_reviews(tokenizer, texts, max_length=MAX_LENGTH, **kwargs):
                      max_length=max_length, return_token_type_ids=False, **kwargs)
 
 
+def validate_resume_checkpoint(checkpoint, output, train_frame, validation_frame, *,
+                               base_model, epochs, batch_size, max_length, seed, low_memory):
+    """Resume only the same experiment; device changes do not change its targets."""
+    checkpoint, output = Path(checkpoint).resolve(), Path(output).resolve()
+    if checkpoint.parent != output / "checkpoints":
+        raise ValueError("Resume checkpoint must be inside this output bundle's checkpoints directory")
+    required = ("trainer_state.json", "optimizer.pt", "scheduler.pt", "rng_state.pth", "config.json")
+    missing = [name for name in required if not (checkpoint / name).is_file()]
+    if not any((checkpoint / name).is_file() for name in ("model.safetensors", "pytorch_model.bin")):
+        missing.append("model weights")
+    if missing:
+        raise ValueError(f"Incomplete resume checkpoint: {missing}")
+    previous = json.loads((output / "run_metadata.json").read_text(encoding="utf-8"))
+    validating = validation_frame is not None and len(validation_frame) > 0
+    expected = {
+        "input_version": INPUT_VERSION, "target_column": ROBERTA_TARGET_COLUMN,
+        "quality_text_policy": QUALITY_TEXT_POLICY, "training_sha256": fingerprint(train_frame),
+        "validation_sha256": fingerprint(validation_frame) if validating else None,
+        "base_model": str(base_model), "epochs": epochs, "batch_size": batch_size,
+        "max_length": max_length, "seed": seed, "low_memory_training": low_memory,
+    }
+    differences = [key for key, value in expected.items() if previous.get(key) != value]
+    if differences:
+        raise ValueError(f"Resume experiment differs in {differences}; preserve data, settings and optimizer")
+    config = json.loads((checkpoint / "config.json").read_text(encoding="utf-8"))
+    if config.get("input_contract_version") != INPUT_VERSION or config.get("quality_target_column") != ROBERTA_TARGET_COLUMN:
+        raise ValueError("Resume checkpoint has an incompatible text input/target contract")
+    state = json.loads((checkpoint / "trainer_state.json").read_text(encoding="utf-8"))
+    if not 0 < state.get("global_step", 0) < state.get("max_steps", 0):
+        raise ValueError("Checkpoint must describe a partially completed training run")
+    return checkpoint, previous, state
+
+
 def fit_roberta(train_frame, validation_frame, output, *, base_model=BASE_MODEL,
                 epochs=EPOCHS, batch_size=BATCH_SIZE, learning_rate=LEARNING_RATE,
-                max_length=MAX_LENGTH, seed=SEED, low_memory=False):
+                max_length=MAX_LENGTH, seed=SEED, low_memory=False, resume_from_checkpoint=None):
     import torch
     from datasets import Dataset
     from transformers import AutoModelForSequenceClassification, AutoTokenizer, Trainer, TrainingArguments, set_seed
@@ -38,6 +71,11 @@ def fit_roberta(train_frame, validation_frame, output, *, base_model=BASE_MODEL,
         raise ValueError("epochs/batch_size must be positive; max_length must be at least 8")
     set_seed(seed)
     output = Path(output)
+    resume_state = previous_run = None
+    if resume_from_checkpoint:
+        resume_from_checkpoint, previous_run, resume_state = validate_resume_checkpoint(
+            resume_from_checkpoint, output, train_frame, validation_frame, base_model=base_model,
+            epochs=epochs, batch_size=batch_size, max_length=max_length, seed=seed, low_memory=low_memory)
     tokenizer = AutoTokenizer.from_pretrained(base_model)
     model = AutoModelForSequenceClassification.from_pretrained(
         base_model, num_labels=4, ignore_mismatched_sizes=True,
@@ -76,6 +114,7 @@ def fit_roberta(train_frame, validation_frame, output, *, base_model=BASE_MODEL,
         report_to="none", dataloader_pin_memory=torch.cuda.is_available(),
         **memory_options,
     )
+    print(f"RoBERTa device: {arguments.device}; epochs={epochs}; batch_size={batch_size}", flush=True)
     trainer = Trainer(
         model=model, args=arguments, train_dataset=dataset(train_frame),
         eval_dataset=dataset(validation_frame) if validating else None,
@@ -88,9 +127,21 @@ def fit_roberta(train_frame, validation_frame, output, *, base_model=BASE_MODEL,
         "epochs": epochs, "batch_size": batch_size, "max_length": max_length,
         "quality_text_policy": QUALITY_TEXT_POLICY,
         "seed": seed, "base_model": str(base_model), "low_memory_training": low_memory,
-        "fp16": low_memory and torch.cuda.is_available()}
+        "fp16": low_memory and torch.cuda.is_available(),
+        "device": str(arguments.device), "torch_version": torch.__version__,
+        "resume_from_checkpoint": str(resume_from_checkpoint) if resume_from_checkpoint else None}
+    if resume_state:
+        (output / "resume_metadata.json").write_text(json.dumps({
+            "checkpoint": str(resume_from_checkpoint), "global_step": resume_state["global_step"],
+            "epoch": resume_state.get("epoch"), "previous_run": previous_run,
+            "device": str(arguments.device), "torch_version": torch.__version__,
+        }, indent=2), encoding="utf-8")
+        print(f"Resuming RoBERTa from epoch {resume_state.get('epoch')}, step {resume_state['global_step']} on {arguments.device}", flush=True)
     (output / "run_metadata.json").write_text(json.dumps(run_metadata, indent=2), encoding="utf-8")
-    trainer.train()
+    if resume_from_checkpoint:
+        trainer.train(resume_from_checkpoint=str(resume_from_checkpoint))
+    else:
+        trainer.train()
     trainer.save_model(str(output))
     tokenizer.save_pretrained(output)
     validation_metrics = trainer.evaluate() if validating else None
@@ -99,6 +150,9 @@ def fit_roberta(train_frame, validation_frame, output, *, base_model=BASE_MODEL,
         "input_version": INPUT_VERSION, "max_length": max_length, "seed": seed,
         "target_column": ROBERTA_TARGET_COLUMN,
         "base_model": str(base_model), "epochs": epochs,
+        "resume_from_checkpoint": str(resume_from_checkpoint) if resume_from_checkpoint else None,
+        "resumed_global_step": resume_state["global_step"] if resume_state else None,
+        "device": str(arguments.device), "torch_version": torch.__version__,
         "low_memory_training": low_memory, "fp16": low_memory and torch.cuda.is_available(),
         "optimizer": "adafactor" if low_memory else "adamw_torch",
         "text_input": "review_text paired with bounded product_title + product_description",
@@ -146,15 +200,22 @@ def main():
     parser.add_argument("--max-length", type=int, default=MAX_LENGTH)
     parser.add_argument("--low-memory", action="store_true")
     parser.add_argument("--gpu-memory-gb", type=float)
+    parser.add_argument("--resume-from-checkpoint", help="Continue this bundle's saved model/optimizer/scheduler state")
+    parser.add_argument("--require-cuda", action="store_true", help="Fail instead of silently training on CPU")
     args = parser.parse_args()
     from gpu_memory import configure_gpu_memory
     configure_gpu_memory(args.gpu_memory_gb)
+    if args.require_cuda:
+        import torch
+        if not torch.cuda.is_available():
+            raise RuntimeError("CUDA is unavailable in this Python environment; install CUDA-enabled PyTorch before training")
     assigned = load_experiment(args.data, args.splits, args.augmentations,
                                allow_unreviewed=args.allow_unreviewed_augmentations)
     fit_roberta(
         assigned[assigned.partition.eq("train")], assigned[assigned.partition.eq("validation")],
         args.output, base_model=args.base_model, epochs=args.epochs,
         batch_size=args.batch_size, max_length=args.max_length, low_memory=args.low_memory,
+        resume_from_checkpoint=args.resume_from_checkpoint,
     )
     print(f"Saved validation-selected RoBERTa to {args.output}; test products were not used.")
 

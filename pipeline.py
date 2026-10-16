@@ -41,9 +41,13 @@ def main():
     parser.add_argument("--low-memory", action="store_true", help="Activation checkpointing, Adafactor, CUDA FP16")
     parser.add_argument("--start-at", choices=("oof", "roberta", "features", "xgboost", "absa"), default="oof")
     parser.add_argument("--gpu-memory-gb", type=float, help="VRAM target in decimal GB; reserves 0.3 GB for CUDA overhead")
+    parser.add_argument("--resume-roberta", help="Saved final RoBERTa checkpoint; requires --start-at roberta")
+    parser.add_argument("--require-cuda", action="store_true", help="Fail instead of silently running training on CPU")
     args = parser.parse_args()
     if args.allow_unreviewed_augmentations and not args.augmentations:
         parser.error("--allow-unreviewed-augmentations requires --augmentations")
+    if args.resume_roberta and args.start_at != "roberta":
+        parser.error("--resume-roberta requires --start-at roberta so completed OOF models are not retrained")
     args.data = str(Path(args.data).resolve())
     args.splits = str(Path(args.splits).resolve())
     if args.augmentations:
@@ -68,6 +72,11 @@ def main():
     print(assigned.partition.value_counts().to_string(), flush=True)
     if args.prepare_only:
         return
+    if args.require_cuda:
+        import torch
+        if not torch.cuda.is_available():
+            raise RuntimeError("CUDA is unavailable in this Python environment; install CUDA-enabled PyTorch before training")
+        print(f"Training GPU: {torch.cuda.get_device_name(0)}", flush=True)
     bundle, work = Path(args.output), Path(args.work_dir)
     common = ["--data", args.data, "--splits", args.splits]
     if args.augmentations:
@@ -86,7 +95,9 @@ def main():
     run_stage("oof", "stage1/generate_oof_features.py", *common, *fitting, "--base-model", args.base_model,
                "--output", work / "oof_probabilities.csv", "--fold-dir", bundle / "oof")
     run_stage("roberta", "stage1/train_roberta.py", *common, *fitting, "--base-model", args.base_model,
-               "--output", bundle / "dost_roberta")
+               "--output", bundle / "dost_roberta",
+               *(["--resume-from-checkpoint", args.resume_roberta] if args.resume_roberta else []),
+               *(["--require-cuda"] if args.require_cuda else []))
     run_stage("features", "stage1/extract_6d_features.py", *common, "--oof", work / "oof_probabilities.csv",
                "--model", bundle / "dost_roberta", "--output", work / "6d_features.csv")
     run_stage("xgboost", "stage2/train_xgboost.py", *common, "--features", work / "6d_features.csv",
