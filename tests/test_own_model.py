@@ -475,6 +475,101 @@ class SplitAndOofTests(unittest.TestCase):
             self.assertIsNone(extractor.clip_text)
 
 
+class XgboostSourceWeightTests(unittest.TestCase):
+    def fixture(self):
+        assigned = pd.DataFrame({
+            'review_id': ['a', 'b', 'c', 'd', 'e', 'a1', 'a2', 'c1'],
+            'source_review_id': ['', '', '', '', '', 'a', 'a', 'c'],
+            'label': [0, 0, 1, 2, 3, 0, 0, 1], 'partition': ['train'] * 8,
+            'product_id': ['pa', 'pb', 'pc', 'pd', 'pe', 'pa', 'pa', 'pc'],
+            'fold': [0, 1, 2, 3, 4, 0, 0, 2],
+        })
+        train = assigned[['review_id', 'label']].rename(columns={'label': 'ground_truth'}).sample(frac=1, random_state=7)
+        return train, assigned
+
+    def test_equal_class_mass_and_equal_family_mass_within_each_class(self):
+        from stage2.train_xgboost import training_sample_weights
+        train, assigned = self.fixture()
+        weights, summary = training_sample_weights(train, assigned, 'source-class-balanced')
+        by_id = dict(zip(train.review_id, weights))
+        self.assertAlmostEqual(sum(weights) / len(weights), 1)
+        self.assertAlmostEqual(by_id['a'] + by_id['a1'] + by_id['a2'], by_id['b'])
+        for label in range(4):
+            self.assertAlmostEqual(sum(w for w, target in zip(weights, train.ground_truth) if target == label), 2)
+        self.assertEqual(summary['classes']['authentic']['source_families'], 2)
+        self.assertEqual(summary['largest_family_rows'], 3)
+
+    def test_default_preserves_row_balancing_and_original_only_policies_agree(self):
+        from stage2.train_xgboost import training_sample_weights
+        from sklearn.utils.class_weight import compute_sample_weight
+        train, assigned = self.fixture()
+        weights, summary = training_sample_weights(train, assigned)
+        np.testing.assert_allclose(weights, compute_sample_weight('balanced', train.ground_truth))
+        self.assertIsNone(summary)
+        train = train[train.review_id.isin(['a', 'b', 'c', 'd', 'e'])]
+        source_weights, _ = training_sample_weights(train, assigned, 'source-class-balanced')
+        row_weights, _ = training_sample_weights(train, assigned)
+        np.testing.assert_allclose(source_weights, row_weights)
+
+    def test_rejects_cross_scope_or_inconsistent_families(self):
+        from stage2.train_xgboost import training_sample_weights
+        train, assigned = self.fixture()
+        assigned.loc[assigned.review_id.eq('a1'), 'partition'] = 'test'
+        with self.assertRaisesRegex(ValueError, 'aligned training rows'):
+            training_sample_weights(train, assigned, 'source-class-balanced')
+        assigned.loc[assigned.review_id.eq('a1'), 'partition'] = 'train'
+        assigned.loc[assigned.review_id.eq('a1'), 'fold'] = 1
+        with self.assertRaisesRegex(ValueError, 'fold mismatch'):
+            training_sample_weights(train, assigned, 'source-class-balanced')
+        train = train[train.review_id.ne('a')]
+        with self.assertRaisesRegex(ValueError, 'original training review'):
+            training_sample_weights(train, assigned, 'source-class-balanced')
+
+
+class SourceWeightTests(unittest.TestCase):
+    def test_equal_family_mass_and_mean_one_without_minibatch_normalization(self):
+        from stage1.train_roberta import source_balanced_weights, quality_loss
+        frame = pd.DataFrame(dict(review_id=['a', 'b', 's1', 's2'],
+                                  source_review_id=['', '', 'a', 'a']))
+        weights, summary = source_balanced_weights(frame)
+        self.assertAlmostEqual(sum(weights) / 4, 1)
+        self.assertAlmostEqual(weights[0] + weights[2] + weights[3], weights[1])
+        self.assertEqual(summary['source_family_count'], 2)
+        logits = torch.zeros((2, 4), requires_grad=True)
+        labels = torch.tensor([0, 1])
+        base = quality_loss(logits, labels)
+        corrected = quality_loss(logits, labels, torch.tensor([weights[0], weights[2]]))
+        self.assertAlmostEqual(corrected.item(), base.item() * 2 / 3, places=6)
+        corrected.backward()
+        self.assertTrue(torch.isfinite(logits.grad).all())
+
+    def test_original_only_has_uniform_weights_and_invalid_families_fail(self):
+        from stage1.train_roberta import source_balanced_weights
+        frame = pd.DataFrame(dict(review_id=['a', 'b']))
+        self.assertEqual(source_balanced_weights(frame)[0], [1, 1])
+        frame['source_review_id'] = ['', 'missing']
+        with self.assertRaisesRegex(ValueError, 'original review'):
+            source_balanced_weights(frame)
+        frame['source_review_id'] = ['', 'a']
+        frame['fold'] = [0, 1]
+        with self.assertRaisesRegex(ValueError, 'fold mismatch'):
+            source_balanced_weights(frame)
+
+    def test_oof_forwards_policy_to_all_fits_and_records_it(self):
+        from unittest.mock import Mock
+        with tempfile.TemporaryDirectory() as directory:
+            assigned = prepare_splits(validated_fixture(directory), Path(directory) / 'splits.json')
+            fit = Mock(return_value=(None, None))
+            def predict(model, tokenizer, held):
+                return np.tile([0.25] * 4, (len(held), 1))
+            output = Path(directory) / 'oof.csv'
+            generate_oof(assigned, output, Path(directory) / 'folds', fit=fit, predict=predict,
+                         quality_weighting='source-balanced')
+            self.assertEqual(fit.call_count, 5)
+            self.assertTrue(all(call.kwargs['quality_weighting'] == 'source-balanced' for call in fit.call_args_list))
+            self.assertEqual(json.loads(output.with_suffix('.metadata.json').read_text())['quality_weighting'], 'source-balanced')
+
+
 class RobertaResumeTests(unittest.TestCase):
     def checkpoint(self, directory):
         from model_contract import BASE_MODEL, QUALITY_TEXT_POLICY, ROBERTA_TARGET_COLUMN, SEED
@@ -504,7 +599,7 @@ class RobertaResumeTests(unittest.TestCase):
             path, previous, state = validate_resume_checkpoint(checkpoint, output, train, val, **settings)
             self.assertEqual(path, checkpoint.resolve())
             self.assertEqual(state["global_step"], 2)
-            for changed in (dict(batch_size=4), dict(low_memory=True), dict(epochs=3)):
+            for changed in (dict(batch_size=4), dict(low_memory=True), dict(epochs=3), dict(quality_weighting='source-balanced')):
                 with self.assertRaisesRegex(ValueError, "experiment differs"):
                     validate_resume_checkpoint(checkpoint, output, train, val, **{**settings, **changed})
             changed = train.copy()
@@ -1032,6 +1127,75 @@ class AbsaEvaluationTests(unittest.TestCase):
         probabilities = [[0.4, 0.05, 0.35], [0.1, 0.4, 0.05]]
         threshold = select_sentiment_threshold(gold, probabilities)
         np.testing.assert_array_equal(sentiment_predictions(probabilities, threshold), gold)
+
+
+class OofAuditTests(unittest.TestCase):
+    def fixture(self):
+        rows = [dict(review_id=f'r{i}', product_id=f'p{i}', fold=i, partition='train',
+                     review_text=f'Original {i}', text_target=i % 4, label=i % 4,
+                     source_review_id='', review_status='') for i in range(5)]
+        rows.append(dict(review_id='s1', product_id='p0', fold=0, partition='train',
+                         review_text='Synthetic', text_target=1, label=2,
+                         source_review_id='r0', review_status='pending'))
+        rows.append(dict(review_id='held-out', product_id='v1', fold=-1, partition='validation',
+                         review_text='Validation', text_target=0, label=0,
+                         source_review_id='', review_status=''))
+        frame = pd.DataFrame(rows)
+        oof = pd.DataFrame([{'review_id': row['review_id'], 'product_id': row['product_id'],
+                            'fold': row['fold'], 'probability_source': f"oof_fold_{row['fold']}",
+                            **{name: float(index == (0 if row['review_id'] == 's1' else row['text_target']))
+                               for index, name in enumerate(FEATURE_COLUMNS[:4])}}
+                           for row in rows if row['partition'] == 'train'])
+        metadata = {'dataset_sha256': fingerprint(frame), 'input_version': INPUT_VERSION,
+                    'target_column': 'text_label', 'folds': []}
+        train = frame[frame.partition.eq('train')]
+        for fold in range(5):
+            fit, held = train[train.fold.ne(fold)], train[train.fold.eq(fold)]
+            metadata['folds'].append(dict(fold=fold, fit_review_ids=fit.review_id.tolist(),
+                predicted_review_ids=held.review_id.tolist(), fit_product_ids=fit.product_id.unique().tolist(),
+                predicted_product_ids=held.product_id.unique().tolist()))
+        return frame, oof, metadata
+
+    def test_separates_populations_and_uses_text_label_without_changing_labels(self):
+        from scripts.audit_stage1 import audit_oof_predictions
+        frame, oof, metadata = self.fixture()
+        before = frame.copy(deep=True)
+        report = audit_oof_predictions(frame, oof, metadata)
+        self.assertEqual(report['populations']['original']['count'], 5)
+        self.assertEqual(report['populations']['synthetic']['error_count'], 1)
+        self.assertEqual(report['populations']['synthetic']['high_confidence_error_count'], 1)
+        self.assertEqual(report['oof_errors'][0]['text_label'], 'deceptive')
+        self.assertEqual(report['oof_errors'][0]['ground_truth'], 'liv')
+        self.assertEqual(report['source_concentration']['largest_family_synthetic_count'], 1)
+        self.assertEqual(report['review_sample'][0]['review_id'], 's1')
+        pd.testing.assert_frame_equal(frame, before)
+        json.dumps(report, allow_nan=False)
+
+    def test_rejects_wrong_fold_provenance_and_nontraining_rows(self):
+        from scripts.audit_stage1 import audit_oof_predictions
+        frame, oof, metadata = self.fixture()
+        changed = oof.copy()
+        changed.loc[0, 'fold'] = 1
+        with self.assertRaisesRegex(ValueError, 'provenance mismatch'):
+            audit_oof_predictions(frame, changed, metadata)
+        changed = oof.copy()
+        changed.loc[0, 'review_id'] = 'held-out'
+        with self.assertRaisesRegex(ValueError, 'training reviews exactly once'):
+            audit_oof_predictions(frame, changed, metadata)
+        metadata['folds'][0]['fit_review_ids'].append('r0')
+        with self.assertRaisesRegex(ValueError, 'fit_review_ids mismatch'):
+            audit_oof_predictions(frame, oof, metadata)
+
+    def test_rejects_invalid_probabilities_and_dataset_fingerprint(self):
+        from scripts.audit_stage1 import audit_oof_predictions
+        frame, oof, metadata = self.fixture()
+        changed = oof.copy()
+        changed.loc[0, FEATURE_COLUMNS[0]] = float('nan')
+        with self.assertRaisesRegex(ValueError, 'Invalid OOF probability'):
+            audit_oof_predictions(frame, changed, metadata)
+        metadata['dataset_sha256'] = 'wrong'
+        with self.assertRaisesRegex(ValueError, 'metadata does not match'):
+            audit_oof_predictions(frame, oof, metadata)
 
 
 class AspectAggregationTests(unittest.TestCase):

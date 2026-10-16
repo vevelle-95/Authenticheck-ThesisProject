@@ -19,12 +19,15 @@ def check_training_provenance(assigned, bundle):
     bundle = Path(bundle)
     training = assigned[assigned.partition.eq("train")]
     validation = assigned[assigned.partition.eq("validation")]
+    weighting = []
     for path, authentic_only in (
         (bundle / "dost_roberta" / "training_metadata.json", False),
         (bundle / "xgboost_meta_classifier.metadata.json", False),
         (bundle / "absa_model" / "training_metadata.json", True),
     ):
         metadata = json.loads(path.read_text(encoding="utf-8"))
+        if not authentic_only:
+            weighting.append(metadata.get('quality_weighting', 'uniform'))
         if path.parent.name == "dost_roberta" and (
                 metadata.get("input_version") != INPUT_VERSION
                 or metadata.get("target_column") != ROBERTA_TARGET_COLUMN):
@@ -37,6 +40,8 @@ def check_training_provenance(assigned, bundle):
             raise ValueError(f"{path}: dataset fingerprint mismatch")
         if "training_sha256" in metadata and metadata["training_sha256"] != fingerprint(fit):
             raise ValueError(f"{path}: training contents or augmentation lineage changed")
+    if len(set(weighting)) != 1:
+        raise ValueError('RoBERTa and XGBoost quality weighting policies disagree')
 
 
 def add_aspect_ablation_from_report(report):

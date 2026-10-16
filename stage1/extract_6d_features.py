@@ -37,6 +37,8 @@ def build_features(assigned, oof_path, output, model_dir, extractor=None):
             raise ValueError("OOF provenance does not match the training folds")
     if extractor is None:
         final_metadata = json.loads(Path(model_dir, "training_metadata.json").read_text(encoding="utf-8"))
+        if final_metadata.get('quality_weighting', 'uniform') != metadata.get('quality_weighting', 'uniform'):
+            raise ValueError('OOF and final RoBERTa use different quality weighting policies; regenerate matching OOF features')
         validation = assigned[assigned.partition.eq("validation")]
         if (final_metadata.get("target_column") != ROBERTA_TARGET_COLUMN
                 or final_metadata.get("input_version") != INPUT_VERSION
@@ -80,6 +82,7 @@ def build_features(assigned, oof_path, output, model_dir, extractor=None):
     pd.DataFrame(records).to_csv(output, index=False)
     output.with_suffix(".metadata.json").write_text(json.dumps({
         "input_version": INPUT_VERSION, "dataset_sha256": fingerprint(assigned),
+        "quality_weighting": metadata.get('quality_weighting', 'uniform'),
     }, indent=2), encoding="utf-8")
     return pd.DataFrame(records)
 

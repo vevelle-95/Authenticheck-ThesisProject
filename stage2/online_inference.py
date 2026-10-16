@@ -52,6 +52,8 @@ class OnlineInference:
             raise ValueError("Stage 1 input contract mismatch; regenerate OOF/features and retrain RoBERTa/XGBoost with review-preserving token budgets")
         if meta.get("feature_columns") != list(FEATURE_COLUMNS) or meta.get("class_order") != list(CLASS_NAMES):
             raise ValueError("XGBoost feature/class order mismatch")
+        if text.get('quality_weighting', 'uniform') != meta.get('quality_weighting', 'uniform'):
+            raise ValueError('RoBERTa and XGBoost weighting policies disagree; use a matched trained bundle')
         if absa.get("model_version") != absa_model.MODEL_VERSION or absa.get("taxonomy_version") != TAXONOMY_VERSION or absa.get("aspects") != list(ASPECTS):
             raise ValueError("ABSA bundle does not implement the fixed ten-category taxonomy")
         if absa.get("sensory_domain_policy") != SENSORY_POLICY:

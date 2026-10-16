@@ -15,6 +15,8 @@ from model_contract import (
 )
 from model_data import load_experiment, load_reviews, prepare_splits
 from training_augmentation import augmentation_summary
+from stage1.train_roberta import QUALITY_WEIGHTING_POLICIES
+from stage2.train_xgboost import XGB_WEIGHTING_POLICIES
 
 ROOT = Path(__file__).resolve().parent
 
@@ -43,6 +45,8 @@ def main():
     parser.add_argument("--gpu-memory-gb", type=float, help="VRAM target in decimal GB; reserves 0.3 GB for CUDA overhead")
     parser.add_argument("--resume-roberta", help="Saved final RoBERTa checkpoint; requires --start-at roberta")
     parser.add_argument("--require-cuda", action="store_true", help="Fail instead of silently running training on CPU")
+    parser.add_argument('--quality-weighting', choices=QUALITY_WEIGHTING_POLICIES, default='uniform')
+    parser.add_argument('--xgboost-sample-weighting', choices=XGB_WEIGHTING_POLICIES, default='row-balanced')
     args = parser.parse_args()
     if args.allow_unreviewed_augmentations and not args.augmentations:
         parser.error("--allow-unreviewed-augmentations requires --augmentations")
@@ -93,14 +97,17 @@ def main():
                 arguments = (*arguments, "--gpu-memory-gb", args.gpu_memory_gb)
             run_script(script, *arguments)
     run_stage("oof", "stage1/generate_oof_features.py", *common, *fitting, "--base-model", args.base_model,
+               '--quality-weighting', args.quality_weighting,
                "--output", work / "oof_probabilities.csv", "--fold-dir", bundle / "oof")
     run_stage("roberta", "stage1/train_roberta.py", *common, *fitting, "--base-model", args.base_model,
+               '--quality-weighting', args.quality_weighting,
                "--output", bundle / "dost_roberta",
                *(["--resume-from-checkpoint", args.resume_roberta] if args.resume_roberta else []),
                *(["--require-cuda"] if args.require_cuda else []))
     run_stage("features", "stage1/extract_6d_features.py", *common, "--oof", work / "oof_probabilities.csv",
                "--model", bundle / "dost_roberta", "--output", work / "6d_features.csv")
     run_stage("xgboost", "stage2/train_xgboost.py", *common, "--features", work / "6d_features.csv",
+               '--sample-weighting', args.xgboost_sample_weighting,
                "--output", bundle / "xgboost_meta_classifier.json")
     run_stage("absa", "stage2/fine_tune_absa.py", *common, *fitting, "--encoder", args.base_model,
                "--output", bundle / "absa_model")
@@ -118,6 +125,8 @@ def main():
         "model_version": MODEL_VERSION,
         "quality_text_input": "review_text paired with bounded product_title + product_description",
         "quality_text_policy": QUALITY_TEXT_POLICY,
+        "quality_weighting": args.quality_weighting,
+        "xgboost_sample_weighting": args.xgboost_sample_weighting,
         "quality_target_columns": {"roberta": ROBERTA_TARGET_COLUMN, "xgboost": "ground_truth"},
         "absa_text_input": "review_text",
         "environment": {name: version(name) for name in (

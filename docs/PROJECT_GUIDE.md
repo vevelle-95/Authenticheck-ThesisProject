@@ -1450,6 +1450,123 @@ predictions are computed and no model weights are replaced. Choose a new
 `--output` path to preserve a previous audit. A better validation score is a
 candidate for a future experiment, not a new test result.
 
+### Inspect saved OOF errors before retraining Stage 1
+
+```powershell
+.\.venv\Scripts\python.exe scripts/audit_stage1.py --oof-only --allow-unreviewed-augmentations --output reports/generated/stage1_oof_audit.json
+```
+
+This reads the saved OOF probabilities, validates all five fitting/prediction
+cohorts and the dataset fingerprint, and scores only training reviews. It does
+not train models, change annotations, regenerate splits, or score test reviews.
+An existing audit is protected from overwrite; select a different `--output`.
+
+In the report, `populations` separates original and synthetic results against
+`text_label` (the RoBERTa target); results against final `ground_truth` are
+separate diagnostics. `per_fold` shows whether failures concentrate in a fold.
+`source_concentration` and `source_families` show how many synthetic variants
+come from each original review and how many were misclassified. `review_sample`
+provides up to three confident errors per text class and population, using
+distinct source reviews. `oof_errors` contains every disagreement with text_label,
+including review text, product context, original source text, predicted label,
+probabilities, and draft status. Confidence of at least 0.99 is a diagnostic
+threshold, not evidence that a prediction is correct. Review the product context
+and annotation guidelines before treating any disagreement as a labeling issue.
+
+Synthetic variants are correlated: hundreds from one source are not hundreds
+of independent human reviews. Original and synthetic OOF results describe
+different populations and should not be presented as an augmentation experiment.
+Source weighting or a cap on variants is a candidate for a separate experiment;
+this audit does not establish its benefit or modify training weights.
+
+### Experiment: give each original source family equal training weight
+
+Quality RoBERTa and OOF training accept `--quality-weighting source-balanced`.
+The default remains `uniform` for existing experiments. A family consists of
+one original review plus all of its included variants. Within each fitting
+cohort, every family gets the same total weight. Row weights are
+`training_rows / (source_families * rows_in_family)`; their global average is one.
+Weights are applied to each example's cross-entropy loss before the batch mean.
+They are not normalized within a batch, which would undo the correction for
+batches of variants from the same source. This changes effective class balance
+toward original-source counts; it is not also a class-balancing intervention.
+
+First train only a new final quality encoder and judge validation results:
+
+```powershell
+.\.venv\Scripts\python.exe stage1/train_roberta.py --data data/test_reviews.csv --splits data/splits_dataset.json --augmentations data/augmented_reviews.csv --allow-unreviewed-augmentations --output models/source_balanced_v1/dost_roberta --epochs 10 --batch-size 2 --max-length 128 --quality-weighting source-balanced --require-cuda
+```
+
+This keeps the current dataset and split assignments. All variants stay present;
+their loss contribution changes. Validation is unweighted and selects the best
+checkpoint by macro-F1 against `text_label`. The candidate's
+`training_metadata.json` records the policy, source-family counts, validation
+metrics, confusion matrices against both target columns, and per-review
+validation predictions. A nonempty candidate directory is protected unless
+explicitly resuming a matching checkpoint. Use another experiment directory
+for another fresh run. Old uniform checkpoints cannot resume as source-balanced.
+
+Only if the candidate is useful on validation should its OOF models be trained
+with the same `--quality-weighting source-balanced` option. The full `pipeline.py`
+also accepts the option and forwards it to quality RoBERTa and each OOF fold,
+but does not change ABSA training. Do not run the full pipeline for this initial
+pilot. Feature extraction rejects mixed OOF/final weighting policies, and the
+resulting XGBoost metadata records the matching policy. Do not connect this
+standalone encoder to the old XGBoost model. The pilot is not a complete API bundle.
+
+The current reference was resumed from CPU onto CUDA; a fresh CUDA run is not
+bitwise comparable even with the same seed. Candidate validation improvement is
+evidence for a follow-up experiment, not proof of a causal augmentation effect.
+Do not tune this experiment on the already-viewed test report.
+
+The first pilot is saved at `models/source_balanced_v1/dost_roberta`. Its
+validation comparison is
+`reports/generated/source_balanced_v1/validation_comparison.json`. Against
+`text_label`, reference/candidate macro-F1 was 0.44135/0.44363 and accuracy was
+0.66814/0.70354. Authentic recall fell from 0.81679 to 0.68702; Deceptive recall
+remained zero, and Irrelevant recall fell from 0.375 to 0.25. The selected
+candidate checkpoint came from epoch 1 of the 10-epoch run. This trade-off does
+not support promoting it as a fix for the quality filter. OOF and XGBoost were
+not regenerated, the reference bundle remains active as before, and this
+standalone candidate has not been evaluated on the test split.
+
+### Experiment: balance XGBoost by source family and final quality class
+
+This experiment reuses the original `quality_balanced_v5` six-feature table.
+It does not use the unsuccessful source-weighted RoBERTa pilot. Run from the
+repository root, using a fresh candidate output path:
+
+```powershell
+.\.venv\Scripts\python.exe stage2/train_xgboost.py --data data/test_reviews.csv --splits data/splits_dataset.json --augmentations data/augmented_reviews.csv --allow-unreviewed-augmentations --features data/quality_balanced_v5/features/6d_features.csv --sample-weighting source-class-balanced --output models/xgboost_source_balanced_v1/xgboost_meta_classifier.json
+```
+
+The default `row-balanced` policy is unchanged. With `source-class-balanced`,
+each final `ground_truth` class receives the same total weight, each original
+source family within that class receives equal weight, and that family's mass
+is divided over its original and variants. The row weight is
+`training_rows / (4 * source_families_in_class * rows_in_family)`. All counts
+come from the fitting rows, excluding validation and test. These XGBoost
+weights are separate from RoBERTa's `--quality-weighting` option. The full
+pipeline forwards `--xgboost-sample-weighting source-class-balanced` only to
+XGBoost. Both experiments use the same existing six-setting tree search and
+select by validation macro-F1 against final `ground_truth`.
+
+The candidate JSON and metadata are under `models/xgboost_source_balanced_v1/`.
+Metadata records its source/class weights, six validation trials, selected
+settings and validation predictions. Augmentation usage is counted from the
+assigned training records, rather than the feature table which lacks lineage.
+An existing candidate model or metadata file is protected from overwrite.
+
+The first comparison is saved to
+`reports/generated/xgboost_source_balanced_v1/validation_comparison.json`.
+Current/candidate validation macro-F1 was 0.46096/0.43336, accuracy was
+0.64602/0.56637, and Authentic recall was 0.68254/0.61905. Deceptive recall
+increased from 0.2 to 0.4 (one versus two of five reviews), but the other classes
+worsened. The candidate is not promoted. Original RoBERTa, OOF, ABSA, the deployed
+bundle, and test reports remain unchanged. The candidate is a standalone XGBoost
+artifact, not a complete API bundle. This validation result does not establish
+statistical significance or a causal explanation for the model's errors.
+
 ### SOP 3: compare product sentiment separately for each aspect
 
 New runs of `stage2/evaluate_models.py` include `aspect_filtering_ablation` in

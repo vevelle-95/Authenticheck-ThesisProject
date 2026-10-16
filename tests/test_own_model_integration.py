@@ -55,6 +55,49 @@ def create_tiny_encoder(directory):
 
 
 class RobertaResumeIntegrationTests(unittest.TestCase):
+    def test_weighted_training_roundtrip_and_unweighted_validation(self):
+        import pandas as pd
+        from transformers import Trainer
+        seen_training_weights, seen_validation_weights = [], []
+        original_training_step, original_prediction_step = Trainer.training_step, Trainer.prediction_step
+        def training_step(trainer, model, inputs, *args, **kwargs):
+            seen_training_weights.extend(inputs['sample_weight'].tolist())
+            return original_training_step(trainer, model, inputs, *args, **kwargs)
+        def prediction_step(trainer, model, inputs, *args, **kwargs):
+            seen_validation_weights.append('sample_weight' in inputs)
+            return original_prediction_step(trainer, model, inputs, *args, **kwargs)
+        threads = torch.get_num_threads()
+        torch.set_num_threads(2)
+        try:
+            with patch.dict(os.environ, {'HF_HUB_OFFLINE': '1', 'TRANSFORMERS_OFFLINE': '1'}), \
+                    tempfile.TemporaryDirectory() as directory:
+                root = Path(directory)
+                create_tiny_encoder(root / 'base')
+                frame = validated_fixture(root, products=3)
+                train, validation = frame.iloc[:8].copy(), frame.iloc[8:].copy()
+                train['source_review_id'] = ''
+                train['review_status'] = ''
+                variant = train.iloc[[0]].copy()
+                variant['source_review_id'] = variant.review_id
+                variant['review_id'] = 'synthetic-test'
+                variant['review_status'] = 'pending'
+                train = pd.concat([train, variant], ignore_index=True)
+                with patch.object(Trainer, 'training_step', training_step), patch.object(Trainer, 'prediction_step', prediction_step):
+                    model, tokenizer = fit_roberta(train, validation, root / 'model', base_model=str(root / 'base'),
+                        epochs=1, batch_size=4, quality_weighting='source-balanced')
+                self.assertTrue(any(value < 1 for value in seen_training_weights))
+                self.assertTrue(seen_validation_weights)
+                self.assertFalse(any(seen_validation_weights))
+                metadata = json.loads((root / 'model' / 'training_metadata.json').read_text())
+                self.assertEqual(metadata['quality_weighting'], 'source-balanced')
+                self.assertEqual(metadata['source_weight_summary']['source_family_count'], 8)
+                self.assertEqual(model.config.quality_weighting, 'source-balanced')
+                with self.assertRaisesRegex(ValueError, 'new output directory'):
+                    fit_roberta(train, validation, root / 'model', base_model=str(root / 'base'),
+                        epochs=1, batch_size=4, quality_weighting='source-balanced')
+        finally:
+            torch.set_num_threads(threads)
+
     def test_resume_restores_the_saved_step_instead_of_restarting(self):
         from transformers import Trainer, TrainerCallback
 
@@ -185,6 +228,12 @@ class OfflineTrainingIntegrationTests(unittest.TestCase):
                     check_training_provenance(assigned, bundle)
                     pipe = OnlineInference(bundle / "dost_roberta", bundle / "xgboost_meta_classifier.json", bundle / "absa_model")
                     pipe.extractor = extractor
+                    quality_config_path = bundle / 'dost_roberta' / 'config.json'
+                    quality_config = json.loads(quality_config_path.read_text())
+                    quality_config_path.write_text(json.dumps({**quality_config, 'quality_weighting': 'source-balanced'}))
+                    with self.assertRaisesRegex(ValueError, 'weighting policies disagree'):
+                        pipe.check_artifacts()
+                    quality_config_path.write_text(json.dumps(quality_config))
                     test = assigned[assigned.partition.eq("test")]
                     output = evaluate_own_models(test, pipe)
                     self.assertEqual(output["review_count"], 12)

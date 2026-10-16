@@ -9,7 +9,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 import numpy as np
 import pandas as pd
-from stage1.train_roberta import fit_roberta, predict_probabilities
+from stage1.train_roberta import fit_roberta, predict_probabilities, QUALITY_WEIGHTING_POLICIES
 from model_contract import (
     BASE_MODEL, BATCH_SIZE, DEFAULT_BUNDLE, DEFAULT_DATA_PATH, DEFAULT_OOF_PATH,
     DEFAULT_SPLITS_PATH, EPOCHS, FEATURE_COLUMNS, INPUT_VERSION, MAX_LENGTH, SEED, ROBERTA_TARGET_COLUMN,
@@ -19,7 +19,9 @@ from model_data import fingerprint, load_experiment
 
 def generate_oof(assigned, output, fold_dir, *, base_model=BASE_MODEL,
                  epochs=EPOCHS, batch_size=BATCH_SIZE, max_length=MAX_LENGTH,
-                 fit=fit_roberta, predict=predict_probabilities, low_memory=False):
+                 fit=fit_roberta, predict=predict_probabilities, low_memory=False, quality_weighting='uniform'):
+    if quality_weighting not in QUALITY_WEIGHTING_POLICIES:
+        raise ValueError('Unknown quality weighting policy')
     training = assigned[assigned.partition.eq("train")].copy()
     if set(training.fold) != set(range(5)):
         raise ValueError("Five saved training folds are required")
@@ -37,6 +39,7 @@ def generate_oof(assigned, output, fold_dir, *, base_model=BASE_MODEL,
             fitting, None, Path(fold_dir) / f"fold_{fold}", base_model=base_model,
             epochs=epochs, batch_size=batch_size, max_length=max_length, seed=SEED,
             **({"low_memory": True} if low_memory else {}),
+            **({'quality_weighting': quality_weighting} if quality_weighting != 'uniform' else {}),
         )
         gc.collect()
         values = predict(model, tokenizer, held, batch_size=batch_size) if low_memory else predict(model, tokenizer, held)
@@ -68,6 +71,7 @@ def generate_oof(assigned, output, fold_dir, *, base_model=BASE_MODEL,
     output.with_suffix(".metadata.json").write_text(json.dumps({
         "input_version": INPUT_VERSION, "dataset_sha256": fingerprint(assigned),
         "target_column": ROBERTA_TARGET_COLUMN,
+        "quality_weighting": quality_weighting,
         "folds": provenance,
     }, indent=2), encoding="utf-8")
     return frame
@@ -87,13 +91,15 @@ def main():
     parser.add_argument("--max-length", type=int, default=MAX_LENGTH)
     parser.add_argument("--low-memory", action="store_true")
     parser.add_argument("--gpu-memory-gb", type=float)
+    parser.add_argument('--quality-weighting', choices=QUALITY_WEIGHTING_POLICIES, default='uniform')
     args = parser.parse_args()
     from gpu_memory import configure_gpu_memory
     configure_gpu_memory(args.gpu_memory_gb)
     assigned = load_experiment(args.data, args.splits, args.augmentations,
                                allow_unreviewed=args.allow_unreviewed_augmentations)
     generate_oof(assigned, args.output, args.fold_dir, base_model=args.base_model,
-                 epochs=args.epochs, batch_size=args.batch_size, max_length=args.max_length, low_memory=args.low_memory)
+                 epochs=args.epochs, batch_size=args.batch_size, max_length=args.max_length, low_memory=args.low_memory,
+                 quality_weighting=args.quality_weighting)
 
 
 if __name__ == "__main__":

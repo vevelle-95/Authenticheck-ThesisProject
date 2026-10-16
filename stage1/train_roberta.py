@@ -16,6 +16,41 @@ from model_data import fingerprint, load_experiment
 from training_augmentation import augmentation_summary
 from model_metrics import classification_metrics
 
+QUALITY_WEIGHTING_POLICIES = ('uniform', 'source-balanced')
+
+
+def source_balanced_weights(frame):
+    """Mean-one row weights: each original and its variants have equal total mass.
+
+    Counts use only the fitting cohort. Never renormalize within a minibatch:
+    doing so would cancel the correction for batches from the same source.
+    """
+    import pandas as pd
+    if frame.empty or frame.review_id.duplicated().any():
+        raise ValueError('Source weighting requires nonempty, unique review IDs')
+    sources = frame.get('source_review_id', pd.Series('', index=frame.index)).fillna('').astype(str)
+    families = sources.where(sources.ne(''), frame.review_id)
+    originals = set(frame.loc[sources.eq(''), 'review_id'])
+    if not set(families).issubset(originals):
+        raise ValueError('Source families must include their original review in this fitting cohort')
+    for column in ('product_id', 'fold', 'text_target'):
+        if column in frame and frame.groupby(families)[column].nunique().gt(1).any():
+            raise ValueError(f'Source family {column} mismatch')
+    sizes = families.value_counts()
+    weights = (len(frame) / (len(sizes) * families.map(sizes))).astype(float).tolist()
+    return weights, {'training_rows': len(frame), 'source_family_count': len(sizes),
+                     'largest_family_rows': int(sizes.max()), 'mean_row_weight': sum(weights) / len(weights),
+                     'min_row_weight': min(weights), 'max_row_weight': max(weights),
+                     'family_total_weight': len(frame) / len(sizes)}
+
+
+def quality_loss(logits, labels, weights=None):
+    import torch
+    losses = torch.nn.functional.cross_entropy(logits.float(), labels, reduction='none')
+    if weights is not None:
+        losses = losses * weights.to(device=losses.device, dtype=losses.dtype)
+    return losses.mean()
+
 
 def tokenize_reviews(tokenizer, texts, max_length=MAX_LENGTH, **kwargs):
     pairs = quality_input_pairs(tokenizer, texts, max_length)
@@ -26,7 +61,8 @@ def tokenize_reviews(tokenizer, texts, max_length=MAX_LENGTH, **kwargs):
 
 
 def validate_resume_checkpoint(checkpoint, output, train_frame, validation_frame, *,
-                               base_model, epochs, batch_size, max_length, seed, low_memory):
+                               base_model, epochs, batch_size, max_length, seed, low_memory,
+                               quality_weighting='uniform'):
     """Resume only the same experiment; device changes do not change its targets."""
     checkpoint, output = Path(checkpoint).resolve(), Path(output).resolve()
     if checkpoint.parent != output / "checkpoints":
@@ -38,6 +74,7 @@ def validate_resume_checkpoint(checkpoint, output, train_frame, validation_frame
     if missing:
         raise ValueError(f"Incomplete resume checkpoint: {missing}")
     previous = json.loads((output / "run_metadata.json").read_text(encoding="utf-8"))
+    previous.setdefault('quality_weighting', 'uniform')
     validating = validation_frame is not None and len(validation_frame) > 0
     expected = {
         "input_version": INPUT_VERSION, "target_column": ROBERTA_TARGET_COLUMN,
@@ -45,6 +82,7 @@ def validate_resume_checkpoint(checkpoint, output, train_frame, validation_frame
         "validation_sha256": fingerprint(validation_frame) if validating else None,
         "base_model": str(base_model), "epochs": epochs, "batch_size": batch_size,
         "max_length": max_length, "seed": seed, "low_memory_training": low_memory,
+        "quality_weighting": quality_weighting,
     }
     differences = [key for key, value in expected.items() if previous.get(key) != value]
     if differences:
@@ -52,6 +90,8 @@ def validate_resume_checkpoint(checkpoint, output, train_frame, validation_frame
     config = json.loads((checkpoint / "config.json").read_text(encoding="utf-8"))
     if config.get("input_contract_version") != INPUT_VERSION or config.get("quality_target_column") != ROBERTA_TARGET_COLUMN:
         raise ValueError("Resume checkpoint has an incompatible text input/target contract")
+    if config.get('quality_weighting', 'uniform') != quality_weighting:
+        raise ValueError('Resume checkpoint quality weighting differs')
     state = json.loads((checkpoint / "trainer_state.json").read_text(encoding="utf-8"))
     if not 0 < state.get("global_step", 0) < state.get("max_steps", 0):
         raise ValueError("Checkpoint must describe a partially completed training run")
@@ -60,7 +100,8 @@ def validate_resume_checkpoint(checkpoint, output, train_frame, validation_frame
 
 def fit_roberta(train_frame, validation_frame, output, *, base_model=BASE_MODEL,
                 epochs=EPOCHS, batch_size=BATCH_SIZE, learning_rate=LEARNING_RATE,
-                max_length=MAX_LENGTH, seed=SEED, low_memory=False, resume_from_checkpoint=None):
+                max_length=MAX_LENGTH, seed=SEED, low_memory=False, resume_from_checkpoint=None,
+                quality_weighting='uniform'):
     import torch
     from datasets import Dataset
     from transformers import AutoModelForSequenceClassification, AutoTokenizer, Trainer, TrainingArguments, set_seed
@@ -69,13 +110,19 @@ def fit_roberta(train_frame, validation_frame, output, *, base_model=BASE_MODEL,
         raise ValueError("RoBERTa fitting requires all four text_label classes")
     if epochs < 1 or batch_size < 1 or max_length < 8:
         raise ValueError("epochs/batch_size must be positive; max_length must be at least 8")
+    if quality_weighting not in QUALITY_WEIGHTING_POLICIES:
+        raise ValueError('Unknown quality weighting policy')
+    weights, weight_summary = source_balanced_weights(train_frame) if quality_weighting == 'source-balanced' else (None, None)
     set_seed(seed)
     output = Path(output)
+    if quality_weighting != 'uniform' and output.exists() and any(output.iterdir()) and not resume_from_checkpoint:
+        raise ValueError('Use a new output directory for a source-balanced experiment, or explicitly resume its checkpoint')
     resume_state = previous_run = None
     if resume_from_checkpoint:
         resume_from_checkpoint, previous_run, resume_state = validate_resume_checkpoint(
             resume_from_checkpoint, output, train_frame, validation_frame, base_model=base_model,
-            epochs=epochs, batch_size=batch_size, max_length=max_length, seed=seed, low_memory=low_memory)
+            epochs=epochs, batch_size=batch_size, max_length=max_length, seed=seed, low_memory=low_memory,
+            quality_weighting=quality_weighting)
     tokenizer = AutoTokenizer.from_pretrained(base_model)
     model = AutoModelForSequenceClassification.from_pretrained(
         base_model, num_labels=4, ignore_mismatched_sizes=True,
@@ -87,16 +134,20 @@ def fit_roberta(train_frame, validation_frame, output, *, base_model=BASE_MODEL,
     model.config.quality_context_tokens = QUALITY_CONTEXT_TOKENS
     model.config.quality_title_tokens = QUALITY_TITLE_TOKENS
     model.config.quality_target_column = ROBERTA_TARGET_COLUMN
+    model.config.quality_weighting = quality_weighting
     if low_memory:
         model.config.use_cache = False
     memory_options = {"gradient_checkpointing": True,
         "gradient_checkpointing_kwargs": {"use_reentrant": False},
         "fp16": torch.cuda.is_available(), "optim": "adafactor"} if low_memory else {}
 
-    def dataset(frame):
+    def dataset(frame, sample_weights=None):
         texts = [quality_input_text(row) for row in frame.to_dict("records")]
         encodings = tokenize_reviews(tokenizer, texts, max_length)
-        return Dataset.from_dict({**encodings, "labels": frame.text_target.tolist()})
+        data = {**encodings, "labels": frame.text_target.tolist()}
+        if sample_weights is not None:
+            data['sample_weight'] = sample_weights
+        return Dataset.from_dict(data)
 
     def metrics(prediction):
         logits = prediction.predictions[0] if isinstance(prediction.predictions, tuple) else prediction.predictions
@@ -112,17 +163,32 @@ def fit_roberta(train_frame, validation_frame, output, *, base_model=BASE_MODEL,
         load_best_model_at_end=validating, metric_for_best_model="macro_f1",
         greater_is_better=True, use_cpu=not torch.cuda.is_available(), seed=seed, data_seed=seed,
         report_to="none", dataloader_pin_memory=torch.cuda.is_available(),
+        remove_unused_columns=quality_weighting == 'uniform',
         **memory_options,
     )
     print(f"RoBERTa device: {arguments.device}; epochs={epochs}; batch_size={batch_size}", flush=True)
-    trainer = Trainer(
-        model=model, args=arguments, train_dataset=dataset(train_frame),
+    class SourceBalancedTrainer(Trainer):
+        def compute_loss(self, model, inputs, return_outputs=False, num_items_in_batch=None):
+            inputs = dict(inputs)
+            sample_weights = inputs.pop('sample_weight', None)
+            labels = inputs.pop('labels')
+            outputs = model(**inputs)
+            loss = quality_loss(outputs.logits, labels, sample_weights)
+            return (loss, outputs) if return_outputs else loss
+
+    trainer_type = SourceBalancedTrainer if weights is not None else Trainer
+    trainer = trainer_type(
+        model=model, args=arguments, train_dataset=dataset(train_frame, weights),
         eval_dataset=dataset(validation_frame) if validating else None,
         processing_class=tokenizer, compute_metrics=metrics,
     )
+    if weights is not None:
+        trainer.model_accepts_loss_kwargs = False
+        print('Source-balanced training:', json.dumps(weight_summary), flush=True)
     output.mkdir(parents=True, exist_ok=True)
     run_metadata = {"input_version": INPUT_VERSION, "training_sha256": fingerprint(train_frame),
         "target_column": ROBERTA_TARGET_COLUMN,
+        "quality_weighting": quality_weighting, "source_weight_summary": weight_summary,
         "validation_sha256": fingerprint(validation_frame) if validating else None,
         "epochs": epochs, "batch_size": batch_size, "max_length": max_length,
         "quality_text_policy": QUALITY_TEXT_POLICY,
@@ -145,10 +211,23 @@ def fit_roberta(train_frame, validation_frame, output, *, base_model=BASE_MODEL,
     trainer.save_model(str(output))
     tokenizer.save_pretrained(output)
     validation_metrics = trainer.evaluate() if validating else None
+    validation_diagnostics = None
+    if validating and quality_weighting == 'source-balanced':
+        probabilities = predict_probabilities(model, tokenizer, validation_frame, batch_size=batch_size)
+        predictions = probabilities.argmax(axis=1)
+        validation_diagnostics = {
+            'against_text_label': classification_metrics(validation_frame.text_target, predictions, range(4)),
+            'against_ground_truth': classification_metrics(validation_frame.label, predictions, range(4)),
+            'predictions': [{'review_id': row.review_id, 'product_id': row.product_id,
+                             'text_label': CLASS_NAMES[int(row.text_target)], 'ground_truth': CLASS_NAMES[int(row.label)],
+                             'prediction': CLASS_NAMES[int(predicted)], 'probabilities': values.tolist()}
+                            for row, predicted, values in zip(validation_frame.itertuples(), predictions, probabilities)],
+        }
     metadata = {
         "augmentation_usage": augmentation_summary(train_frame),
         "input_version": INPUT_VERSION, "max_length": max_length, "seed": seed,
         "target_column": ROBERTA_TARGET_COLUMN,
+        "quality_weighting": quality_weighting, "source_weight_summary": weight_summary,
         "base_model": str(base_model), "epochs": epochs,
         "resume_from_checkpoint": str(resume_from_checkpoint) if resume_from_checkpoint else None,
         "resumed_global_step": resume_state["global_step"] if resume_state else None,
@@ -161,6 +240,7 @@ def fit_roberta(train_frame, validation_frame, output, *, base_model=BASE_MODEL,
         "fit_review_ids": train_frame.review_id.tolist(),
         "validation_review_ids": validation_frame.review_id.tolist() if validating else [],
         "training_sha256": fingerprint(train_frame), "validation_metrics": validation_metrics,
+        "validation_diagnostics": validation_diagnostics,
     }
     (output / "training_metadata.json").write_text(json.dumps(metadata, indent=2), encoding="utf-8")
     return model, tokenizer
@@ -202,6 +282,7 @@ def main():
     parser.add_argument("--gpu-memory-gb", type=float)
     parser.add_argument("--resume-from-checkpoint", help="Continue this bundle's saved model/optimizer/scheduler state")
     parser.add_argument("--require-cuda", action="store_true", help="Fail instead of silently training on CPU")
+    parser.add_argument('--quality-weighting', choices=QUALITY_WEIGHTING_POLICIES, default='uniform')
     args = parser.parse_args()
     from gpu_memory import configure_gpu_memory
     configure_gpu_memory(args.gpu_memory_gb)
@@ -216,6 +297,7 @@ def main():
         args.output, base_model=args.base_model, epochs=args.epochs,
         batch_size=args.batch_size, max_length=args.max_length, low_memory=args.low_memory,
         resume_from_checkpoint=args.resume_from_checkpoint,
+        quality_weighting=args.quality_weighting,
     )
     print(f"Saved validation-selected RoBERTa to {args.output}; test products were not used.")
 
