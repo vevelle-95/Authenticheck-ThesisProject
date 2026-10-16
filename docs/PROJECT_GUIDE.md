@@ -1530,6 +1530,34 @@ not support promoting it as a fix for the quality filter. OOF and XGBoost were
 not regenerated, the reference bundle remains active as before, and this
 standalone candidate has not been evaluated on the test split.
 
+### Download and use the evaluated quality_balanced_v5 bundle
+
+The repository publishes the runtime files under `models/quality_balanced_v5/`.
+The two large trained weight files use Git LFS. From the repository root, after
+installing Git LFS on your computer:
+
+```powershell
+git lfs install
+git pull --ff-only origin main
+git lfs pull --include="models/quality_balanced_v5/**"
+$env:AUTHENTICHECK_MODEL_BUNDLE = "models/quality_balanced_v5"
+.\.venv\Scripts\python.exe -m uvicorn main:app --host 127.0.0.1 --port 8000
+```
+
+Use the normal project environment setup if `.venv` does not exist yet. Git LFS
+downloads the real model weights; the small pointer files alone cannot run the
+model. No retraining or OOF checkpoints are required for inference. The frozen
+M-CLIP encoders are separate dependencies downloaded on first use; these files
+do not include the Hugging Face model cache. Keep the selected bundle's RoBERTa,
+ABSA, tokenizer/configuration, XGBoost, metadata, and manifest files together.
+
+The frozen held-out results are `results/quality_balanced_v5_test.json` and
+`results/quality_balanced_v5_test_per_aspect.json`. This is the reference
+experiment already evaluated, with its reported performance limitations. The
+unsuccessful source-weighted candidates are not part of this runtime bundle.
+Training checkpoints, optimizer state, and OOF folders are intentionally excluded
+from the published bundle. These files support inference, not resuming training.
+
 ### Experiment: balance XGBoost by source family and final quality class
 
 This experiment reuses the original `quality_balanced_v5` six-feature table.

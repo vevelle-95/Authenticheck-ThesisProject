@@ -1,3 +1,5 @@
 models/augmented_experiment/**/*.safetensors filter=lfs diff=lfs merge=lfs -text
 models/augmented_experiment/**/*.pt filter=lfs diff=lfs merge=lfs -text
 models/augmented_experiment/**/*.bin filter=lfs diff=lfs merge=lfs -text
+models/quality_balanced_v5/dost_roberta/model.safetensors filter=lfs diff=lfs merge=lfs -text
+models/quality_balanced_v5/absa_model/model.pt filter=lfs diff=lfs merge=lfs -text

@@ -107,3 +107,25 @@ desktop.ini
 /models/augmented_experiment/oof/
 /models/augmented_experiment/**/checkpoints/
 /models/augmented_experiment/**/training_args.bin
+
+# Evaluated quality_balanced_v5 runtime bundle; publish only these files.
+!/models/quality_balanced_v5/
+/models/quality_balanced_v5/**
+!/models/quality_balanced_v5/manifest.json
+!/models/quality_balanced_v5/xgboost_meta_classifier.json
+!/models/quality_balanced_v5/xgboost_meta_classifier.metadata.json
+!/models/quality_balanced_v5/dost_roberta/
+!/models/quality_balanced_v5/dost_roberta/config.json
+!/models/quality_balanced_v5/dost_roberta/model.safetensors
+!/models/quality_balanced_v5/dost_roberta/tokenizer.json
+!/models/quality_balanced_v5/dost_roberta/tokenizer_config.json
+!/models/quality_balanced_v5/dost_roberta/training_metadata.json
+!/models/quality_balanced_v5/absa_model/
+!/models/quality_balanced_v5/absa_model/absa_config.json
+!/models/quality_balanced_v5/absa_model/model.pt
+!/models/quality_balanced_v5/absa_model/training_metadata.json
+!/models/quality_balanced_v5/absa_model/encoder/
+!/models/quality_balanced_v5/absa_model/encoder/config.json
+!/models/quality_balanced_v5/absa_model/tokenizer/
+!/models/quality_balanced_v5/absa_model/tokenizer/tokenizer.json
+!/models/quality_balanced_v5/absa_model/tokenizer/tokenizer_config.json
