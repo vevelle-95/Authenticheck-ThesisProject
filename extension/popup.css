@@ -61,7 +61,15 @@ main { padding:18px 20px 12px; }
 footer { display:flex; flex-direction:column; gap:3px; padding:14px 20px; color:var(--muted); font-size:10px; }
 footer strong { font-size:11px; font-weight:600; }
 
-body { width:min(390px,100vw); }
+/* Extension popups derive their viewport from the document's intrinsic size.
+   Using vw here can lock the popup into the browser's initial narrow viewport. */
+html { width:390px; }
+body { width:100%; max-height:600px; overflow-y:auto; }
+header { flex-shrink:0; }
+.logo { flex:0 0 42px; }
+header div { min-width:0; }
+.version { flex-shrink:0; }
+.setting > span { min-width:0; }
 .mode-state { display:flex; flex-direction:column; gap:5px; margin:0 0 20px; padding:13px 14px; background:#fff; border:1px solid var(--line); border-radius:12px; }
 .mode-state > span { color:var(--muted); font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:1px; }
 .mode-state strong { color:var(--ink); font-size:13px; line-height:1.5; overflow-wrap:anywhere; }
