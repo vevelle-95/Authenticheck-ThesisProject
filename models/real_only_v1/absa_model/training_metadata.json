@@ -1,0 +1,2024 @@
+{
+  "augmentation_usage": {
+    "approved_rows": 0,
+    "unreviewed_rows": 0
+  },
+  "dataset_sha256": "766c2361a19ee0ab1b86b355ff91ae185711b3a8e68dcfa294e854b595281737",
+  "seed": 42,
+  "low_memory_training": false,
+  "fp16": false,
+  "optimizer": "adamw",
+  "sensory_domain_policy": "annotation-guidelines-only",
+  "sentiment_target_policy": "category-polarity-multilabel-v2",
+  "fit_review_ids": [
+    "review_00001",
+    "review_00002",
+    "review_00003",
+    "review_00004",
+    "review_00005",
+    "review_00006",
+    "review_00008",
+    "review_00009",
+    "review_00010",
+    "review_00011",
+    "review_00012",
+    "review_00013",
+    "review_00015",
+    "review_00018",
+    "review_00021",
+    "review_00023",
+    "review_00024",
+    "review_00026",
+    "review_00027",
+    "review_00028",
+    "review_00029",
+    "review_00030",
+    "review_00031",
+    "review_00032",
+    "review_00033",
+    "review_00034",
+    "review_00035",
+    "review_00036",
+    "review_00037",
+    "review_00038",
+    "review_00039",
+    "review_00041",
+    "review_00042",
+    "review_00043",
+    "review_00045",
+    "review_00046",
+    "review_00047",
+    "review_00049",
+    "review_00050",
+    "review_00051",
+    "review_00052",
+    "review_00054",
+    "review_00055",
+    "review_00056",
+    "review_00057",
+    "review_00059",
+    "review_00060",
+    "review_00061",
+    "review_00062",
+    "review_00063",
+    "review_00064",
+    "review_00065",
+    "review_00066",
+    "review_00069",
+    "review_00070",
+    "review_00071",
+    "review_00072",
+    "review_00074",
+    "review_00076",
+    "review_00077",
+    "review_00079",
+    "review_00080",
+    "review_00081",
+    "review_00082",
+    "review_00084",
+    "review_00085",
+    "review_00086",
+    "review_00089",
+    "review_00091",
+    "review_00092",
+    "review_00095",
+    "review_00098",
+    "review_00099",
+    "review_00100",
+    "review_00106",
+    "review_00107",
+    "review_00109",
+    "review_00110",
+    "review_00111",
+    "review_00178",
+    "review_00179",
+    "review_00180",
+    "review_00181",
+    "review_00182",
+    "review_00183",
+    "review_00184",
+    "review_00186",
+    "review_00187",
+    "review_00188",
+    "review_00189",
+    "review_00190",
+    "review_00191",
+    "review_00192",
+    "review_00193",
+    "review_00195",
+    "review_00196",
+    "review_00197",
+    "review_00199",
+    "review_00201",
+    "review_00206",
+    "review_00208",
+    "review_00209",
+    "review_00215",
+    "review_00221",
+    "review_00222",
+    "review_00224",
+    "review_00229",
+    "review_00230",
+    "review_00233",
+    "review_00234",
+    "review_00236",
+    "review_00237",
+    "review_00238",
+    "review_00239",
+    "review_00240",
+    "review_00241",
+    "review_00242",
+    "review_00243",
+    "review_00244",
+    "review_00246",
+    "review_00247",
+    "review_00248",
+    "review_00249",
+    "review_00253",
+    "review_00256",
+    "review_00261",
+    "review_00262",
+    "review_00264",
+    "review_00269",
+    "review_00270",
+    "review_00271",
+    "review_00274",
+    "review_00276",
+    "review_00280",
+    "review_00287",
+    "review_00288",
+    "review_00289",
+    "review_00292",
+    "review_00293",
+    "review_00295",
+    "review_00418",
+    "review_00419",
+    "review_00421",
+    "review_00423",
+    "review_00425",
+    "review_00426",
+    "review_00427",
+    "review_00428",
+    "review_00429",
+    "review_00430",
+    "review_00431",
+    "review_00432",
+    "review_00435",
+    "review_00436",
+    "review_00438",
+    "review_00440",
+    "review_00441",
+    "review_00447",
+    "review_00448",
+    "review_00450",
+    "review_00454",
+    "review_00456",
+    "review_00457",
+    "review_00459",
+    "review_00462",
+    "review_00464",
+    "review_00465",
+    "review_00466",
+    "review_00468",
+    "review_00469",
+    "review_00470",
+    "review_00471",
+    "review_00472",
+    "review_00473",
+    "review_00474",
+    "review_00475",
+    "review_00476",
+    "review_00477",
+    "review_00539",
+    "review_00540",
+    "review_00541",
+    "review_00542",
+    "review_00543",
+    "review_00544",
+    "review_00547",
+    "review_00548",
+    "review_00550",
+    "review_00551",
+    "review_00554",
+    "review_00555",
+    "review_00556",
+    "review_00557",
+    "review_00558",
+    "review_00560",
+    "review_00562",
+    "review_00563",
+    "review_00565",
+    "review_00566",
+    "review_00569",
+    "review_00571",
+    "review_00572",
+    "review_00574",
+    "review_00576",
+    "review_00577",
+    "review_00578",
+    "review_00579",
+    "review_00582",
+    "review_00583",
+    "review_00584",
+    "review_00585",
+    "review_00588",
+    "review_00590",
+    "review_00595",
+    "review_00596",
+    "review_00597",
+    "review_00658",
+    "review_00659",
+    "review_00660",
+    "review_00661",
+    "review_00663",
+    "review_00664",
+    "review_00665",
+    "review_00666",
+    "review_00667",
+    "review_00668",
+    "review_00673",
+    "review_00674",
+    "review_00677",
+    "review_00680",
+    "review_00682",
+    "review_00686",
+    "review_00687",
+    "review_00690",
+    "review_00691",
+    "review_00692",
+    "review_00693",
+    "review_00696",
+    "review_00697",
+    "review_00699",
+    "review_00702",
+    "review_00705",
+    "review_00706",
+    "review_00707",
+    "review_00708",
+    "review_00709",
+    "review_00711",
+    "review_00715",
+    "review_00717",
+    "review_00718",
+    "review_00719",
+    "review_00720",
+    "review_00721",
+    "review_00723",
+    "review_00724",
+    "review_00725",
+    "review_00726",
+    "review_00727",
+    "review_00729",
+    "review_00730",
+    "review_00731",
+    "review_00732",
+    "review_00738",
+    "review_00743",
+    "review_00755",
+    "review_00756",
+    "review_00758",
+    "review_00759",
+    "review_00760",
+    "review_00761",
+    "review_00763",
+    "review_00767",
+    "review_00768",
+    "review_00769",
+    "review_00770",
+    "review_00771",
+    "review_00772",
+    "review_00835",
+    "review_00836",
+    "review_00837",
+    "review_00838",
+    "review_00839",
+    "review_00840",
+    "review_00841",
+    "review_00842",
+    "review_00843",
+    "review_00844",
+    "review_00845",
+    "review_00848",
+    "review_00849",
+    "review_00852",
+    "review_00856",
+    "review_00857",
+    "review_00859",
+    "review_00863",
+    "review_00864",
+    "review_00866",
+    "review_00867",
+    "review_00868",
+    "review_00869",
+    "review_00870",
+    "review_00872",
+    "review_00875",
+    "review_00876",
+    "review_00877",
+    "review_00878",
+    "review_00879",
+    "review_00880",
+    "review_00881",
+    "review_00884",
+    "review_00885",
+    "review_00886",
+    "review_00887",
+    "review_00888",
+    "review_00889",
+    "review_00890",
+    "review_00891",
+    "review_00892",
+    "review_00893",
+    "review_00894",
+    "review_00895",
+    "review_00896",
+    "review_00897",
+    "review_00898",
+    "review_00899",
+    "review_00900",
+    "review_00901",
+    "review_00902",
+    "review_00903",
+    "review_00904",
+    "review_00905",
+    "review_00906",
+    "review_00907",
+    "review_00908",
+    "review_00909",
+    "review_00910",
+    "review_00911",
+    "review_00913",
+    "review_00914",
+    "review_00915",
+    "review_00918",
+    "review_00919",
+    "review_00920",
+    "review_00921",
+    "review_00922",
+    "review_00923",
+    "review_00924",
+    "review_00925",
+    "review_00926",
+    "review_00927",
+    "review_00928",
+    "review_00929",
+    "review_00930",
+    "review_00931",
+    "review_00932",
+    "review_00933",
+    "review_00934",
+    "review_00935",
+    "review_00936",
+    "review_00937",
+    "review_00938",
+    "review_00939",
+    "review_00941",
+    "review_00942",
+    "review_00943",
+    "review_00944",
+    "review_00945",
+    "review_00946",
+    "review_00947",
+    "review_00948",
+    "review_00949",
+    "review_00950",
+    "review_00951",
+    "review_00952",
+    "review_00953",
+    "review_00954",
+    "review_00955",
+    "review_00956",
+    "review_00957",
+    "review_00958",
+    "review_00959",
+    "review_00960",
+    "review_00961",
+    "review_00962",
+    "review_00963",
+    "review_00964",
+    "review_00965",
+    "review_00966",
+    "review_00967",
+    "review_00968",
+    "review_00969",
+    "review_00970",
+    "review_00971",
+    "review_00972",
+    "review_00973",
+    "review_00974",
+    "review_00975",
+    "review_00976",
+    "review_00977",
+    "review_00978",
+    "review_00979",
+    "review_00980",
+    "review_00981",
+    "review_00982",
+    "review_00983",
+    "review_00984",
+    "review_00985",
+    "review_00986",
+    "review_00987",
+    "review_00988",
+    "review_00989",
+    "review_00990",
+    "review_00991",
+    "review_00992",
+    "review_00993",
+    "review_00994",
+    "review_00995",
+    "review_00996",
+    "review_00997",
+    "review_00998",
+    "review_00999",
+    "review_01000",
+    "review_01001",
+    "review_01002",
+    "review_01003",
+    "review_01004",
+    "review_01005",
+    "review_01006",
+    "review_01007",
+    "review_01008",
+    "review_01009",
+    "review_01010",
+    "review_01011",
+    "review_01012",
+    "review_01013",
+    "review_01014",
+    "review_01015",
+    "review_01016",
+    "review_01017",
+    "review_01018",
+    "review_01019",
+    "review_01020",
+    "review_01021",
+    "review_01022",
+    "review_01023",
+    "review_01024",
+    "review_01025",
+    "review_01026",
+    "review_01027",
+    "review_01028",
+    "review_01029",
+    "review_01032",
+    "review_01033",
+    "review_01034",
+    "review_01035",
+    "review_01036",
+    "review_01037",
+    "review_01039",
+    "review_01040",
+    "review_01041",
+    "review_01042",
+    "review_01043",
+    "review_01044",
+    "review_01045",
+    "review_01047",
+    "review_01048",
+    "review_01049",
+    "review_01050",
+    "review_01051",
+    "review_01052",
+    "review_01054",
+    "review_01055",
+    "review_01056",
+    "review_01057",
+    "review_01058",
+    "review_01059",
+    "review_01060",
+    "review_01061",
+    "review_01062",
+    "review_01063",
+    "review_01064",
+    "review_01065",
+    "review_01066",
+    "review_01067",
+    "review_01068",
+    "review_01069",
+    "review_01070",
+    "review_01071",
+    "review_01073",
+    "review_01074",
+    "review_01075",
+    "review_01076",
+    "review_01077",
+    "review_01078",
+    "review_01079",
+    "review_01080",
+    "review_01082",
+    "review_01084",
+    "review_01085",
+    "review_01086",
+    "review_01089",
+    "review_01093",
+    "review_01094",
+    "review_01095",
+    "review_01096",
+    "review_01097",
+    "review_01098",
+    "review_01099",
+    "review_01102",
+    "review_01103",
+    "review_01104",
+    "review_01105",
+    "review_01106",
+    "review_01107",
+    "review_01108",
+    "review_01109",
+    "review_01113",
+    "review_01114",
+    "review_01115",
+    "review_01116",
+    "review_01117",
+    "review_01118",
+    "review_01119",
+    "review_01121",
+    "review_01183",
+    "review_01188",
+    "review_01189",
+    "review_01193",
+    "review_01194",
+    "review_01200",
+    "review_01203",
+    "review_01208",
+    "review_01214",
+    "review_01215",
+    "review_01216",
+    "review_01218",
+    "review_01233",
+    "review_01234",
+    "review_01236",
+    "review_01239",
+    "review_01240",
+    "review_01241",
+    "review_01243",
+    "review_01244",
+    "review_01246",
+    "review_01255",
+    "review_01256",
+    "review_01258",
+    "review_01265",
+    "review_01272",
+    "review_01273",
+    "review_01274",
+    "review_01278",
+    "review_01279",
+    "review_01283",
+    "review_01284",
+    "review_01286",
+    "review_01287",
+    "review_01289",
+    "review_01291",
+    "review_01292",
+    "review_01293",
+    "review_01294",
+    "review_01296",
+    "review_01299",
+    "review_01301",
+    "review_01302",
+    "review_01303",
+    "review_01304",
+    "review_01305",
+    "review_01306",
+    "review_01307",
+    "review_01311",
+    "review_01312",
+    "review_01313",
+    "review_01314",
+    "review_01315",
+    "review_01316",
+    "review_01317",
+    "review_01318",
+    "review_01319",
+    "review_01320",
+    "review_01321",
+    "review_01322",
+    "review_01323",
+    "review_01324",
+    "review_01325",
+    "review_01326",
+    "review_01327",
+    "review_01334",
+    "review_01335",
+    "review_01336",
+    "review_01337",
+    "review_01338",
+    "review_01339",
+    "review_01341",
+    "review_01342",
+    "review_01343",
+    "review_01345",
+    "review_01348",
+    "review_01349",
+    "review_01361",
+    "review_01362",
+    "review_01363",
+    "review_01364",
+    "review_01365",
+    "review_01368",
+    "review_01374",
+    "review_01376",
+    "review_01377",
+    "review_01378",
+    "review_01383",
+    "review_01384",
+    "review_01385",
+    "review_01388",
+    "review_01389",
+    "review_01390",
+    "review_01391",
+    "review_01394",
+    "review_01397",
+    "review_01401",
+    "review_01407",
+    "review_01408",
+    "review_01409",
+    "review_01410",
+    "review_01411",
+    "review_01412",
+    "review_01413",
+    "review_01414",
+    "review_01415",
+    "review_01418",
+    "review_01419",
+    "review_01420",
+    "review_01421",
+    "review_01424",
+    "review_01426",
+    "review_01427",
+    "review_01428",
+    "review_01430",
+    "review_01431",
+    "review_01432",
+    "review_01435",
+    "review_01437",
+    "review_01438",
+    "review_01439",
+    "review_01440",
+    "review_01441",
+    "review_01442",
+    "review_01446",
+    "review_01447",
+    "review_01449",
+    "review_01452",
+    "review_01453",
+    "review_01454",
+    "review_01455",
+    "review_01456",
+    "review_01507",
+    "review_01508",
+    "review_01509",
+    "review_01510",
+    "review_01511",
+    "review_01513",
+    "review_01515",
+    "review_01516",
+    "review_01518",
+    "review_01520",
+    "review_01521",
+    "review_01522",
+    "review_01523",
+    "review_01524",
+    "review_01525",
+    "review_01530",
+    "review_01532",
+    "review_01533",
+    "review_01534",
+    "review_01535",
+    "review_01536",
+    "review_01537",
+    "review_01538",
+    "review_01539",
+    "review_01540",
+    "review_01541",
+    "review_01542",
+    "review_01543",
+    "review_01544",
+    "review_01545",
+    "review_01549",
+    "review_01552",
+    "review_01553"
+  ],
+  "validation_review_ids": [
+    "review_00118",
+    "review_00119",
+    "review_00120",
+    "review_00121",
+    "review_00122",
+    "review_00123",
+    "review_00124",
+    "review_00125",
+    "review_00126",
+    "review_00127",
+    "review_00128",
+    "review_00129",
+    "review_00130",
+    "review_00131",
+    "review_00132",
+    "review_00133",
+    "review_00135",
+    "review_00139",
+    "review_00145",
+    "review_00151",
+    "review_00153",
+    "review_00155",
+    "review_00156",
+    "review_00157",
+    "review_00158",
+    "review_00159",
+    "review_00163",
+    "review_00164",
+    "review_00165",
+    "review_00166",
+    "review_00169",
+    "review_00170",
+    "review_00171",
+    "review_00177",
+    "review_00359",
+    "review_00360",
+    "review_00361",
+    "review_00362",
+    "review_00363",
+    "review_00364",
+    "review_00366",
+    "review_00367",
+    "review_00368",
+    "review_00369",
+    "review_00370",
+    "review_00371",
+    "review_00372",
+    "review_00373",
+    "review_00375",
+    "review_00376",
+    "review_00380",
+    "review_00382",
+    "review_00384",
+    "review_00385",
+    "review_00386",
+    "review_00387",
+    "review_00389",
+    "review_00390",
+    "review_00392",
+    "review_00394",
+    "review_00397",
+    "review_00398",
+    "review_00401",
+    "review_00402",
+    "review_00403",
+    "review_00404",
+    "review_00405",
+    "review_00406",
+    "review_00407",
+    "review_00409",
+    "review_00410",
+    "review_00411",
+    "review_00412",
+    "review_00413",
+    "review_00414",
+    "review_00416",
+    "review_00417",
+    "review_00778",
+    "review_00779",
+    "review_00780",
+    "review_00781",
+    "review_00782",
+    "review_00783",
+    "review_00785",
+    "review_00788",
+    "review_00789",
+    "review_00792",
+    "review_00798",
+    "review_00806",
+    "review_00822",
+    "review_00824",
+    "review_00825",
+    "review_00826",
+    "review_00827",
+    "review_00828",
+    "review_00829",
+    "review_00830",
+    "review_01123",
+    "review_01124",
+    "review_01125",
+    "review_01128",
+    "review_01134",
+    "review_01137",
+    "review_01138",
+    "review_01142",
+    "review_01144",
+    "review_01145",
+    "review_01146",
+    "review_01147",
+    "review_01148",
+    "review_01151",
+    "review_01152",
+    "review_01153",
+    "review_01154",
+    "review_01155",
+    "review_01157",
+    "review_01158",
+    "review_01159",
+    "review_01160",
+    "review_01163",
+    "review_01164",
+    "review_01166",
+    "review_01168",
+    "review_01170",
+    "review_01171",
+    "review_01172"
+  ],
+  "best_epoch": 5,
+  "selection_metric": "mean_detection_and_gold_category_sentiment_macro_f1",
+  "validation_metrics": {
+    "threshold": 0.4,
+    "sentiment_threshold": 0.2,
+    "detection": {
+      "macro_precision": 0.6263217696845882,
+      "macro_recall": 0.7466510323294737,
+      "macro_f1": 0.6700182474435439,
+      "support": {
+        "product_quality": 38,
+        "functionality": 21,
+        "performance": 71,
+        "design": 14,
+        "aesthetics": 24,
+        "sensory_experience": 35,
+        "value": 15,
+        "packaging": 44,
+        "seller_service": 12,
+        "accuracy_of_description": 23
+      }
+    },
+    "sentiment": {
+      "count": 297,
+      "accuracy": 0.6397306397306397,
+      "accuracy_definition": "exact_label_set_match",
+      "labels": [
+        "Negative",
+        "Neutral",
+        "Positive"
+      ],
+      "macro_precision": 0.6575095841814006,
+      "macro_recall": 0.7127458133555695,
+      "macro_f1": 0.6760439752702624,
+      "micro_f1": 0.7710487444608567,
+      "support": [
+        117,
+        32,
+        164
+      ],
+      "per_label": {
+        "Negative": {
+          "precision": 0.6944444444444444,
+          "recall": 0.8547008547008547,
+          "f1": 0.7662835249042146,
+          "support": 117,
+          "tp": 100,
+          "fp": 44,
+          "fn": 17,
+          "tn": 136
+        },
+        "Neutral": {
+          "precision": 0.5217391304347826,
+          "recall": 0.375,
+          "f1": 0.43636363636363634,
+          "support": 32,
+          "tp": 12,
+          "fp": 11,
+          "fn": 20,
+          "tn": 254
+        },
+        "Positive": {
+          "precision": 0.7563451776649747,
+          "recall": 0.9085365853658537,
+          "f1": 0.8254847645429363,
+          "support": 164,
+          "tp": 149,
+          "fp": 48,
+          "fn": 15,
+          "tn": 85
+        }
+      },
+      "multilabel_confusion_matrices": [
+        [
+          [
+            136,
+            44
+          ],
+          [
+            17,
+            100
+          ]
+        ],
+        [
+          [
+            254,
+            11
+          ],
+          [
+            20,
+            12
+          ]
+        ],
+        [
+          [
+            85,
+            48
+          ],
+          [
+            15,
+            149
+          ]
+        ]
+      ]
+    }
+  },
+  "history": [
+    {
+      "epoch": 1,
+      "loss": 0.9578643782540809,
+      "threshold": 0.3,
+      "sentiment_threshold": 0.35,
+      "detection": {
+        "macro_precision": 0.5158614600070541,
+        "macro_recall": 0.7166333075772436,
+        "macro_f1": 0.5739472970393982,
+        "support": {
+          "product_quality": 38,
+          "functionality": 21,
+          "performance": 71,
+          "design": 14,
+          "aesthetics": 24,
+          "sensory_experience": 35,
+          "value": 15,
+          "packaging": 44,
+          "seller_service": 12,
+          "accuracy_of_description": 23
+        }
+      },
+      "sentiment": {
+        "count": 297,
+        "accuracy": 0.5454545454545454,
+        "accuracy_definition": "exact_label_set_match",
+        "labels": [
+          "Negative",
+          "Neutral",
+          "Positive"
+        ],
+        "macro_precision": 0.5507608922243068,
+        "macro_recall": 0.6698457369189077,
+        "macro_f1": 0.6016996493730314,
+        "micro_f1": 0.7308781869688386,
+        "support": [
+          117,
+          32,
+          164
+        ],
+        "per_label": {
+          "Negative": {
+            "precision": 0.7804878048780488,
+            "recall": 0.8205128205128205,
+            "f1": 0.8,
+            "support": 117,
+            "tp": 96,
+            "fp": 27,
+            "fn": 21,
+            "tn": 153
+          },
+          "Neutral": {
+            "precision": 0.20512820512820512,
+            "recall": 0.25,
+            "f1": 0.22535211267605634,
+            "support": 32,
+            "tp": 8,
+            "fp": 31,
+            "fn": 24,
+            "tn": 234
+          },
+          "Positive": {
+            "precision": 0.6666666666666666,
+            "recall": 0.9390243902439024,
+            "f1": 0.779746835443038,
+            "support": 164,
+            "tp": 154,
+            "fp": 77,
+            "fn": 10,
+            "tn": 56
+          }
+        },
+        "multilabel_confusion_matrices": [
+          [
+            [
+              153,
+              27
+            ],
+            [
+              21,
+              96
+            ]
+          ],
+          [
+            [
+              234,
+              31
+            ],
+            [
+              24,
+              8
+            ]
+          ],
+          [
+            [
+              56,
+              77
+            ],
+            [
+              10,
+              154
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "epoch": 2,
+      "loss": 0.7264808389509834,
+      "threshold": 0.45,
+      "sentiment_threshold": 0.1,
+      "detection": {
+        "macro_precision": 0.6217551150895141,
+        "macro_recall": 0.6771053524531141,
+        "macro_f1": 0.6273800120088435,
+        "support": {
+          "product_quality": 38,
+          "functionality": 21,
+          "performance": 71,
+          "design": 14,
+          "aesthetics": 24,
+          "sensory_experience": 35,
+          "value": 15,
+          "packaging": 44,
+          "seller_service": 12,
+          "accuracy_of_description": 23
+        }
+      },
+      "sentiment": {
+        "count": 297,
+        "accuracy": 0.4175084175084175,
+        "accuracy_definition": "exact_label_set_match",
+        "labels": [
+          "Negative",
+          "Neutral",
+          "Positive"
+        ],
+        "macro_precision": 0.5079978352754201,
+        "macro_recall": 0.7276249044541728,
+        "macro_f1": 0.5892755576432497,
+        "micro_f1": 0.7151979565772669,
+        "support": [
+          117,
+          32,
+          164
+        ],
+        "per_label": {
+          "Negative": {
+            "precision": 0.5685279187817259,
+            "recall": 0.9572649572649573,
+            "f1": 0.7133757961783439,
+            "support": 117,
+            "tp": 112,
+            "fp": 85,
+            "fn": 5,
+            "tn": 95
+          },
+          "Neutral": {
+            "precision": 0.3076923076923077,
+            "recall": 0.25,
+            "f1": 0.27586206896551724,
+            "support": 32,
+            "tp": 8,
+            "fp": 18,
+            "fn": 24,
+            "tn": 247
+          },
+          "Positive": {
+            "precision": 0.6477732793522267,
+            "recall": 0.975609756097561,
+            "f1": 0.7785888077858881,
+            "support": 164,
+            "tp": 160,
+            "fp": 87,
+            "fn": 4,
+            "tn": 46
+          }
+        },
+        "multilabel_confusion_matrices": [
+          [
+            [
+              95,
+              85
+            ],
+            [
+              5,
+              112
+            ]
+          ],
+          [
+            [
+              247,
+              18
+            ],
+            [
+              24,
+              8
+            ]
+          ],
+          [
+            [
+              46,
+              87
+            ],
+            [
+              4,
+              160
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "epoch": 3,
+      "loss": 0.588305979403992,
+      "threshold": 0.5,
+      "sentiment_threshold": 0.1,
+      "detection": {
+        "macro_precision": 0.7018619079194146,
+        "macro_recall": 0.6135429880440678,
+        "macro_f1": 0.6259081366976104,
+        "support": {
+          "product_quality": 38,
+          "functionality": 21,
+          "performance": 71,
+          "design": 14,
+          "aesthetics": 24,
+          "sensory_experience": 35,
+          "value": 15,
+          "packaging": 44,
+          "seller_service": 12,
+          "accuracy_of_description": 23
+        }
+      },
+      "sentiment": {
+        "count": 297,
+        "accuracy": 0.39730639730639733,
+        "accuracy_definition": "exact_label_set_match",
+        "labels": [
+          "Negative",
+          "Neutral",
+          "Positive"
+        ],
+        "macro_precision": 0.49764130509472126,
+        "macro_recall": 0.7809242755889096,
+        "macro_f1": 0.6078187558885354,
+        "micro_f1": 0.7114427860696517,
+        "support": [
+          117,
+          32,
+          164
+        ],
+        "per_label": {
+          "Negative": {
+            "precision": 0.5873015873015873,
+            "recall": 0.9487179487179487,
+            "f1": 0.7254901960784313,
+            "support": 117,
+            "tp": 111,
+            "fp": 78,
+            "fn": 6,
+            "tn": 102
+          },
+          "Neutral": {
+            "precision": 0.2653061224489796,
+            "recall": 0.40625,
+            "f1": 0.32098765432098764,
+            "support": 32,
+            "tp": 13,
+            "fp": 36,
+            "fn": 19,
+            "tn": 229
+          },
+          "Positive": {
+            "precision": 0.6403162055335968,
+            "recall": 0.9878048780487805,
+            "f1": 0.7769784172661871,
+            "support": 164,
+            "tp": 162,
+            "fp": 91,
+            "fn": 2,
+            "tn": 42
+          }
+        },
+        "multilabel_confusion_matrices": [
+          [
+            [
+              102,
+              78
+            ],
+            [
+              6,
+              111
+            ]
+          ],
+          [
+            [
+              229,
+              36
+            ],
+            [
+              19,
+              13
+            ]
+          ],
+          [
+            [
+              42,
+              91
+            ],
+            [
+              2,
+              162
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "epoch": 4,
+      "loss": 0.44769159264775904,
+      "threshold": 0.3,
+      "sentiment_threshold": 0.25,
+      "detection": {
+        "macro_precision": 0.6577256833446474,
+        "macro_recall": 0.7016075490457481,
+        "macro_f1": 0.6604429974812402,
+        "support": {
+          "product_quality": 38,
+          "functionality": 21,
+          "performance": 71,
+          "design": 14,
+          "aesthetics": 24,
+          "sensory_experience": 35,
+          "value": 15,
+          "packaging": 44,
+          "seller_service": 12,
+          "accuracy_of_description": 23
+        }
+      },
+      "sentiment": {
+        "count": 297,
+        "accuracy": 0.6262626262626263,
+        "accuracy_definition": "exact_label_set_match",
+        "labels": [
+          "Negative",
+          "Neutral",
+          "Positive"
+        ],
+        "macro_precision": 0.5983153017978888,
+        "macro_recall": 0.6816586755611146,
+        "macro_f1": 0.6353482641153874,
+        "micro_f1": 0.7710487444608567,
+        "support": [
+          117,
+          32,
+          164
+        ],
+        "per_label": {
+          "Negative": {
+            "precision": 0.762962962962963,
+            "recall": 0.8803418803418803,
+            "f1": 0.8174603174603174,
+            "support": 117,
+            "tp": 103,
+            "fp": 32,
+            "fn": 14,
+            "tn": 148
+          },
+          "Neutral": {
+            "precision": 0.2857142857142857,
+            "recall": 0.25,
+            "f1": 0.26666666666666666,
+            "support": 32,
+            "tp": 8,
+            "fp": 20,
+            "fn": 24,
+            "tn": 245
+          },
+          "Positive": {
+            "precision": 0.746268656716418,
+            "recall": 0.9146341463414634,
+            "f1": 0.821917808219178,
+            "support": 164,
+            "tp": 150,
+            "fp": 51,
+            "fn": 14,
+            "tn": 82
+          }
+        },
+        "multilabel_confusion_matrices": [
+          [
+            [
+              148,
+              32
+            ],
+            [
+              14,
+              103
+            ]
+          ],
+          [
+            [
+              245,
+              20
+            ],
+            [
+              24,
+              8
+            ]
+          ],
+          [
+            [
+              82,
+              51
+            ],
+            [
+              14,
+              150
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "epoch": 5,
+      "loss": 0.36587047714436816,
+      "threshold": 0.4,
+      "sentiment_threshold": 0.2,
+      "detection": {
+        "macro_precision": 0.6263217696845882,
+        "macro_recall": 0.7466510323294737,
+        "macro_f1": 0.6700182474435439,
+        "support": {
+          "product_quality": 38,
+          "functionality": 21,
+          "performance": 71,
+          "design": 14,
+          "aesthetics": 24,
+          "sensory_experience": 35,
+          "value": 15,
+          "packaging": 44,
+          "seller_service": 12,
+          "accuracy_of_description": 23
+        }
+      },
+      "sentiment": {
+        "count": 297,
+        "accuracy": 0.6397306397306397,
+        "accuracy_definition": "exact_label_set_match",
+        "labels": [
+          "Negative",
+          "Neutral",
+          "Positive"
+        ],
+        "macro_precision": 0.6575095841814006,
+        "macro_recall": 0.7127458133555695,
+        "macro_f1": 0.6760439752702624,
+        "micro_f1": 0.7710487444608567,
+        "support": [
+          117,
+          32,
+          164
+        ],
+        "per_label": {
+          "Negative": {
+            "precision": 0.6944444444444444,
+            "recall": 0.8547008547008547,
+            "f1": 0.7662835249042146,
+            "support": 117,
+            "tp": 100,
+            "fp": 44,
+            "fn": 17,
+            "tn": 136
+          },
+          "Neutral": {
+            "precision": 0.5217391304347826,
+            "recall": 0.375,
+            "f1": 0.43636363636363634,
+            "support": 32,
+            "tp": 12,
+            "fp": 11,
+            "fn": 20,
+            "tn": 254
+          },
+          "Positive": {
+            "precision": 0.7563451776649747,
+            "recall": 0.9085365853658537,
+            "f1": 0.8254847645429363,
+            "support": 164,
+            "tp": 149,
+            "fp": 48,
+            "fn": 15,
+            "tn": 85
+          }
+        },
+        "multilabel_confusion_matrices": [
+          [
+            [
+              136,
+              44
+            ],
+            [
+              17,
+              100
+            ]
+          ],
+          [
+            [
+              254,
+              11
+            ],
+            [
+              20,
+              12
+            ]
+          ],
+          [
+            [
+              85,
+              48
+            ],
+            [
+              15,
+              149
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "epoch": 6,
+      "loss": 0.27090725920509634,
+      "threshold": 0.25,
+      "sentiment_threshold": 0.25,
+      "detection": {
+        "macro_precision": 0.6062767913937995,
+        "macro_recall": 0.7572257311290251,
+        "macro_f1": 0.6527500845266012,
+        "support": {
+          "product_quality": 38,
+          "functionality": 21,
+          "performance": 71,
+          "design": 14,
+          "aesthetics": 24,
+          "sensory_experience": 35,
+          "value": 15,
+          "packaging": 44,
+          "seller_service": 12,
+          "accuracy_of_description": 23
+        }
+      },
+      "sentiment": {
+        "count": 297,
+        "accuracy": 0.5925925925925926,
+        "accuracy_definition": "exact_label_set_match",
+        "labels": [
+          "Negative",
+          "Neutral",
+          "Positive"
+        ],
+        "macro_precision": 0.5500766454037481,
+        "macro_recall": 0.6464174657772218,
+        "macro_f1": 0.5930693387852038,
+        "micro_f1": 0.7296511627906976,
+        "support": [
+          117,
+          32,
+          164
+        ],
+        "per_label": {
+          "Negative": {
+            "precision": 0.753968253968254,
+            "recall": 0.811965811965812,
+            "f1": 0.7818930041152263,
+            "support": 117,
+            "tp": 95,
+            "fp": 31,
+            "fn": 22,
+            "tn": 149
+          },
+          "Neutral": {
+            "precision": 0.2,
+            "recall": 0.21875,
+            "f1": 0.208955223880597,
+            "support": 32,
+            "tp": 7,
+            "fp": 28,
+            "fn": 25,
+            "tn": 237
+          },
+          "Positive": {
+            "precision": 0.6962616822429907,
+            "recall": 0.9085365853658537,
+            "f1": 0.7883597883597884,
+            "support": 164,
+            "tp": 149,
+            "fp": 65,
+            "fn": 15,
+            "tn": 68
+          }
+        },
+        "multilabel_confusion_matrices": [
+          [
+            [
+              149,
+              31
+            ],
+            [
+              22,
+              95
+            ]
+          ],
+          [
+            [
+              237,
+              28
+            ],
+            [
+              25,
+              7
+            ]
+          ],
+          [
+            [
+              68,
+              65
+            ],
+            [
+              15,
+              149
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "epoch": 7,
+      "loss": 0.20915004200042162,
+      "threshold": 0.45,
+      "sentiment_threshold": 0.4,
+      "detection": {
+        "macro_precision": 0.6974529770955763,
+        "macro_recall": 0.6758856418449676,
+        "macro_f1": 0.6581194085914227,
+        "support": {
+          "product_quality": 38,
+          "functionality": 21,
+          "performance": 71,
+          "design": 14,
+          "aesthetics": 24,
+          "sensory_experience": 35,
+          "value": 15,
+          "packaging": 44,
+          "seller_service": 12,
+          "accuracy_of_description": 23
+        }
+      },
+      "sentiment": {
+        "count": 297,
+        "accuracy": 0.6498316498316499,
+        "accuracy_definition": "exact_label_set_match",
+        "labels": [
+          "Negative",
+          "Neutral",
+          "Positive"
+        ],
+        "macro_precision": 0.6986270230951082,
+        "macro_recall": 0.6585387568619275,
+        "macro_f1": 0.6254688672168043,
+        "micro_f1": 0.7820895522388059,
+        "support": [
+          117,
+          32,
+          164
+        ],
+        "per_label": {
+          "Negative": {
+            "precision": 0.7304964539007093,
+            "recall": 0.8803418803418803,
+            "f1": 0.7984496124031008,
+            "support": 117,
+            "tp": 103,
+            "fp": 38,
+            "fn": 14,
+            "tn": 142
+          },
+          "Neutral": {
+            "precision": 0.625,
+            "recall": 0.15625,
+            "f1": 0.25,
+            "support": 32,
+            "tp": 5,
+            "fp": 3,
+            "fn": 27,
+            "tn": 262
+          },
+          "Positive": {
+            "precision": 0.7403846153846154,
+            "recall": 0.9390243902439024,
+            "f1": 0.8279569892473119,
+            "support": 164,
+            "tp": 154,
+            "fp": 54,
+            "fn": 10,
+            "tn": 79
+          }
+        },
+        "multilabel_confusion_matrices": [
+          [
+            [
+              142,
+              38
+            ],
+            [
+              14,
+              103
+            ]
+          ],
+          [
+            [
+              262,
+              3
+            ],
+            [
+              27,
+              5
+            ]
+          ],
+          [
+            [
+              79,
+              54
+            ],
+            [
+              10,
+              154
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "epoch": 8,
+      "loss": 0.16596448209223358,
+      "threshold": 0.15,
+      "sentiment_threshold": 0.1,
+      "detection": {
+        "macro_precision": 0.6208579463253832,
+        "macro_recall": 0.7871142729060026,
+        "macro_f1": 0.6809332306998954,
+        "support": {
+          "product_quality": 38,
+          "functionality": 21,
+          "performance": 71,
+          "design": 14,
+          "aesthetics": 24,
+          "sensory_experience": 35,
+          "value": 15,
+          "packaging": 44,
+          "seller_service": 12,
+          "accuracy_of_description": 23
+        }
+      },
+      "sentiment": {
+        "count": 297,
+        "accuracy": 0.5993265993265994,
+        "accuracy_definition": "exact_label_set_match",
+        "labels": [
+          "Negative",
+          "Neutral",
+          "Positive"
+        ],
+        "macro_precision": 0.5968878915635342,
+        "macro_recall": 0.7291319227294837,
+        "macro_f1": 0.6528439153439154,
+        "micro_f1": 0.7435158501440923,
+        "support": [
+          117,
+          32,
+          164
+        ],
+        "per_label": {
+          "Negative": {
+            "precision": 0.6257309941520468,
+            "recall": 0.9145299145299145,
+            "f1": 0.7430555555555556,
+            "support": 117,
+            "tp": 107,
+            "fp": 64,
+            "fn": 10,
+            "tn": 116
+          },
+          "Neutral": {
+            "precision": 0.3684210526315789,
+            "recall": 0.4375,
+            "f1": 0.4,
+            "support": 32,
+            "tp": 14,
+            "fp": 24,
+            "fn": 18,
+            "tn": 241
+          },
+          "Positive": {
+            "precision": 0.7965116279069767,
+            "recall": 0.8353658536585366,
+            "f1": 0.8154761904761905,
+            "support": 164,
+            "tp": 137,
+            "fp": 35,
+            "fn": 27,
+            "tn": 98
+          }
+        },
+        "multilabel_confusion_matrices": [
+          [
+            [
+              116,
+              64
+            ],
+            [
+              10,
+              107
+            ]
+          ],
+          [
+            [
+              241,
+              24
+            ],
+            [
+              18,
+              14
+            ]
+          ],
+          [
+            [
+              98,
+              35
+            ],
+            [
+              27,
+              137
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "epoch": 9,
+      "loss": 0.1533475783382824,
+      "threshold": 0.25,
+      "sentiment_threshold": 0.25,
+      "detection": {
+        "macro_precision": 0.6422717393572783,
+        "macro_recall": 0.7693331129555224,
+        "macro_f1": 0.6890152295281468,
+        "support": {
+          "product_quality": 38,
+          "functionality": 21,
+          "performance": 71,
+          "design": 14,
+          "aesthetics": 24,
+          "sensory_experience": 35,
+          "value": 15,
+          "packaging": 44,
+          "seller_service": 12,
+          "accuracy_of_description": 23
+        }
+      },
+      "sentiment": {
+        "count": 297,
+        "accuracy": 0.6430976430976431,
+        "accuracy_definition": "exact_label_set_match",
+        "labels": [
+          "Negative",
+          "Neutral",
+          "Positive"
+        ],
+        "macro_precision": 0.5866228297620776,
+        "macro_recall": 0.6718956292127024,
+        "macro_f1": 0.6244683630158491,
+        "micro_f1": 0.7592319054652881,
+        "support": [
+          117,
+          32,
+          164
+        ],
+        "per_label": {
+          "Negative": {
+            "precision": 0.7112676056338029,
+            "recall": 0.8632478632478633,
+            "f1": 0.7799227799227799,
+            "support": 117,
+            "tp": 101,
+            "fp": 41,
+            "fn": 16,
+            "tn": 139
+          },
+          "Neutral": {
+            "precision": 0.2857142857142857,
+            "recall": 0.25,
+            "f1": 0.26666666666666666,
+            "support": 32,
+            "tp": 8,
+            "fp": 20,
+            "fn": 24,
+            "tn": 245
+          },
+          "Positive": {
+            "precision": 0.7628865979381443,
+            "recall": 0.9024390243902439,
+            "f1": 0.8268156424581006,
+            "support": 164,
+            "tp": 148,
+            "fp": 46,
+            "fn": 16,
+            "tn": 87
+          }
+        },
+        "multilabel_confusion_matrices": [
+          [
+            [
+              139,
+              41
+            ],
+            [
+              16,
+              101
+            ]
+          ],
+          [
+            [
+              245,
+              20
+            ],
+            [
+              24,
+              8
+            ]
+          ],
+          [
+            [
+              87,
+              46
+            ],
+            [
+              16,
+              148
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "epoch": 10,
+      "loss": 0.1141265930153083,
+      "threshold": 0.3,
+      "sentiment_threshold": 0.55,
+      "detection": {
+        "macro_precision": 0.6606946503109293,
+        "macro_recall": 0.7112072598548088,
+        "macro_f1": 0.6676955610503658,
+        "support": {
+          "product_quality": 38,
+          "functionality": 21,
+          "performance": 71,
+          "design": 14,
+          "aesthetics": 24,
+          "sensory_experience": 35,
+          "value": 15,
+          "packaging": 44,
+          "seller_service": 12,
+          "accuracy_of_description": 23
+        }
+      },
+      "sentiment": {
+        "count": 297,
+        "accuracy": 0.6767676767676768,
+        "accuracy_definition": "exact_label_set_match",
+        "labels": [
+          "Negative",
+          "Neutral",
+          "Positive"
+        ],
+        "macro_precision": 0.6133619489336368,
+        "macro_recall": 0.6628035751511362,
+        "macro_f1": 0.6355889113468188,
+        "micro_f1": 0.7595712098009189,
+        "support": [
+          117,
+          32,
+          164
+        ],
+        "per_label": {
+          "Negative": {
+            "precision": 0.7285714285714285,
+            "recall": 0.8717948717948718,
+            "f1": 0.7937743190661478,
+            "support": 117,
+            "tp": 102,
+            "fp": 38,
+            "fn": 15,
+            "tn": 142
+          },
+          "Neutral": {
+            "precision": 0.3103448275862069,
+            "recall": 0.28125,
+            "f1": 0.29508196721311475,
+            "support": 32,
+            "tp": 9,
+            "fp": 20,
+            "fn": 23,
+            "tn": 245
+          },
+          "Positive": {
+            "precision": 0.8011695906432749,
+            "recall": 0.8353658536585366,
+            "f1": 0.817910447761194,
+            "support": 164,
+            "tp": 137,
+            "fp": 34,
+            "fn": 27,
+            "tn": 99
+          }
+        },
+        "multilabel_confusion_matrices": [
+          [
+            [
+              142,
+              38
+            ],
+            [
+              15,
+              102
+            ]
+          ],
+          [
+            [
+              245,
+              20
+            ],
+            [
+              23,
+              9
+            ]
+          ],
+          [
+            [
+              99,
+              34
+            ],
+            [
+              27,
+              137
+            ]
+          ]
+        ]
+      }
+    }
+  ],
+  "aggregation_unit": "one_review_category_polarity_group",
+  "training_sha256": "d6af269495910bd355665c87f0fcf98891ef6bc0567c03da972193df729423b9",
+  "validation_sha256": "024d5bc7ad5fbe39b6b4196bd42fe49eba51df15b04de490e48afb6acfb21dab",
+  "checkpoint_reuse": {
+    "retrained": false,
+    "source_bundle": "models/quality_balanced_v5",
+    "source_dataset_sha256": "d3561540798f398c44c7a92801fa657b86f755780a1a8fa4b21ab331f40439f2",
+    "source_training_metadata_file": "source_training_metadata.json",
+    "source_training_metadata_sha256": "c97a6b206733a7daa0a9d2889808fab4c61ec10332fd016e428ca604b2550f3b",
+    "source_weights_sha256": "d0cdbf1a612f6d17ccc44da78717e668160277b4acfb83022daf5c052a8ce6ce",
+    "verified_authentic_cohorts": {
+      "train": {
+        "count": 688,
+        "sha256": "d6af269495910bd355665c87f0fcf98891ef6bc0567c03da972193df729423b9",
+        "source_sha256": "6143588b78c4f8d10f6bdf70dca169f18d14a37d8496927be14e734c0b49afc5"
+      },
+      "validation": {
+        "count": 126,
+        "sha256": "024d5bc7ad5fbe39b6b4196bd42fe49eba51df15b04de490e48afb6acfb21dab",
+        "source_sha256": "a7dffce0b6da99039de85b1da754165a294d641ad80542a0678838a68b87c7e8"
+      }
+    },
+    "verification": "Exact equality of original input fields, parsed annotations and membership for both Authentic cohorts.",
+    "dataset_scope": "Assembly dataset fingerprints above refer to the original-only experiment; historical training metadata is preserved verbatim separately."
+  }
+}

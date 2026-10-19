@@ -1595,6 +1595,210 @@ bundle, and test reports remain unchanged. The candidate is a standalone XGBoost
 artifact, not a complete API bundle. This validation result does not establish
 statistical significance or a causal explanation for the model's errors.
 
+### Experiment: train quality RoBERTa using original reviews only
+
+This experiment checks whether the synthetic training reviews help the quality
+text classifier. It keeps the existing CSV, product splits, review-first text
+input, `text_label` target, and reference training settings. It trains one final
+RoBERTa encoder; it does not generate OOF features or retrain XGBoost or ABSA.
+The reference model and the API bundle selection stay unchanged.
+
+Run from the repository root with the CUDA-enabled root environment. Use a new
+output directory for each experiment so that previous weights are preserved:
+
+```powershell
+.\.venv\Scripts\python.exe stage1/train_roberta.py --data data/test_reviews.csv --splits data/splits_dataset.json --output models/real_only_v1/dost_roberta --epochs 10 --batch-size 2 --max-length 128 --require-cuda
+```
+
+The absence of `--augmentations` means only original training reviews are used.
+For the current frozen dataset this is 1,100 training reviews and 226 validation
+reviews. The 230 test reviews are not predicted or used to select a checkpoint.
+Training uses the pretrained DOST encoder, learning rate 0.00002, seed 42, and
+ordinary AdamW fine-tuning. The best checkpoint is selected by validation macro-F1
+against `text_label`, rather than automatically taking the last epoch.
+
+After training, compare the saved encoders on the same original validation
+reviews. This command reconstructs the reference's augmentation provenance for
+verification; it does not add augmentation to the real-only candidate:
+
+```powershell
+.\.venv\Scripts\python.exe scripts/compare_roberta_validation.py --reference models/quality_balanced_v5/dost_roberta --candidate models/real_only_v1/dost_roberta --reference-augmentations data/augmented_reviews.csv --allow-unreviewed-reference-augmentations --output reports/generated/real_only_v1/validation_comparison.json
+```
+
+Open `reports/generated/real_only_v1/validation_comparison.md` for a readable
+comparison. The JSON also contains per-class metrics, confusion matrices, and
+each validation review's labels, predictions and probabilities. Results against
+`text_label` describe the encoder's intended training task; results against final
+`ground_truth` are reported separately. Both label columns retain their existing
+meaning. Existing comparison reports are protected from overwrite.
+
+This encoder-only training step does not produce a complete API bundle. Its
+encoder needs compatible new OOF features and a newly trained XGBoost before
+assessing the full pipeline. The following sections describe that training and
+the completed bundle assembly. Judge the encoder experiment using
+validation; it does not establish statistical significance. The historical
+reference also resumed CPU training on GPU, so this comparison does not isolate
+augmentation effects under exactly matched device histories. New candidate
+weights and generated comparison reports remain ignored by Git.
+
+The completed `real_only_v1` run used all 10 epochs and selected epoch 6. Reloading
+the saved weights reproduced the trainer's validation macro-F1. On the same 226
+validation reviews:
+
+| Target | Metric | Reference with augmentation | Real-only candidate |
+| --- | --- | ---: | ---: |
+| `text_label` | Accuracy | 66.81% | 69.47% |
+| `text_label` | Macro-F1 | 44.13% | 50.45% |
+| `ground_truth` | Accuracy | 65.49% | 70.80% |
+| `ground_truth` | Macro-F1 | 43.63% | 51.41% |
+
+Deceptive recall increased from 0/5 to 1/5, but Irrelevant recall decreased from
+3/8 to 2/8. This is an overall validation improvement with unresolved rare-class
+weaknesses. It supports testing a compatible real-only OOF/XGBoost experiment;
+it does not establish that the full pipeline or held-out test performance has
+improved. No OOF generation, XGBoost training, deployment, or Git push was done
+as part of this encoder-only experiment.
+
+### Experiment: real-only OOF features and XGBoost
+
+This follows the encoder-only experiment above. Keep its saved final encoder
+and the same original CSV and split manifest. The five temporary encoders train
+for six fixed epochs, matching the final encoder's selected epoch. A fold's
+held-out reviews and products are not used to fit its encoder or select its
+checkpoint. The six-epoch budget was chosen from the previous final-encoder
+validation experiment; it is not selected separately using held-fold labels.
+
+```powershell
+.\.venv\Scripts\python.exe stage1/generate_oof_features.py --data data/test_reviews.csv --splits data/splits_dataset.json --output data/real_only_v1/oof_probabilities.csv --fold-dir models/real_only_v1/oof --epochs 6 --batch-size 2 --max-length 128
+```
+
+This creates exactly one held-out probability vector for each of the 1,100
+original training reviews. It does not generate validation or test predictions.
+Temporary fold weights are saved under `models/real_only_v1/oof/`; the final
+inference encoder remains under `models/real_only_v1/dost_roberta/`.
+
+Then build the six features, train XGBoost, and compare validation results:
+
+This comparison needs the old feature CSV at
+`data/quality_balanced_v5/features/6d_features.csv` and its metadata, as well as
+the reference model weights. The published runtime bundle does not include that
+generated feature cache. These commands describe the controlled comparison on a
+machine where the reference training outputs are available.
+
+```powershell
+.\.venv\Scripts\python.exe scripts/train_real_only_xgboost.py --allow-unreviewed-reference-augmentations
+```
+
+The reference augmentation flag reconstructs the existing reference experiment
+for provenance checks only. No synthetic rows enter the new feature table or
+XGBoost training. This helper verifies both encoder cohorts, the reference
+feature-cache fingerprint, ratings, image URLs/scores, and reference validation
+scores. It reuses recorded M-CLIP similarities and normalized ratings, which are
+independent of RoBERTa's learned weights. It replaces all four text probabilities
+with new OOF predictions for training and final-encoder predictions for validation.
+Images are not downloaded again; previous missing-image outcomes stay fixed.
+
+The resulting `data/real_only_v1/6d_features.csv` has 1,326 rows: 1,100 training
+and 226 validation. XGBoost trains against `ground_truth`, with the existing
+balanced class weights and six-setting depth/learning-rate search. Validation
+macro-F1 selects its settings. Outputs are:
+
+| Path | Purpose |
+| --- | --- |
+| `models/real_only_v1/xgboost_meta_classifier.json` | Separate candidate quality classifier. |
+| `models/real_only_v1/xgboost_meta_classifier.metadata.json` | Training IDs, settings, validation trials and predictions. |
+| `reports/generated/real_only_v1/stage1_validation_comparison.md` | Readable comparison of reference XGBoost, candidate XGBoost and candidate RoBERTa alone, all against final `ground_truth`. |
+| `reports/generated/real_only_v1/stage1_validation_comparison.json` | Per-class metrics, confusion matrices and paired validation predictions. |
+
+The helper refuses to overwrite its generated feature table, candidate classifier,
+or comparison reports. Use fresh paths for another run. The original reference
+weights, API bundle selection, ABSA weights, test reports and split manifest are
+preserved. This training step creates the quality classifier; bundle assembly
+below supplies the remaining runtime files. It does not establish improved test
+performance. The comparison changes both augmentation and the OOF epoch
+budget, so a difference does not isolate the effect of either one alone.
+
+The completed run produced 1,100 OOF rows and 1,326 feature rows. Saved-model
+reload verification reproduced the scores below on the same 226 validation
+reviews, all evaluated against final `ground_truth`:
+
+| Model | Accuracy | Macro-F1 |
+| --- | ---: | ---: |
+| Reference XGBoost | 64.60% | 46.10% |
+| Real-only XGBoost | 71.24% | 51.53% |
+| Real-only RoBERTa alone | 70.80% | 51.41% |
+
+The selected XGBoost has 100 trees, depth 6, and learning rate 0.05. Authentic
+recall increased from 86/126 to 107/126. Deceptive recall remained 1/5, LIV recall
+decreased from 56/87 to 51/87, and Irrelevant recall decreased from 3/8 to 2/8.
+The candidate improves overall validation macro-F1 and accuracy, but the fusion's
+macro-F1 advantage over the new RoBERTa alone is only about 0.12 percentage points.
+This does not establish a meaningful or statistically significant fusion benefit.
+The classifier remains an experimental candidate; no full-pipeline held-out test
+has been performed. OOF errors and cohort checks are saved in
+`reports/generated/real_only_v1/oof_audit.json`, and the completed experiment
+receipt is `reports/generated/real_only_v1/stage1_experiment.json`.
+
+### Download and run the complete real_only_v1 candidate
+
+`models/real_only_v1` is now a complete inference bundle: the new quality RoBERTa,
+its matching XGBoost, and an unchanged copy of the existing ABSA model. ABSA did
+not need retraining: its 688 ground-truth Authentic training reviews and 126
+Authentic validation reviews exactly matched the original-only experiment,
+including the input fields and parsed annotations.
+
+`scripts/assemble_real_only_bundle.py` checks those cohorts before copying ABSA.
+The copied `source_training_metadata.json` preserves its original training record
+verbatim. The new `training_metadata.json` records current dataset/cohort hashes
+and explicit checkpoint-reuse provenance, including the original dataset and
+weight hashes. The manifest records runtime file checksums and marks the bundle
+as an experimental candidate with `test_evaluated: false`.
+
+After this bundle is published, teammates can download it from the repository
+root without retraining:
+
+```powershell
+git lfs install
+git pull origin main
+git lfs pull --include="models/real_only_v1/**"
+```
+
+With the root environment and project dependencies installed, check the files,
+then start the existing API using this specific bundle:
+
+```powershell
+.\.venv\Scripts\python.exe scripts/serve_local.py --bundle models/real_only_v1 --check
+.\.venv\Scripts\python.exe scripts/serve_local.py --bundle models/real_only_v1
+```
+
+Stop an older API process with Ctrl+C before starting the new one on port 8000.
+Check in a second terminal:
+
+```powershell
+Invoke-RestMethod http://127.0.0.1:8000/ready
+```
+
+The response should have `ready: true`. The frontend keeps using the existing
+`http://127.0.0.1:8000/analyze` endpoint. For users who start Uvicorn themselves,
+set `$env:AUTHENTICHECK_MODEL_BUNDLE="models/real_only_v1"` in that terminal
+before starting it. The server helper sets this selection automatically; the
+repository's default bundle selection has not been changed.
+
+GPU inference is optional. The external multilingual/image CLIP encoders are not
+included in this bundle, so first startup needs internet unless those encoders
+are already in the machine's Hugging Face cache. OOF weights, optimizer state,
+and training checkpoints are excluded from the published runtime files.
+
+The actual-model API checks are recorded in
+`reports/real_only_v1/verification.json`: startup/readiness, an Authentic review
+returning aspects, a LIV review bypassing ABSA, zero similarity for missing
+images, and a functional embedding check with the real M-CLIP encoders. The
+embedding check used a generated image and did not test external image downloads.
+These checks establish that the assembled API works; they do not measure its
+accuracy. Stage 1 validation results and paired predictions are published in
+`reports/real_only_v1/validation_comparison.json`. The 51.53% macro-F1 is the
+quality classifier's validation result, not a new ABSA or full-pipeline test score.
+
 ### SOP 3: compare product sentiment separately for each aspect
 
 New runs of `stage2/evaluate_models.py` include `aspect_filtering_ablation` in

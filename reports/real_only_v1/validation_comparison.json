@@ -1,0 +1,5199 @@
+{
+  "partition": "validation",
+  "review_count": 226,
+  "product_count": 4,
+  "class_order": [
+    "authentic",
+    "deceptive",
+    "liv",
+    "irrelevant"
+  ],
+  "validation_sha256": "987f4a0194f562049d6aa515c9279200044328c4650fd2da8f526b4688c6de2e",
+  "test_predictions_generated": false,
+  "candidate_promoted": false,
+  "target": "ground_truth",
+  "reference_directory": "models\\quality_balanced_v5",
+  "candidate_directory": "models\\real_only_v1",
+  "reference_xgboost": {
+    "count": 226,
+    "accuracy": 0.6460176991150443,
+    "macro_precision": 0.4510964912280702,
+    "macro_recall": 0.4753044608648057,
+    "macro_f1": 0.46096000993541975,
+    "support": [
+      126,
+      5,
+      87,
+      8
+    ],
+    "confusion_matrix": [
+      [
+        86,
+        0,
+        35,
+        5
+      ],
+      [
+        0,
+        1,
+        3,
+        1
+      ],
+      [
+        26,
+        4,
+        56,
+        1
+      ],
+      [
+        2,
+        1,
+        2,
+        3
+      ]
+    ],
+    "per_class": {
+      "authentic": {
+        "precision": 0.7543859649122807,
+        "recall": 0.6825396825396826,
+        "f1": 0.7166666666666667,
+        "support": 126
+      },
+      "deceptive": {
+        "precision": 0.16666666666666666,
+        "recall": 0.2,
+        "f1": 0.18181818181818182,
+        "support": 5
+      },
+      "liv": {
+        "precision": 0.5833333333333334,
+        "recall": 0.6436781609195402,
+        "f1": 0.6120218579234973,
+        "support": 87
+      },
+      "irrelevant": {
+        "precision": 0.3,
+        "recall": 0.375,
+        "f1": 0.3333333333333333,
+        "support": 8
+      }
+    }
+  },
+  "candidate_xgboost": {
+    "count": 226,
+    "accuracy": 0.7123893805309734,
+    "macro_precision": 0.705516475379489,
+    "macro_recall": 0.4713533114395183,
+    "macro_f1": 0.5153326798947004,
+    "support": [
+      126,
+      5,
+      87,
+      8
+    ],
+    "confusion_matrix": [
+      [
+        107,
+        0,
+        17,
+        2
+      ],
+      [
+        0,
+        1,
+        4,
+        0
+      ],
+      [
+        35,
+        0,
+        51,
+        1
+      ],
+      [
+        4,
+        0,
+        2,
+        2
+      ]
+    ],
+    "per_class": {
+      "authentic": {
+        "precision": 0.7328767123287672,
+        "recall": 0.8492063492063492,
+        "f1": 0.7867647058823529,
+        "support": 126
+      },
+      "deceptive": {
+        "precision": 1.0,
+        "recall": 0.2,
+        "f1": 0.3333333333333333,
+        "support": 5
+      },
+      "liv": {
+        "precision": 0.6891891891891891,
+        "recall": 0.5862068965517241,
+        "f1": 0.6335403726708074,
+        "support": 87
+      },
+      "irrelevant": {
+        "precision": 0.4,
+        "recall": 0.25,
+        "f1": 0.3076923076923077,
+        "support": 8
+      }
+    }
+  },
+  "candidate_roberta_only": {
+    "count": 226,
+    "accuracy": 0.7079646017699115,
+    "macro_precision": 0.6448079791200596,
+    "macro_recall": 0.46847974822112753,
+    "macro_f1": 0.5141158212856326,
+    "support": [
+      126,
+      5,
+      87,
+      8
+    ],
+    "confusion_matrix": [
+      [
+        107,
+        1,
+        17,
+        1
+      ],
+      [
+        1,
+        1,
+        3,
+        0
+      ],
+      [
+        37,
+        0,
+        50,
+        0
+      ],
+      [
+        4,
+        0,
+        2,
+        2
+      ]
+    ],
+    "per_class": {
+      "authentic": {
+        "precision": 0.7181208053691275,
+        "recall": 0.8492063492063492,
+        "f1": 0.7781818181818182,
+        "support": 126
+      },
+      "deceptive": {
+        "precision": 0.5,
+        "recall": 0.2,
+        "f1": 0.2857142857142857,
+        "support": 5
+      },
+      "liv": {
+        "precision": 0.6944444444444444,
+        "recall": 0.5747126436781609,
+        "f1": 0.6289308176100629,
+        "support": 87
+      },
+      "irrelevant": {
+        "precision": 0.6666666666666666,
+        "recall": 0.25,
+        "f1": 0.36363636363636365,
+        "support": 8
+      }
+    }
+  },
+  "candidate_minus_reference": {
+    "accuracy": 0.0663716814159292,
+    "macro_precision": 0.2544199841514188,
+    "macro_recall": -0.0039511494252874035,
+    "macro_f1": 0.054372669959280695
+  },
+  "frozen_visual_features_source": "data\\quality_balanced_v5\\features\\6d_features.csv",
+  "limitations": [
+    "One seed and four validation products; no statistical significance is established.",
+    "No test evaluation, ABSA evaluation or deployment was performed.",
+    "Original-only training and six OOF epochs differ from the reference augmentation/epoch protocol.",
+    "Recorded visual scores preserve the earlier image-fetch outcomes; images were not downloaded again."
+  ],
+  "records": [
+    {
+      "review_id": "review_00118",
+      "product_id": "prod_03",
+      "review_text": "Effectiveness: good | Fragrance: odourless | Texture: gel/creamy | Satisfied customer po👍👍👍 Excellent quality🤍🤍🤍 Very accommodating seller🤍🤍🤍 Well-packaged🤍🤍🤍 Item shipped immediately🤍🤍🤍 Will order again🤍🤍🤍 Thank you🤍🤍🤍 Edited: THANK YOU PO SA FREEBIES na Pouch bag and cetaphil cleansing antibactirial bar 28g ❤️",
+      "text_label": "authentic",
+      "ground_truth": "authentic",
+      "reference_prediction": "liv",
+      "candidate_prediction": "liv",
+      "candidate_roberta_prediction": "liv",
+      "reference_probabilities": [
+        0.3012499511241913,
+        0.011961485259234905,
+        0.6737061738967896,
+        0.013082385063171387
+      ],
+      "candidate_probabilities": [
+        0.07486822456121445,
+        0.006494738161563873,
+        0.9106443524360657,
+        0.007992703467607498
+      ]
+    },
+    {
+      "review_id": "review_00119",
+      "product_id": "prod_03",
+      "review_text": "Effectiveness: True to its claims, doesn't irritates skin | Fragrance: Very light | Texture: Smooth on the face (Big thanks for the free cleansing bar! 😍) | My second purchase though I haven't rated the 1st time I ordered. Still, my expectations were met. The product was again double and neatly wrapped. Plus it now comes with a freebie! 😍It was delivered in good quality condition Hence, the seller was trust-worthy Kudos Seller! Until next purchase! ❤️",
+      "text_label": "authentic",
+      "ground_truth": "authentic",
+      "reference_prediction": "authentic",
+      "candidate_prediction": "authentic",
+      "candidate_roberta_prediction": "authentic",
+      "reference_probabilities": [
+        0.8885877728462219,
+        0.002930480521172285,
+        0.10475548356771469,
+        0.0037263203412294388
+      ],
+      "candidate_probabilities": [
+        0.8422590494155884,
+        0.09107660502195358,
+        0.05759657174348831,
+        0.009067767299711704
+      ]
+    },
+    {
+      "review_id": "review_00120",
+      "product_id": "prod_03",
+      "review_text": "Beauty Profile: good product | Benefits: not drying and very hydrating | User Tips: use it twice a day | Been using this gentle cleanser for almost a year now. But first time to buy this cute travel size. Didn’t expect to be this too small. Happy with the packaging and fast shipping.",
+      "text_label": "authentic",
+      "ground_truth": "authentic",
+      "reference_prediction": "authentic",
+      "candidate_prediction": "authentic",
+      "candidate_roberta_prediction": "authentic",
+      "reference_probabilities": [
+        0.6850371360778809,
+        0.0014331488637253642,
+        0.311586856842041,
+        0.0019428920932114124
+      ],
+      "candidate_probabilities": [
+        0.7763453722000122,
+        0.15337277948856354,
+        0.06142306327819824,
+        0.008858813904225826
+      ]
+    },
+    {
+      "review_id": "review_00121",
+      "product_id": "prod_03",
+      "review_text": "Effectiveness: 10/10 | Fragrance: 10/10 | Texture: 10/10 | super gandaa nya gamitin, and masasabi mong trusted product talaga ang cetaphil and natuwa ako kasi may pafreebies pa thank you seller! sa uulitin",
+      "text_label": "authentic",
+      "ground_truth": "authentic",
+      "reference_prediction": "liv",
+      "candidate_prediction": "authentic",
+      "candidate_roberta_prediction": "deceptive",
+      "reference_probabilities": [
+        0.1663932055234909,
+        0.01736338809132576,
+        0.8063183426856995,
+        0.009925056248903275
+      ],
+      "candidate_probabilities": [
+        0.505294919013977,
+        0.031496934592723846,
+        0.39182791113853455,
+        0.07138019800186157
+      ]
+    },
+    {
+      "review_id": "review_00122",
+      "product_id": "prod_03",
+      "review_text": "Effectiveness: smooth to skin | Fragrance: no frgrance | Texture: smooth | Thanks seller..Narecieved ko na Ang parcel mabilis Rin Ang shipping safe at secured din dumating..tried & tested ko na Ang item n to same store din Ako bumili kaya lng medyo maliit yata nabili ko Ngayon..anyway thanks seller,shoppee,courier & del.rider..order ulit Ako pag naubos ..☺️",
+      "text_label": "authentic",
+      "ground_truth": "authentic",
+      "reference_prediction": "authentic",
+      "candidate_prediction": "authentic",
+      "candidate_roberta_prediction": "authentic",
+      "reference_probabilities": [
+        0.7460904717445374,
+        0.0031387892086058855,
+        0.24577079713344574,
+        0.004999931901693344
+      ],
+      "candidate_probabilities": [
+        0.710098385810852,
+        0.17030347883701324,
+        0.10736452043056488,
+        0.012233581393957138
+      ]
+    },
+    {
+      "review_id": "review_00123",
+      "product_id": "prod_03",
+      "review_text": "Effectiveness: 10/10 | Texture: 10/10 | Fragrance: 10/10 | i have an oily face, hindi naman ung sobra pero yung normal. na pagka oily, katatapos ko lang siya gamitin and hindi naman siya nag cause ng rashes or anything sa face ko, maliit muna binili ko para ma test muna 😅, well-packed and no damages, thank u po",
+      "text_label": "authentic",
+      "ground_truth": "authentic",
+      "reference_prediction": "authentic",
+      "candidate_prediction": "authentic",
+      "candidate_roberta_prediction": "authentic",
+      "reference_probabilities": [
+        0.8107011914253235,
+        0.0022764478344470263,
+        0.1797603964805603,
+        0.007262006402015686
+      ],
+      "candidate_probabilities": [
+        0.842003345489502,
+        0.0946248397231102,
+        0.049328628927469254,
+        0.014043174684047699
+      ]
+    },
+    {
+      "review_id": "review_00124",
+      "product_id": "prod_03",
+      "review_text": "Effectiveness: so great, my face feels soft after wash | Fragrance: little to no smell at all | Texture: watery | thank you cetaphil! i've been breaking out lately so i bought this gentle cleanser so my skin could take a rest. i also received so many freebies yay! 2 brightening cream, 1 lotion, and 1 sunscreen. thank you so much!",
+      "text_label": "authentic",
+      "ground_truth": "authentic",
+      "reference_prediction": "authentic",
+      "candidate_prediction": "authentic",
+      "candidate_roberta_prediction": "authentic",
+      "reference_probabilities": [
+        0.9647988677024841,
+        0.0042372397147119045,
+        0.02588833123445511,
+        0.005075516644865274
+      ],
+      "candidate_probabilities": [
+        0.8509654402732849,
+        0.09250352531671524,
+        0.04732123389840126,
+        0.0092098293825984
+      ]
+    },
+    {
+      "review_id": "review_00125",
+      "product_id": "prod_03",
+      "review_text": "Effectiveness: I think legit nmn kc mganda ung quality ng product | Fragrance: Mabango | Texture: is good | Mukang legit since sa original store ako bumili kc mahirap na bka mabili ko fake for my baby kc sensitive skin at sakin acne prone type ng skin ko sana mag ok na to skin. Thanks for the fast delivery ❤️",
+      "text_label": "authentic",
+      "ground_truth": "authentic",
+      "reference_prediction": "authentic",
+      "candidate_prediction": "authentic",
+      "candidate_roberta_prediction": "authentic",
+      "reference_probabilities": [
+        0.9011223912239075,
+        0.0022684403229504824,
+        0.09209083765745163,
+        0.004518269095569849
+      ],
+      "candidate_probabilities": [
+        0.8849857449531555,
+        0.06340083479881287,
+        0.04607469215989113,
+        0.005538796074688435
+      ]
+    },
+    {
+      "review_id": "review_00126",
+      "product_id": "prod_03",
+      "review_text": "Effectiveness: 10/10 | Fragrance: none. unscented | Texture: light | Received in good condition. Correct (1pc 60ml gentle skin cleanser). Unscented. For whole family with very sensitive skin. Uses this as baby bath for my newborn wirh verh sensitive skin and for facial wash of my 12yr old son as his regular skin care. Very effective. No irritation but a supple skin. Legit. Will pldefinitely buy again",
+      "text_label": "authentic",
+      "ground_truth": "authentic",
+      "reference_prediction": "liv",
+      "candidate_prediction": "authentic",
+      "candidate_roberta_prediction": "authentic",
+      "reference_probabilities": [
+        0.4120873510837555,
+        0.0018432459328323603,
+        0.5805385708808899,
+        0.005530869588255882
+      ],
+      "candidate_probabilities": [
+        0.9542973041534424,
+        0.005568928550928831,
+        0.03332929685711861,
+        0.00680455332621932
+      ]
+    },
+    {
+      "review_id": "review_00127",
+      "product_id": "prod_03",
+      "review_text": "Effectiveness: diko pa na try pero ay think effective sya✨ | Fragrance: subra lalo na yung sa protection sa skin sun 😎 | Texture: good ✨ | subrang safe nya sa lalagyan nya tas may mga free siya pero effective tlaga kaya sulit yung pera mo dto di masasayang thankful po talaga I'm order again thankyouuu so much ✨❤️",
+      "text_label": "authentic",
+      "ground_truth": "authentic",
+      "reference_prediction": "authentic",
+      "candidate_prediction": "authentic",
+      "candidate_roberta_prediction": "authentic",
+      "reference_probabilities": [
+        0.7222239375114441,
+        0.0025866383221000433,
+        0.2717852294445038,
+        0.0034041455946862698
+      ],
+      "candidate_probabilities": [
+        0.9075532555580139,
+        0.010648009367287159,
+        0.07406989485025406,
+        0.007728852331638336
+      ]
+    },
+    {
+      "review_id": "review_00128",
+      "product_id": "prod_03",
+      "review_text": "Effectiveness: Very good because its mild | Fragrance: None which is good | Texture: Serum like texture | Arrived safe and well-packed in cardboard and bubble wrap. All are fresh stocks and I super love the freebies. Thank you so much ❣️",
+      "text_label": "authentic",
+      "ground_truth": "authentic",
+      "reference_prediction": "liv",
+      "candidate_prediction": "authentic",
+      "candidate_roberta_prediction": "authentic",
+      "reference_probabilities": [
+        0.3416699171066284,
+        0.0071424925699830055,
+        0.6469112634658813,
+        0.004276338033378124
+      ],
+      "candidate_probabilities": [
+        0.7353795170783997,
+        0.013227051123976707,
+        0.24055559933185577,
+        0.010837866924703121
+      ]
+    },
+    {
+      "review_id": "review_00129",
+      "product_id": "prod_03",
+      "review_text": "Great quality on a fraction of the price. You won’t regret buying it. Used good quality packaging and product itself is in top notch condition Great stuff for its purpose and work great! Smell is just right and not overpowering! Love it!",
+      "text_label": "authentic",
+      "ground_truth": "authentic",
+      "reference_prediction": "authentic",
+      "candidate_prediction": "authentic",
+      "candidate_roberta_prediction": "authentic",
+      "reference_probabilities": [
+        0.8560214042663574,
+        0.004419778473675251,
+        0.1306402087211609,
+        0.008918599225580692
+      ],
+      "candidate_probabilities": [
+        0.5223242044448853,
+        0.056559596210718155,
+        0.38789311051368713,
+        0.03322308883070946
+      ]
+    },
+    {
+      "review_id": "review_00130",
+      "product_id": "prod_03",
+      "review_text": "Effectiveness: Soft to skin | Fragrance: None | Texture: Soft | Effective sya sa face ko, nagiging smooth ang texture kapag ginagamit ko sya. Pero still yong pagiging oily, di pa rin nawawala.",
+      "text_label": "authentic",
+      "ground_truth": "authentic",
+      "reference_prediction": "authentic",
+      "candidate_prediction": "authentic",
+      "candidate_roberta_prediction": "authentic",
+      "reference_probabilities": [
+        0.5927183032035828,
+        0.0033738233614712954,
+        0.39560404419898987,
+        0.008303840644657612
+      ],
+      "candidate_probabilities": [
+        0.8030040264129639,
+        0.11311356723308563,
+        0.07262060791254044,
+        0.011261808685958385
+      ]
+    },
+    {
+      "review_id": "review_00131",
+      "product_id": "prod_03",
+      "review_text": "Effectiveness: 10/10 | Texture: 10/10 | Fragrance: 10/10 | I tried a lot of cleanser but it made my acne worst which is im not sure what happen because i think im not sensitive skin, but when i tried CETAPHIL, its a life changer, it make my aura fluffy and blooming , unlike before its too dull.it also calms my acne Trust the process because it takes me months before it calms my breakout. Dont put anything unneccesary. Safe and well packed , thank you seller and rider.",
+      "text_label": "authentic",
+      "ground_truth": "authentic",
+      "reference_prediction": "authentic",
+      "candidate_prediction": "authentic",
+      "candidate_roberta_prediction": "authentic",
+      "reference_probabilities": [
+        0.8676938414573669,
+        0.003004453144967556,
+        0.10768204182386398,
+        0.021619657054543495
+      ],
+      "candidate_probabilities": [
+        0.8285928964614868,
+        0.10532304644584656,
+        0.05045317858457565,
+        0.01563088409602642
+      ]
+    },
+    {
+      "review_id": "review_00132",
+      "product_id": "prod_03",
+      "review_text": "Fragrance: 10/10 | Texture: 10/10 | Effectiveness: not sure 😊 | Fast shipping and handling with buble wrap products is legit and handling is good no damage thanks seller and courier more transactions pa",
+      "text_label": "authentic",
+      "ground_truth": "authentic",
+      "reference_prediction": "liv",
+      "candidate_prediction": "liv",
+      "candidate_roberta_prediction": "authentic",
+      "reference_probabilities": [
+        0.3596343696117401,
+        0.006111889611929655,
+        0.6198332905769348,
+        0.014420480467379093
+      ],
+      "candidate_probabilities": [
+        0.3163566291332245,
+        0.023242900148034096,
+        0.6431810259819031,
+        0.017219433560967445
+      ]
+    },
+    {
+      "review_id": "review_00133",
+      "product_id": "prod_03",
+      "review_text": "Fragrance: walang amoy | Effectiveness: effective, gentle cleanser talaga siya | Texture: soft naman. | Will buy again. Good for acne prone skin. Calming din",
+      "text_label": "authentic",
+      "ground_truth": "authentic",
+      "reference_prediction": "liv",
+      "candidate_prediction": "authentic",
+      "candidate_roberta_prediction": "authentic",
+      "reference_probabilities": [
+        0.24388784170150757,
+        0.009904928505420685,
+        0.7330144643783569,
+        0.013192793354392052
+      ],
+      "candidate_probabilities": [
+        0.4664519131183624,
+        0.04351596161723137,
+        0.46388891339302063,
+        0.026143182069063187
+      ]
+    },
+    {
+      "review_id": "review_00134",
+      "product_id": "prod_03",
+      "review_text": "Texture: smooth n silky texture | Effectiveness: not yet proven | Fragrance: no fragrance | Well this thing is so much good for me, and very suitable for teenagers nowdays",
+      "text_label": "liv",
+      "ground_truth": "liv",
+      "reference_prediction": "liv",
+      "candidate_prediction": "liv",
+      "candidate_roberta_prediction": "authentic",
+      "reference_probabilities": [
+        0.09613192081451416,
+        0.02585551142692566,
+        0.846912682056427,
+        0.031099941581487656
+      ],
+      "candidate_probabilities": [
+        0.364208459854126,
+        0.03365197405219078,
+        0.5622093677520752,
+        0.03993021324276924
+      ]
+    },
+    {
+      "review_id": "review_00135",
+      "product_id": "prod_03",
+      "review_text": "Effectiveness: 8/10 | Fragrance: no strong smell | Texture: liquid gel | First time kung gumamit ng product so far wala pang changes pero ayus naman thank you sana effective sya",
+      "text_label": "authentic",
+      "ground_truth": "authentic",
+      "reference_prediction": "liv",
+      "candidate_prediction": "liv",
+      "candidate_roberta_prediction": "liv",
+      "reference_probabilities": [
+        0.19966061413288116,
+        0.009972662664949894,
+        0.7716782689094543,
+        0.018688488751649857
+      ],
+      "candidate_probabilities": [
+        0.2964468002319336,
+        0.021613972261548042,
+        0.6556206345558167,
+        0.026318566873669624
+      ]
+    },
+    {
+      "review_id": "review_00136",
+      "product_id": "prod_03",
+      "review_text": "Fragrance: Ok | Texture: Ok | Effectiveness: Great | Pangatlong bili ko na nito at ito parin talaga pinakamaganda para sakin. Recommend ko talaga to para sa mga sensitive, acne-prone at oily ang skin gaya ko.",
+      "text_label": "liv",
+      "ground_truth": "liv",
+      "reference_prediction": "liv",
+      "candidate_prediction": "authentic",
+      "candidate_roberta_prediction": "authentic",
+      "reference_probabilities": [
+        0.12228777259588242,
+        0.0019874852150678635,
+        0.8659641742706299,
+        0.009760566055774689
+      ],
+      "candidate_probabilities": [
+        0.6545097827911377,
+        0.014297597110271454,
+        0.3125511407852173,
+        0.018641456961631775
+      ]
+    },
+    {
+      "review_id": "review_00137",
+      "product_id": "prod_03",
+      "review_text": "Benefits: Good | Fragrance: Good | It is really \"What you see is what you got\" it never disappoint me, the quality is so good and affordable, I'm very satisfied. Thank you so much, more order's to come ✨",
+      "text_label": "liv",
+      "ground_truth": "liv",
+      "reference_prediction": "liv",
+      "candidate_prediction": "liv",
+      "candidate_roberta_prediction": "liv",
+      "reference_probabilities": [
+        0.02043154276907444,
+        0.027594875544309616,
+        0.9379057288169861,
+        0.014067914336919785
+      ],
+      "candidate_probabilities": [
+        0.028440330177545547,
+        0.00681278295814991,
+        0.9517346024513245,
+        0.013012317009270191
+      ]
+    },
+    {
+      "review_id": "review_00138",
+      "product_id": "prod_03",
+      "review_text": "Nakarating ng mabilis kahit may bagyo dito pero hindi po ba talaga puno yung laman nito? Mabait din si seller good packaging safe na safe",
+      "text_label": "liv",
+      "ground_truth": "liv",
+      "reference_prediction": "authentic",
+      "candidate_prediction": "authentic",
+      "candidate_roberta_prediction": "authentic",
+      "reference_probabilities": [
+        0.668100893497467,
+        0.0032855591271072626,
+        0.21050335466861725,
+        0.11811016499996185
+      ],
+      "candidate_probabilities": [
+        0.7495871186256409,
+        0.019729891791939735,
+        0.15509770810604095,
+        0.07558523118495941
+      ]
+    },
+    {
+      "review_id": "review_00139",
+      "product_id": "prod_03",
+      "review_text": "Effectiveness: not knowledgeable in this area but I feel like it gets the job done | Texture: it's more like a serum than a liquid soap which is nice | I don't know how to review this properly but if you don't want to use your body soap on your face this is a good alternative. it's not strong. it's mild without any extra gimmick. it's a straightforward product. nothing fancy. just a trusty cleanser. And the delivery is fast. Ordered and shipped immediately on the same day.",
+      "text_label": "authentic",
+      "ground_truth": "authentic",
+      "reference_prediction": "authentic",
+      "candidate_prediction": "authentic",
+      "candidate_roberta_prediction": "authentic",
+      "reference_probabilities": [
+        0.5872520804405212,
+        0.0040365285240113735,
+        0.39860519766807556,
+        0.010106157511472702
+      ],
+      "candidate_probabilities": [
+        0.8248193264007568,
+        0.10620421171188354,
+        0.058402542024850845,
+        0.010573898442089558
+      ]
+    },
+    {
+      "review_id": "review_00140",
+      "product_id": "prod_03",
+      "review_text": "Fragrance: good | Effectiveness: good | Texture: good | Thanks seller,try palang fo my daughter sensitive kasi skin nya kaya maliit muna,pero for sure maganda to",
+      "text_label": "liv",
+      "ground_truth": "liv",
+      "reference_prediction": "liv",
+      "candidate_prediction": "authentic",
+      "candidate_roberta_prediction": "authentic",
+      "reference_probabilities": [
+        0.32390788197517395,
+        0.00592397665604949,
+        0.6589174866676331,
+        0.011250688694417477
+      ],
+      "candidate_probabilities": [
+        0.6224719285964966,
+        0.012520018965005875,
+        0.35040560364723206,
+        0.014602423645555973
+      ]
+    },
+    {
+      "review_id": "review_00141",
+      "product_id": "prod_03",
+      "review_text": "Fragrance: good | Texture: good | Effectiveness: good | Absolutely thrilled with my recent purchase! This product exceeded my expectations in every way. From its sleek design to its impressive performance, it's truly a game-changer. The craftsmanship is top-notch, showcasing durability and attention to detail. Setup was a breeze, and the user-friendly interface makes operation a delight. I've noticed a significant improvement in [specific benefit or feature], enhancing my overall experience. Plus, the customer service was exceptional, providing helpful assistance whenever needed. Overall, this product has definitely enhanced my daily life and I highly recommend it to anyone in search of quality and reliability.",
+      "text_label": "deceptive",
+      "ground_truth": "deceptive",
+      "reference_prediction": "liv",
+      "candidate_prediction": "liv",
+      "candidate_roberta_prediction": "authentic",
+      "reference_probabilities": [
+        0.1324644535779953,
+        0.0036060998681932688,
+        0.8427912592887878,
+        0.02113823965191841
+      ],
+      "candidate_probabilities": [
+        0.3918992280960083,
+        0.03041759319603443,
+        0.48759227991104126,
+        0.09009093791246414
+      ]
+    },
+    {
+      "review_id": "review_00142",
+      "product_id": "prod_03",
+      "review_text": "Effectiveness: Gentle to skin, baby approved | Fragrance: Pleasant smell | Texture: Lathery | Okayyy shipped immediately but Where's my freebie?? I got excited reading others reviews about the freebies and was hoping I could get one.. Where's my freebie??Where's my freebie??",
+      "text_label": "irrelevant",
+      "ground_truth": "irrelevant",
+      "reference_prediction": "irrelevant",
+      "candidate_prediction": "authentic",
+      "candidate_roberta_prediction": "irrelevant",
+      "reference_probabilities": [
+        0.01538139022886753,
+        0.004241317510604858,
+        0.04514070227742195,
+        0.9352365732192993
+      ],
+      "candidate_probabilities": [
+        0.6117373704910278,
+        0.04096590355038643,
+        0.26619091629981995,
+        0.08110587298870087
+      ]
+    },
+    {
+      "review_id": "review_00143",
+      "product_id": "prod_03",
+      "review_text": "Cetaphil Gentle Skin Cleanser is indeed good for the skin it's just that this is too expensive for mee. I'm actually surprised with the size hahaha. Since it's a gentle cleanser it doesn't lather like an ordinary soap.",
+      "text_label": "liv",
+      "ground_truth": "liv",
+      "reference_prediction": "authentic",
+      "candidate_prediction": "authentic",
+      "candidate_roberta_prediction": "authentic",
+      "reference_probabilities": [
+        0.7437970042228699,
+        0.003060012822970748,
+        0.2408752739429474,
+        0.012267758138477802
+      ],
+      "candidate_probabilities": [
+        0.7771419286727905,
+        0.10536407679319382,
+        0.10673298686742783,
+        0.010760989040136337
+      ]
+    },
+    {
+      "review_id": "review_00144",
+      "product_id": "prod_03",
+      "review_text": "Benefits: light to use | Fragrance: smell free | Usage Experience: good | reveived in good condition",
+      "text_label": "liv",
+      "ground_truth": "liv",
+      "reference_prediction": "authentic",
+      "candidate_prediction": "liv",
+      "candidate_roberta_prediction": "liv",
+      "reference_probabilities": [
+        0.636355996131897,
+        0.005213611293584108,
+        0.3458370566368103,
+        0.012593318708240986
+      ],
+      "candidate_probabilities": [
+        0.1867731362581253,
+        0.019732331857085228,
+        0.7794915437698364,
+        0.014003022573888302
+      ]
+    },
+    {
+      "review_id": "review_00145",
+      "product_id": "prod_03",
+      "review_text": "Effectiveness: my skin is so sensitive | Texture: gentle liquid | I would say that at the march 25 while using it everynight so my skin goes well but when i use it everyday and night nag start april 6 and yesterday ko lang napansin sobrang dami kung tiny bumps I think na overcleanse huhuhu mg skin went damage and for all girlies please I remind you guys 1st week every 3days lalo na acne prone ka and oily sensitive like me",
+      "text_label": "authentic",
+      "ground_truth": "authentic",
+      "reference_prediction": "authentic",
+      "candidate_prediction": "authentic",
+      "candidate_roberta_prediction": "authentic",
+      "reference_probabilities": [
+        0.6723649501800537,
+        0.0028526277747005224,
+        0.2694467008113861,
+        0.055335745215415955
+      ],
+      "candidate_probabilities": [
+        0.7849295735359192,
+        0.10641992092132568,
+        0.0977817103266716,
+        0.01086882408708334
+      ]
+    },
+    {
+      "review_id": "review_00146",
+      "product_id": "prod_03",
+      "review_text": "Packaging: nice packaging | Benefits: for sensitive skin | Usage Experience: morning and evening usage | received in good condition! well packed!",
+      "text_label": "liv",
+      "ground_truth": "liv",
+      "reference_prediction": "liv",
+      "candidate_prediction": "liv",
+      "candidate_roberta_prediction": "liv",
+      "reference_probabilities": [
+        0.2867075502872467,
+        0.006874707527458668,
+        0.6936520934104919,
+        0.012765667401254177
+      ],
+      "candidate_probabilities": [
+        0.052004411816596985,
+        0.018343569710850716,
+        0.9197112321853638,
+        0.009940798394382
+      ]
+    },
+    {
+      "review_id": "review_00147",
+      "product_id": "prod_03",
+      "review_text": "Fast shipping and ok din packaging✨✨✨ tbh medj nagexpect ako ng freebies kaso wala pero ok lungs. Sa ngayon 3 stars muna kasi di ko pa naman natatry but i'll try to edit it if ever magwork doe, sana talaga.",
+      "text_label": "liv",
+      "ground_truth": "liv",
+      "reference_prediction": "liv",
+      "candidate_prediction": "liv",
+      "candidate_roberta_prediction": "authentic",
+      "reference_probabilities": [
+        0.06907697767019272,
+        0.14512351155281067,
+        0.4822239577770233,
+        0.3035755753517151
+      ],
+      "candidate_probabilities": [
+        0.16423584520816803,
+        0.04075578227639198,
+        0.5747137665748596,
+        0.22029460966587067
+      ]
+    },
+    {
+      "review_id": "review_00148",
+      "product_id": "prod_03",
+      "review_text": "Effectiveness: legit | Fragrance: legit | Texture: legitimately | I have been buying cetaphil for awhile now and every time i am surprised on how big or small the product is and this one is veeeerrryy small good thing I bought 2 pieces",
+      "text_label": "liv",
+      "ground_truth": "liv",
+      "reference_prediction": "liv",
+      "candidate_prediction": "authentic",
+      "candidate_roberta_prediction": "authentic",
+      "reference_probabilities": [
+        0.4597761631011963,
+        0.003453920129686594,
+        0.5237204432487488,
+        0.01304952334612608
+      ],
+      "candidate_probabilities": [
+        0.8594045042991638,
+        0.0195921678096056,
+        0.10479619354009628,
+        0.016207074746489525
+      ]
+    },
+    {
+      "review_id": "review_00149",
+      "product_id": "prod_03",
+      "review_text": "Well packed and secured. Thank you seller and rider,nice services! Anyway, not yet tried I'm a first time user hope will suit to my sensitive skin. I have break outs 😢 sana hiyang ako at mawala na pimples ko. 🙏🏻",
+      "text_label": "liv",
+      "ground_truth": "liv",
+      "reference_prediction": "deceptive",
+      "candidate_prediction": "authentic",
+      "candidate_roberta_prediction": "authentic",
+      "reference_probabilities": [
+        0.0028505849186331034,
+        0.9905524253845215,
+        0.005822332575917244,
+        0.0007746945484541357
+      ],
+      "candidate_probabilities": [
+        0.6004346609115601,
+        0.07721933722496033,
+        0.23783837258815765,
+        0.08450758457183838
+      ]
+    },
+    {
+      "review_id": "review_00150",
+      "product_id": "prod_03",
+      "review_text": "Received my order in good condition. It was highly secured and taken care off by the courier. A very good item to haved.More goods to buy and purchase this seller,😊 good quality for its price defitnely will order again😊",
+      "text_label": "liv",
+      "ground_truth": "liv",
+      "reference_prediction": "authentic",
+      "candidate_prediction": "authentic",
+      "candidate_roberta_prediction": "authentic",
+      "reference_probabilities": [
+        0.5993296504020691,
+        0.009075197391211987,
+        0.36960569024086,
+        0.021989475935697556
+      ],
+      "candidate_probabilities": [
+        0.7906496524810791,
+        0.019893987104296684,
+        0.17260897159576416,
+        0.01684735342860222
+      ]
+    },
+    {
+      "review_id": "review_00151",
+      "product_id": "prod_03",
+      "review_text": "Texture: creamy na may oil | Fragrance: fragrance free | Fast shipping and delivery Well packed About naman sa product sobrang mild lang niya good for sensitive skin",
+      "text_label": "authentic",
+      "ground_truth": "authentic",
+      "reference_prediction": "liv",
+      "candidate_prediction": "liv",
+      "candidate_roberta_prediction": "liv",
+      "reference_probabilities": [
+        0.1790972203016281,
+        0.028360169380903244,
+        0.7598802447319031,
+        0.03266239911317825
+      ],
+      "candidate_probabilities": [
+        0.01684306003153324,
+        0.026982396841049194,
+        0.9017760157585144,
+        0.0543985478579998
+      ]
+    },
+    {
+      "review_id": "review_00152",
+      "product_id": "prod_03",
+      "review_text": "sakto lang",
+      "text_label": "liv",
+      "ground_truth": "liv",
+      "reference_prediction": "liv",
+      "candidate_prediction": "liv",
+      "candidate_roberta_prediction": "liv",
+      "reference_probabilities": [
+        0.38604235649108887,
+        0.00609419122338295,
+        0.5987569093704224,
+        0.009106529876589775
+      ],
+      "candidate_probabilities": [
+        0.09539277851581573,
+        0.01590929925441742,
+        0.8784253597259521,
+        0.010272589512169361
+      ]
+    },
+    {
+      "review_id": "review_00153",
+      "product_id": "prod_03",
+      "review_text": "Effectiveness: note sure | Texture: goods | Fragrance: walang amoy | Kita Ok ung ibang ratings may freebies haha nag expect lng bka lang nman hahaha .. Ewan ko bket mga walang amoy legit b to ?",
+      "text_label": "authentic",
+      "ground_truth": "authentic",
+      "reference_prediction": "liv",
+      "candidate_prediction": "liv",
+      "candidate_roberta_prediction": "authentic",
+      "reference_probabilities": [
+        0.0994093269109726,
+        0.014853410422801971,
+        0.8576890230178833,
+        0.028048262000083923
+      ],
+      "candidate_probabilities": [
+        0.209259495139122,
+        0.018872704356908798,
+        0.39047151803970337,
+        0.38139623403549194
+      ]
+    },
+    {
+      "review_id": "review_00154",
+      "product_id": "prod_03",
+      "review_text": "Effectiveness: okay | Fragrance: okay | Texture: okay | I though they will also give me a freebies as well i nought two of those Cetaphil kasi wala ung 118 ml. WTF wala kahit isa grabe naman. Some them got sunscreen or moisturizer and i got nothing. Not to be mad, but hello? If you're giving others a freebies din, hindi yung limited lang",
+      "text_label": "liv",
+      "ground_truth": "liv",
+      "reference_prediction": "authentic",
+      "candidate_prediction": "authentic",
+      "candidate_roberta_prediction": "authentic",
+      "reference_probabilities": [
+        0.6418224573135376,
+        0.004692830145359039,
+        0.34122660756111145,
+        0.01225809846073389
+      ],
+      "candidate_probabilities": [
+        0.7938730716705322,
+        0.11182735115289688,
+        0.08316584676504135,
+        0.011133749969303608
+      ]
+    },
+    {
+      "review_id": "review_00155",
+      "product_id": "prod_03",
+      "review_text": "Edited: I've been using this for 2 days, and I got a tiny bumb on my forehead ☹️☹️☹️ the packaging was good but maybe this product is not suitable for me😟",
+      "text_label": "authentic",
+      "ground_truth": "authentic",
+      "reference_prediction": "authentic",
+      "candidate_prediction": "authentic",
+      "candidate_roberta_prediction": "authentic",
+      "reference_probabilities": [
+        0.7243098020553589,
+        0.0043073841370642185,
+        0.2626515030860901,
+        0.008731325156986713
+      ],
+      "candidate_probabilities": [
+        0.8002610206604004,
+        0.10849854350090027,
+        0.08015936613082886,
+        0.011081116273999214
+      ]
+    },
+    {
+      "review_id": "review_00156",
+      "product_id": "prod_03",
+      "review_text": "Effectiveness: Nag dry yung face ko pero overall okay naman.. | Nakabukas yung freebies and yung mismong product pero ginamit ko sayang. Its not okay. Wala akong pic pero yung product nag dry sa face ko..",
+      "text_label": "authentic",
+      "ground_truth": "authentic",
+      "reference_prediction": "authentic",
+      "candidate_prediction": "authentic",
+      "candidate_roberta_prediction": "authentic",
+      "reference_probabilities": [
+        0.6542790532112122,
+        0.012165822088718414,
+        0.31162989139556885,
+        0.021925238892436028
+      ],
+      "candidate_probabilities": [
+        0.8098422884941101,
+        0.020546095445752144,
+        0.1522119641304016,
+        0.01739959977567196
+      ]
+    },
+    {
+      "review_id": "review_00157",
+      "product_id": "prod_03",
+      "review_text": "Glin Liit KYA AYW KNG MG EXPECT MSASAKTAN K LNG😉 ok un packinging KALA MO BBSAGIN KALAKI UN PLA SIN LAKI LNG DALIRI KO",
+      "text_label": "authentic",
+      "ground_truth": "authentic",
+      "reference_prediction": "authentic",
+      "candidate_prediction": "authentic",
+      "candidate_roberta_prediction": "authentic",
+      "reference_probabilities": [
+        0.5902482271194458,
+        0.005805698689073324,
+        0.38939207792282104,
+        0.014553996734321117
+      ],
+      "candidate_probabilities": [
+        0.4292811453342438,
+        0.2437545359134674,
+        0.30056139826774597,
+        0.026402859017252922
+      ]
+    },
+    {
+      "review_id": "review_00158",
+      "product_id": "prod_03",
+      "review_text": "Effectiveness: 0 | Fragrance: 0 | Texture: like water | D ako hiyang watery sya sa face ko kasi oily skin ako eh",
+      "text_label": "authentic",
+      "ground_truth": "authentic",
+      "reference_prediction": "liv",
+      "candidate_prediction": "liv",
+      "candidate_roberta_prediction": "liv",
+      "reference_probabilities": [
+        0.22729019820690155,
+        0.0021378204692155123,
+        0.7621191143989563,
+        0.008452809415757656
+      ],
+      "candidate_probabilities": [
+        0.32826995849609375,
+        0.04054424911737442,
+        0.596980631351471,
+        0.03420513495802879
+      ]
+    },
+    {
+      "review_id": "review_00159",
+      "product_id": "prod_03",
+      "review_text": "Effectiveness: Okay lang. Hindi naman ako nag break out. | Fragrance: Fragrance free daw to pero for me, amoy glue. | Texture: Glue-like din. | For me, okay lang yung new formula, pero mas better yung old. Yun kasi walang amoy talaga and mas maganda yung texture. Yung new, ang lagkit niya po and masakit sa ilong yung amoy. When I don't apply it with water parang ginu-glue yung mukha ko.",
+      "text_label": "authentic",
+      "ground_truth": "authentic",
+      "reference_prediction": "authentic",
+      "candidate_prediction": "authentic",
+      "candidate_roberta_prediction": "authentic",
+      "reference_probabilities": [
+        0.752736508846283,
+        0.003527269931510091,
+        0.22462491691112518,
+        0.019111268222332
+      ],
+      "candidate_probabilities": [
+        0.8089104294776917,
+        0.1149381548166275,
+        0.059093575924634933,
+        0.017057854682207108
+      ]
+    },
+    {
+      "review_id": "review_00160",
+      "product_id": "prod_03",
+      "review_text": "D kuh pa sya nasusubukan .but we'll Yung dilivered Naman sya is so fast. 3 days lang got the parcel",
+      "text_label": "liv",
+      "ground_truth": "liv",
+      "reference_prediction": "authentic",
+      "candidate_prediction": "authentic",
+      "candidate_roberta_prediction": "authentic",
+      "reference_probabilities": [
+        0.7678312659263611,
+        0.005330109968781471,
+        0.2021338790655136,
+        0.02470472641289234
+      ],
+      "candidate_probabilities": [
+        0.4602857828140259,
+        0.16481122374534607,
+        0.3084670305252075,
+        0.06643596291542053
+      ]
+    },
+    {
+      "review_id": "review_00161",
+      "product_id": "prod_03",
+      "review_text": "Effectiveness: dik ammo | Fragrance: nya dik tlaga ammo | Texture: awan dik ammo",
+      "text_label": "liv",
+      "ground_truth": "liv",
+      "reference_prediction": "liv",
+      "candidate_prediction": "liv",
+      "candidate_roberta_prediction": "liv",
+      "reference_probabilities": [
+        0.17653250694274902,
+        0.0032314197160303593,
+        0.8074228763580322,
+        0.012813140638172626
+      ],
+      "candidate_probabilities": [
+        0.038607049733400345,
+        0.014165317639708519,
+        0.9375101327896118,
+        0.009717481210827827
+      ]
+    },
+    {
+      "review_id": "review_00162",
+      "product_id": "prod_03",
+      "review_text": "Fragrance: none | Effectiveness: nagbreakout aq amp | Texture: ok | Hey girl, look at my mom She's got it going on Ha, you're blinded by her jewelry When you turn your back She pulls out a flask And forgets his infidelity Uh-oh, she's coming to the attic, plastic Go back to being plastic",
+      "text_label": "liv",
+      "ground_truth": "liv",
+      "reference_prediction": "authentic",
+      "candidate_prediction": "irrelevant",
+      "candidate_roberta_prediction": "authentic",
+      "reference_probabilities": [
+        0.6358149647712708,
+        0.00527228694409132,
+        0.3161427080631256,
+        0.042770009487867355
+      ],
+      "candidate_probabilities": [
+        0.16886427998542786,
+        0.06578850001096725,
+        0.117465540766716,
+        0.6478817462921143
+      ]
+    },
+    {
+      "review_id": "review_00163",
+      "product_id": "prod_03",
+      "review_text": "Nakaka sad lang po expect ko maayus pagka packaging niya pag bukas ko nag lick ang order ko cethapil for my baby🥲Sana man lang inayus kahit yu packaging lang para sana di nag lick syang lang order ko..and Wala man freebies Kasi yu iba review nakita ko may freebies sila at magnda pagka packaging",
+      "text_label": "authentic",
+      "ground_truth": "authentic",
+      "reference_prediction": "authentic",
+      "candidate_prediction": "authentic",
+      "candidate_roberta_prediction": "authentic",
+      "reference_probabilities": [
+        0.8058642745018005,
+        0.004905427806079388,
+        0.17254593968391418,
+        0.01668434403836727
+      ],
+      "candidate_probabilities": [
+        0.8097411394119263,
+        0.10334892570972443,
+        0.07635478675365448,
+        0.010555179789662361
+      ]
+    },
+    {
+      "review_id": "review_00164",
+      "product_id": "prod_03",
+      "review_text": "Meron siyang leak nung dumating siya sakin so I had to wash it agad. Sana ma-improve yung packaging niyo. I know shopee mall kayo so wala kayong pake pero sana ayusin niyo na sa susunod yung packaging dahil sayang naman yung mga natapon because of your poor packaging. Thank you.",
+      "text_label": "authentic",
+      "ground_truth": "authentic",
+      "reference_prediction": "authentic",
+      "candidate_prediction": "authentic",
+      "candidate_roberta_prediction": "authentic",
+      "reference_probabilities": [
+        0.6526257991790771,
+        0.015119307674467564,
+        0.31647711992263794,
+        0.015777744352817535
+      ],
+      "candidate_probabilities": [
+        0.8166934251785278,
+        0.019805453717708588,
+        0.0923476293683052,
+        0.07115350663661957
+      ]
+    },
+    {
+      "review_id": "review_00165",
+      "product_id": "prod_03",
+      "review_text": "packaging are not secured enough! pag bukas ko pa lang ng parcel basa na, means natapon na ung laman ng item : )) maybe it got squeezed during delivery. a 'fragile' warning should have been put on this kind of product, and the item should be secured tightly to prevent from leakage. ‼️",
+      "text_label": "authentic",
+      "ground_truth": "authentic",
+      "reference_prediction": "authentic",
+      "candidate_prediction": "authentic",
+      "candidate_roberta_prediction": "authentic",
+      "reference_probabilities": [
+        0.8482131958007812,
+        0.0032269509974867105,
+        0.136806458234787,
+        0.011753379367291927
+      ],
+      "candidate_probabilities": [
+        0.8232383131980896,
+        0.11089905351400375,
+        0.05482137203216553,
+        0.011041324585676193
+      ]
+    },
+    {
+      "review_id": "review_00166",
+      "product_id": "prod_03",
+      "review_text": "Fragrance: No | I don't know if the product is legit. Walang talaga akong maamoy. Ibang iba sa nabili ko sa Watson na may amoy talaga ang original.",
+      "text_label": "authentic",
+      "ground_truth": "authentic",
+      "reference_prediction": "authentic",
+      "candidate_prediction": "authentic",
+      "candidate_roberta_prediction": "authentic",
+      "reference_probabilities": [
+        0.49798884987831116,
+        0.004588217008858919,
+        0.4869992434978485,
+        0.010423747822642326
+      ],
+      "candidate_probabilities": [
+        0.8706981539726257,
+        0.08567342162132263,
+        0.0364241898059845,
+        0.007204218301922083
+      ]
+    },
+    {
+      "review_id": "review_00167",
+      "product_id": "prod_03",
+      "review_text": "not satisifed!!!!",
+      "text_label": "liv",
+      "ground_truth": "liv",
+      "reference_prediction": "liv",
+      "candidate_prediction": "liv",
+      "candidate_roberta_prediction": "liv",
+      "reference_probabilities": [
+        0.028376059606671333,
+        0.40051162242889404,
+        0.5402207374572754,
+        0.03089151903986931
+      ],
+      "candidate_probabilities": [
+        0.04065098240971565,
+        0.035902317613363266,
+        0.9168726205825806,
+        0.006574081256985664
+      ]
+    },
+    {
+      "review_id": "review_00168",
+      "product_id": "prod_03",
+      "review_text": "User Tips: Wala Kong masabi | Usage Experience: maliit lng pala | Beauty Profile: maliit lng sa presto yang 200",
+      "text_label": "liv",
+      "ground_truth": "liv",
+      "reference_prediction": "liv",
+      "candidate_prediction": "authentic",
+      "candidate_roberta_prediction": "authentic",
+      "reference_probabilities": [
+        0.08150085061788559,
+        0.0014539142139256,
+        0.9077610373497009,
+        0.009284215979278088
+      ],
+      "candidate_probabilities": [
+        0.4230690896511078,
+        0.048293858766555786,
+        0.4152660369873047,
+        0.11337107419967651
+      ]
+    },
+    {
+      "review_id": "review_00169",
+      "product_id": "prod_03",
+      "review_text": "Effectiveness: lumala pimples ko | Fragrance: mabaho | Texture: madulas | FAKE YUNG PINADALA SAKIN!!! LUMALA YUNG PIMPLES KO AKALA KO NUNG UNA NORMAL LANG YUNG AMOY KASI ANG BAHO TALAGA UNTIL PINAAMOY KO RIN SA MAMA KO AMOY CHEMICAL DAW AND NAGTANONG AKO SA MGA CM KO SABI WALA RAW SIYANG AMOY tsk, never again. nagka-trust issues pa ako bumili online ng pang skincare. ayusin niyo naman cetaphil, daming humahanga sa inyo kasi alam nilang maganda mga products niyo then ang ipapadala niyo fake??? nasayang lang pera ko and super lumala talaga pimps ko. ps. video not related",
+      "text_label": "authentic",
+      "ground_truth": "authentic",
+      "reference_prediction": "authentic",
+      "candidate_prediction": "authentic",
+      "candidate_roberta_prediction": "authentic",
+      "reference_probabilities": [
+        0.5267775654792786,
+        0.005816377699375153,
+        0.4598532021045685,
+        0.007552877999842167
+      ],
+      "candidate_probabilities": [
+        0.8841772675514221,
+        0.08213736116886139,
+        0.026919882744550705,
+        0.00676548108458519
+      ]
+    },
+    {
+      "review_id": "review_00170",
+      "product_id": "prod_03",
+      "review_text": "Effectiveness: Nope | Fragrance: None | Texture: Good | Hmm 1 week after using it i had a break out so ye not buying this again",
+      "text_label": "authentic",
+      "ground_truth": "authentic",
+      "reference_prediction": "irrelevant",
+      "candidate_prediction": "irrelevant",
+      "candidate_roberta_prediction": "authentic",
+      "reference_probabilities": [
+        0.07068181037902832,
+        0.008029350079596043,
+        0.09813835471868515,
+        0.8231504559516907
+      ],
+      "candidate_probabilities": [
+        0.21379613876342773,
+        0.01796451397240162,
+        0.3685895502567291,
+        0.3996497690677643
+      ]
+    },
+    {
+      "review_id": "review_00171",
+      "product_id": "prod_03",
+      "review_text": "Effectiveness: very effective sa sensitive skin ko | Texture: watery and creamy",
+      "text_label": "authentic",
+      "ground_truth": "authentic",
+      "reference_prediction": "liv",
+      "candidate_prediction": "liv",
+      "candidate_roberta_prediction": "liv",
+      "reference_probabilities": [
+        0.17339281737804413,
+        0.006996765732765198,
+        0.7775979042053223,
+        0.04201255366206169
+      ],
+      "candidate_probabilities": [
+        0.09063530713319778,
+        0.020962310954928398,
+        0.8748139142990112,
+        0.01358846202492714
+      ]
+    },
+    {
+      "review_id": "review_00172",
+      "product_id": "prod_03",
+      "review_text": "User Tips: Use to wash the face | Packaging: Well Package | Fragrance: No smell | Okay yung item. pero sorry for the 1 Star ksi sa maling bahay at address binigay ng Rider yung order namin. Bayad na sya through G-Cash. Buti n lang tumawag yung nakareceive na nasa bahay daw nila yung order ko. (Naka-off yung review comment box at rating sa Rider kaya dito n lang ako nag Rate)",
+      "text_label": "liv",
+      "ground_truth": "liv",
+      "reference_prediction": "authentic",
+      "candidate_prediction": "authentic",
+      "candidate_roberta_prediction": "authentic",
+      "reference_probabilities": [
+        0.9081743955612183,
+        0.004763190168887377,
+        0.03704849258065224,
+        0.05001387000083923
+      ],
+      "candidate_probabilities": [
+        0.7830424308776855,
+        0.15327975153923035,
+        0.038583166897296906,
+        0.025094719603657722
+      ]
+    },
+    {
+      "review_id": "review_00173",
+      "product_id": "prod_03",
+      "review_text": "Yung mga items palagi idenideliver ng j&t sa Bahay ng Kapatid ko..which is Hindi naman Yung nakalagay na address ko.what kind of service.Kaya nga Ako nagpadeliver to lessen the Hussle tapos ganito gagawin.",
+      "text_label": "irrelevant",
+      "ground_truth": "irrelevant",
+      "reference_prediction": "authentic",
+      "candidate_prediction": "authentic",
+      "candidate_roberta_prediction": "authentic",
+      "reference_probabilities": [
+        0.7702717781066895,
+        0.0043746973387897015,
+        0.21474115550518036,
+        0.010612358339130878
+      ],
+      "candidate_probabilities": [
+        0.8901277780532837,
+        0.009422608651220798,
+        0.07683048397302628,
+        0.023619070649147034
+      ]
+    },
+    {
+      "review_id": "review_00174",
+      "product_id": "prod_03",
+      "review_text": "Yung delivery man, di man lang tumawag or text, nakita ko nalang yung Parcel nasa Sahig parang tinapon lang nya sa loob ng Gate namen.",
+      "text_label": "irrelevant",
+      "ground_truth": "irrelevant",
+      "reference_prediction": "irrelevant",
+      "candidate_prediction": "irrelevant",
+      "candidate_roberta_prediction": "authentic",
+      "reference_probabilities": [
+        0.1371396780014038,
+        0.023869242519140244,
+        0.2103925198316574,
+        0.6285985708236694
+      ],
+      "candidate_probabilities": [
+        0.26532164216041565,
+        0.14343932271003723,
+        0.11033827066421509,
+        0.48090070486068726
+      ]
+    },
+    {
+      "review_id": "review_00175",
+      "product_id": "prod_03",
+      "review_text": "Benefits: olol | Usage Experience: napaka angas | Fragrance: sheesh",
+      "text_label": "liv",
+      "ground_truth": "liv",
+      "reference_prediction": "liv",
+      "candidate_prediction": "liv",
+      "candidate_roberta_prediction": "liv",
+      "reference_probabilities": [
+        0.2447129786014557,
+        0.004115603864192963,
+        0.7284640669822693,
+        0.02270735614001751
+      ],
+      "candidate_probabilities": [
+        0.05628501996397972,
+        0.012042262591421604,
+        0.9225378632545471,
+        0.00913484487682581
+      ]
+    },
+    {
+      "review_id": "review_00176",
+      "product_id": "prod_03",
+      "review_text": "Effectiveness: yes, it worked for me. the thing is i waited for 20 days before i received this. after receiving, just look in the video:",
+      "text_label": "liv",
+      "ground_truth": "liv",
+      "reference_prediction": "irrelevant",
+      "candidate_prediction": "authentic",
+      "candidate_roberta_prediction": "authentic",
+      "reference_probabilities": [
+        0.33428826928138733,
+        0.010293727740645409,
+        0.3101716637611389,
+        0.3452463150024414
+      ],
+      "candidate_probabilities": [
+        0.6771494746208191,
+        0.016885563731193542,
+        0.2845340669155121,
+        0.021430930122733116
+      ]
+    },
+    {
+      "review_id": "review_00177",
+      "product_id": "prod_03",
+      "review_text": "Caveat: Seller did not bother wrapping the cap of the bottle to ensure that leakage will not occur. Upon opening the parcel, ine of the caps was opened.",
+      "text_label": "authentic",
+      "ground_truth": "authentic",
+      "reference_prediction": "authentic",
+      "candidate_prediction": "authentic",
+      "candidate_roberta_prediction": "authentic",
+      "reference_probabilities": [
+        0.7157811522483826,
+        0.007510097231715918,
+        0.2618769705295563,
+        0.014831806533038616
+      ],
+      "candidate_probabilities": [
+        0.5608983635902405,
+        0.018635712563991547,
+        0.39225563406944275,
+        0.028210297226905823
+      ]
+    },
+    {
+      "review_id": "review_00358",
+      "product_id": "prod_07",
+      "review_text": "Performance: Good | Best Feature: Good | Product Quality: Good | Good quality fast delivery at maayos ang packaging affordable at user friendly easy to use enjoy gamitin ng bata pati matanda recommended para sa mga gusto ng headset na budget friendly.",
+      "text_label": "liv",
+      "ground_truth": "liv",
+      "reference_prediction": "liv",
+      "candidate_prediction": "authentic",
+      "candidate_roberta_prediction": "authentic",
+      "reference_probabilities": [
+        0.4090222716331482,
+        0.0012087085051462054,
+        0.5864980816841125,
+        0.0032709380611777306
+      ],
+      "candidate_probabilities": [
+        0.7217573523521423,
+        0.012289970181882381,
+        0.25382858514785767,
+        0.012124080210924149
+      ]
+    },
+    {
+      "review_id": "review_00359",
+      "product_id": "prod_07",
+      "review_text": "Performance: Sound is good | Best Feature: I like the color and the wire is thick | Product Quality: Looks sturdy | The delivery from the date purchased took around 4 days and it was worth it. It was bigger than I expected and good thing about it the wire is thick and looks sturdy compared to the other headset I bought at a cheaper price. Hope this lasts long as my kid really loved it. Thanks seller. Will buy another color next time.",
+      "text_label": "authentic",
+      "ground_truth": "authentic",
+      "reference_prediction": "authentic",
+      "candidate_prediction": "authentic",
+      "candidate_roberta_prediction": "authentic",
+      "reference_probabilities": [
+        0.8187612891197205,
+        0.002729058265686035,
+        0.1711844503879547,
+        0.007325174752622843
+      ],
+      "candidate_probabilities": [
+        0.8517792224884033,
+        0.09259198606014252,
+        0.04641018807888031,
+        0.009218636900186539
+      ]
+    },
+    {
+      "review_id": "review_00360",
+      "product_id": "prod_07",
+      "review_text": "Product Quality: good | Best Feature: clear sound | Performance: good | Solid! I was in doubt at first but I was mever disappointed when I got it. Sound quality was good and working well, it also covers my ears well it doesnt hurt. Konting kalikot lang sa settings para mag work",
+      "text_label": "authentic",
+      "ground_truth": "authentic",
+      "reference_prediction": "authentic",
+      "candidate_prediction": "authentic",
+      "candidate_roberta_prediction": "authentic",
+      "reference_probabilities": [
+        0.5505857467651367,
+        0.002042480045929551,
+        0.4431239366531372,
+        0.004247801844030619
+      ],
+      "candidate_probabilities": [
+        0.7955669164657593,
+        0.021376829594373703,
+        0.16493946313858032,
+        0.01811678521335125
+      ]
+    },
+    {
+      "review_id": "review_00361",
+      "product_id": "prod_07",
+      "review_text": "Best Feature: lighting mode, lakas maka gamer. | Performance: thankfully, the mic, the volume worked well. | Product Quality: a big very good for it's price na! | I love the product!! if u guys buy this for ur laptop, bibili dapat kayo ng \"splitter adapter\" for the mic and volume to function. After dumating splitter adapter ko, i immediately test it and it worked well!!! lakas maka gamerist chariz. I hope lang na lagyan ng more bubble wrap bc pag receive ko may butas sa parcel. Fragile pa naman. Tho, hindi naman nasira box and hindi din defective and headset. Thank you.",
+      "text_label": "authentic",
+      "ground_truth": "authentic",
+      "reference_prediction": "liv",
+      "candidate_prediction": "authentic",
+      "candidate_roberta_prediction": "authentic",
+      "reference_probabilities": [
+        0.40893805027008057,
+        0.0013621258549392223,
+        0.5880454778671265,
+        0.0016543825622648
+      ],
+      "candidate_probabilities": [
+        0.8422590494155884,
+        0.09107660502195358,
+        0.05759657174348831,
+        0.009067767299711704
+      ]
+    },
+    {
+      "review_id": "review_00362",
+      "product_id": "prod_07",
+      "review_text": "Performance: 100/10 | Best Feature: lahat | Product Quality: 100/10 | Ang ganda at cute nya🥰 buo yung sound and yung mic gumagana❣️ bait pa ni seller nagsend ngpic bago iship ... at first kala ko sira kasi nagfa-fade yung sound, nasabit lang pala sa phone case ko. sorry seller😅 Thank you so much sa magandang product 🥰💕 will order again soon🫶🫶🫶",
+      "text_label": "authentic",
+      "ground_truth": "authentic",
+      "reference_prediction": "authentic",
+      "candidate_prediction": "authentic",
+      "candidate_roberta_prediction": "authentic",
+      "reference_probabilities": [
+        0.6449909210205078,
+        0.0024238142650574446,
+        0.34693485498428345,
+        0.005650400649756193
+      ],
+      "candidate_probabilities": [
+        0.8486534357070923,
+        0.0883256196975708,
+        0.0540001206099987,
+        0.009020824916660786
+      ]
+    },
+    {
+      "review_id": "review_00363",
+      "product_id": "prod_07",
+      "review_text": "Product Quality: nice | Performance: quality | Best Feature: sounds | ganda and ang bilis dumating, ganda din sounds hindi sabog! kaso nahihinaan ako medyo bingi kasi ako wagaha pero salamat sa seller sa mabilis na delivery! love it po more sales to come",
+      "text_label": "authentic",
+      "ground_truth": "authentic",
+      "reference_prediction": "authentic",
+      "candidate_prediction": "authentic",
+      "candidate_roberta_prediction": "irrelevant",
+      "reference_probabilities": [
+        0.5671026706695557,
+        0.0032623563893139362,
+        0.40124034881591797,
+        0.028394626453518867
+      ],
+      "candidate_probabilities": [
+        0.6198187470436096,
+        0.04149527847766876,
+        0.28799355030059814,
+        0.050692442804574966
+      ]
+    },
+    {
+      "review_id": "review_00364",
+      "product_id": "prod_07",
+      "review_text": "Performance: ⭐⭐⭐⭐⭐ | Best Feature: ⭐⭐⭐⭐⭐ | Product Quality: ⭐⭐⭐⭐⭐ | Maganda at makulay siya. Aliw ako 😁 more on pang gaming talaga sya although ginagamit ko pang work. I tried recording myself using this and the noise reduction is true. Hindi nga rinig yung background noise. Thank u seller, shopee and delivery. God bless 😊🙏💕",
+      "text_label": "authentic",
+      "ground_truth": "authentic",
+      "reference_prediction": "authentic",
+      "candidate_prediction": "authentic",
+      "candidate_roberta_prediction": "authentic",
+      "reference_probabilities": [
+        0.931147038936615,
+        0.0031457366421818733,
+        0.06031101942062378,
+        0.005396190565079451
+      ],
+      "candidate_probabilities": [
+        0.8479435443878174,
+        0.0916912853717804,
+        0.04904812574386597,
+        0.011317029595375061
+      ]
+    },
+    {
+      "review_id": "review_00365",
+      "product_id": "prod_07",
+      "review_text": "Product Quality: Very Good | Best Feature: Gaming Design | Performance: Very Good | Received item in Good Condition No Damage😃 100% Working Gaming Design On Attractive lightning Color Cool Headset Highly Recommended to Buy this Product. 🤩 GoodQuality Satisfied Customer 👍 Thank you Seller at Shopee.❤️ 5 Star ⭐ Very nice 🙂",
+      "text_label": "liv",
+      "ground_truth": "liv",
+      "reference_prediction": "liv",
+      "candidate_prediction": "liv",
+      "candidate_roberta_prediction": "liv",
+      "reference_probabilities": [
+        0.49463632702827454,
+        0.002565315691754222,
+        0.498226523399353,
+        0.00457183038815856
+      ],
+      "candidate_probabilities": [
+        0.09602857381105423,
+        0.00862108450382948,
+        0.8872211575508118,
+        0.00812913104891777
+      ]
+    },
+    {
+      "review_id": "review_00366",
+      "product_id": "prod_07",
+      "review_text": "Performance: May bass sya mga bii | Best Feature: noise cancellation, goods na. triny ko itutok sa e-fan. di rin rinig yung ingay ng cpu ko 🤣 | Product Quality: good for its price. ganda! | Grabe nadeliver agad sya the next day! And also responsive si seller. Nakakatuwa. Salamat po so much! Gift saakin ni boyfie eto. Di kayo magsisisi sa product na 'to!",
+      "text_label": "authentic",
+      "ground_truth": "authentic",
+      "reference_prediction": "authentic",
+      "candidate_prediction": "authentic",
+      "candidate_roberta_prediction": "authentic",
+      "reference_probabilities": [
+        0.7843592762947083,
+        0.0018686909461393952,
+        0.20988568663597107,
+        0.0038863681256771088
+      ],
+      "candidate_probabilities": [
+        0.7955669164657593,
+        0.021376829594373703,
+        0.16493946313858032,
+        0.01811678521335125
+      ]
+    },
+    {
+      "review_id": "review_00367",
+      "product_id": "prod_07",
+      "review_text": "Product Quality: headphones | Best Feature: malakas ang sounds and maganda ang voice | Performance: excellent | Grabi, hindi ko inaakala na malaki ang headphones. Super ganda nya at ang ganda ng sounds at yung voice kapag nag online class or meeting, sobra linaw nya. Kudos to seller na nag u-update palagi sakin! Highly recommend ito!",
+      "text_label": "authentic",
+      "ground_truth": "authentic",
+      "reference_prediction": "authentic",
+      "candidate_prediction": "authentic",
+      "candidate_roberta_prediction": "authentic",
+      "reference_probabilities": [
+        0.6892282366752625,
+        0.0032037373166531324,
+        0.3036775588989258,
+        0.003890466410666704
+      ],
+      "candidate_probabilities": [
+        0.8422590494155884,
+        0.09107660502195358,
+        0.05759657174348831,
+        0.009067767299711704
+      ]
+    },
+    {
+      "review_id": "review_00368",
+      "product_id": "prod_07",
+      "review_text": "Performance: 10 | Best Feature: 10 | Product Quality: 10 | Order received! maganda yung labas ng sounds nya, hndi sabog kahit mura lang. pwede na pang budgetmeal if nagtitipid ka for headphones at di ka maarte hehehe",
+      "text_label": "authentic",
+      "ground_truth": "authentic",
+      "reference_prediction": "authentic",
+      "candidate_prediction": "authentic",
+      "candidate_roberta_prediction": "authentic",
+      "reference_probabilities": [
+        0.7998948097229004,
+        0.002446060534566641,
+        0.1875682771205902,
+        0.010090857744216919
+      ],
+      "candidate_probabilities": [
+        0.7723537087440491,
+        0.021450325846672058,
+        0.1880168467760086,
+        0.01817907951772213
+      ]
+    },
+    {
+      "review_id": "review_00369",
+      "product_id": "prod_07",
+      "review_text": "Performance: Good | Best Feature: Sound is Good | Product Quality: Good | Maganda ang tunog niya buo . Sana magtagal siya .sulit na sa price niya mura lang 👍. Maayos na delivered .No damage.Thanks Shopee, Seller at kuya rider",
+      "text_label": "authentic",
+      "ground_truth": "authentic",
+      "reference_prediction": "authentic",
+      "candidate_prediction": "authentic",
+      "candidate_roberta_prediction": "authentic",
+      "reference_probabilities": [
+        0.7302715182304382,
+        0.0026889550499618053,
+        0.26231545209884644,
+        0.004724081140011549
+      ],
+      "candidate_probabilities": [
+        0.8439828753471375,
+        0.0878395214676857,
+        0.05920648202300072,
+        0.008971178904175758
+      ]
+    },
+    {
+      "review_id": "review_00370",
+      "product_id": "prod_07",
+      "review_text": "Order received. Fast deliver. Package well naman siya. Kala ko naka box kc nga headphone siya, yun pala hindi naka balot lanh siya ng plastik. Pero good naman siya. Gumagana. Nagustuhan rin ng anak ko. 2nd time ko na bumili dito yung una mechanical keyboard tapos ito headphone. Thank you seller and kua rider 👍",
+      "text_label": "authentic",
+      "ground_truth": "authentic",
+      "reference_prediction": "authentic",
+      "candidate_prediction": "authentic",
+      "candidate_roberta_prediction": "authentic",
+      "reference_probabilities": [
+        0.8663920760154724,
+        0.0031105794478207827,
+        0.12028822302818298,
+        0.010209176689386368
+      ],
+      "candidate_probabilities": [
+        0.8050233125686646,
+        0.10914421826601028,
+        0.07468535006046295,
+        0.011147059500217438
+      ]
+    },
+    {
+      "review_id": "review_00371",
+      "product_id": "prod_07",
+      "review_text": "Performance: Works well, both mic and audio. | Best Feature: The adjustment ng volume sa side part ng headphones : )) | Product Quality: It is sulit for the price. I like how the audio sounds, quality na rin for 290 pesos. | ‘Di ka lugi. I’m not a techy person but I feel like this is a gem. Very accommodating din ang seller. Kudos din kasi well-packaged siya . Definitely will buy again. Sana tumagal .",
+      "text_label": "authentic",
+      "ground_truth": "authentic",
+      "reference_prediction": "authentic",
+      "candidate_prediction": "authentic",
+      "candidate_roberta_prediction": "authentic",
+      "reference_probabilities": [
+        0.5642537474632263,
+        0.004369297530502081,
+        0.41911283135414124,
+        0.012264139950275421
+      ],
+      "candidate_probabilities": [
+        0.8275057077407837,
+        0.10655011236667633,
+        0.05533590540289879,
+        0.010608336888253689
+      ]
+    },
+    {
+      "review_id": "review_00372",
+      "product_id": "prod_07",
+      "review_text": "Performance: good sounds and all. | Best Feature: lights up! | Product Quality: good but it's really big like huge! has a lot of wires tho 😭 thank you so much! will surely buy again",
+      "text_label": "authentic",
+      "ground_truth": "authentic",
+      "reference_prediction": "liv",
+      "candidate_prediction": "authentic",
+      "candidate_roberta_prediction": "authentic",
+      "reference_probabilities": [
+        0.4044937491416931,
+        0.0035345321521162987,
+        0.5846498608589172,
+        0.007321841549128294
+      ],
+      "candidate_probabilities": [
+        0.8059327006340027,
+        0.1165146604180336,
+        0.06900271028280258,
+        0.008549917489290237
+      ]
+    },
+    {
+      "review_id": "review_00373",
+      "product_id": "prod_07",
+      "review_text": "Performance: working well | Best Feature: noise cancellinh mic | Malakas talaga siya. Medyo hindi na lang ako siguro ulit nasanay mag headphones pero maganda yung mic niya. Akala ko pwedeng ma-adjust yung parang headband kasi medj maliit yung ulo ko hahaha hindi pala. Mabait po yung nakausap ko sa store nila, sent pictures and answered my inquiries. Mabilis din yung deliver parang 2 days lang nandito na kaagad hahaha. Good for valorant if y'all wanna know. Magaan din sa ulo, hindi mabigat. Thank you po ulit",
+      "text_label": "authentic",
+      "ground_truth": "authentic",
+      "reference_prediction": "authentic",
+      "candidate_prediction": "authentic",
+      "candidate_roberta_prediction": "authentic",
+      "reference_probabilities": [
+        0.7378697395324707,
+        0.0036551833618432283,
+        0.23313215374946594,
+        0.02534295991063118
+      ],
+      "candidate_probabilities": [
+        0.8142801523208618,
+        0.021239472553133965,
+        0.1464800089597702,
+        0.01800038106739521
+      ]
+    },
+    {
+      "review_id": "review_00374",
+      "product_id": "prod_07",
+      "review_text": "I really appreciate that it was delivered in a timely manner. I got it a cheaper price however the quality seems to be good (with proper handling and usage I guess). I hope it will last for a while.",
+      "text_label": "liv",
+      "ground_truth": "liv",
+      "reference_prediction": "authentic",
+      "candidate_prediction": "authentic",
+      "candidate_roberta_prediction": "authentic",
+      "reference_probabilities": [
+        0.6540020704269409,
+        0.002881430322304368,
+        0.32610952854156494,
+        0.017006998881697655
+      ],
+      "candidate_probabilities": [
+        0.6191146969795227,
+        0.02508806623518467,
+        0.2932475507259369,
+        0.0625496581196785
+      ]
+    },
+    {
+      "review_id": "review_00375",
+      "product_id": "prod_07",
+      "review_text": "Performance: maganda naman ang audio, hindi basag | Product Quality: best | pag receive ko ng parcel wala syang box, bubble wrap lang talaga ang kumakapit sa headset. sa mic naman ok maganda din kaso maririnig talaga ng kausap mo yung singaw ng hangin sa baba mo HAHAHA subrang ingay pero nagagawan naman ng paraan, at ang audio quality maganda tas d basag kaso pag lage ko syang suot sumasakit tenga ko.. yun lang",
+      "text_label": "authentic",
+      "ground_truth": "authentic",
+      "reference_prediction": "authentic",
+      "candidate_prediction": "authentic",
+      "candidate_roberta_prediction": "authentic",
+      "reference_probabilities": [
+        0.6783568263053894,
+        0.0032455313485115767,
+        0.30018937587738037,
+        0.018208282068371773
+      ],
+      "candidate_probabilities": [
+        0.8142827153205872,
+        0.11039959639310837,
+        0.06404240429401398,
+        0.011275273747742176
+      ]
+    },
+    {
+      "review_id": "review_00376",
+      "product_id": "prod_07",
+      "review_text": "Performance: Good | Best Feature: Working | Product Quality: Fine | Ayos sa price niya. Lights are working, ang cool! The sound quality is okay, mahina nga lang siya for me yung speakers pero yung microphone walang problem, very nice!",
+      "text_label": "authentic",
+      "ground_truth": "authentic",
+      "reference_prediction": "authentic",
+      "candidate_prediction": "authentic",
+      "candidate_roberta_prediction": "authentic",
+      "reference_probabilities": [
+        0.6545188426971436,
+        0.0027966804336756468,
+        0.3317049443721771,
+        0.010979529470205307
+      ],
+      "candidate_probabilities": [
+        0.7250056266784668,
+        0.15038025379180908,
+        0.10925555229187012,
+        0.015358558855950832
+      ]
+    },
+    {
+      "review_id": "review_00377",
+      "product_id": "prod_07",
+      "review_text": "Best Feature: gumagana po | Performance: good | Product Quality: okey | Like ng anak ko yong item Gamit nya pang online class At pag sasound Salamat po seller at sa ngdeliver",
+      "text_label": "liv",
+      "ground_truth": "liv",
+      "reference_prediction": "liv",
+      "candidate_prediction": "liv",
+      "candidate_roberta_prediction": "liv",
+      "reference_probabilities": [
+        0.1541624218225479,
+        0.005561784375458956,
+        0.8189331889152527,
+        0.021342596039175987
+      ],
+      "candidate_probabilities": [
+        0.02746741659939289,
+        0.008313518948853016,
+        0.9560173749923706,
+        0.0082016596570611
+      ]
+    },
+    {
+      "review_id": "review_00378",
+      "product_id": "prod_07",
+      "review_text": "Maganda naman ung quality nya, kasi bat hindi umiilaw ung akin😭...Sana mag respond na si seller",
+      "text_label": "liv",
+      "ground_truth": "liv",
+      "reference_prediction": "liv",
+      "candidate_prediction": "authentic",
+      "candidate_roberta_prediction": "authentic",
+      "reference_probabilities": [
+        0.34420788288116455,
+        0.003009119536727667,
+        0.6448376774787903,
+        0.00794529914855957
+      ],
+      "candidate_probabilities": [
+        0.8142827153205872,
+        0.11039959639310837,
+        0.06404240429401398,
+        0.011275273747742176
+      ]
+    },
+    {
+      "review_id": "review_00379",
+      "product_id": "prod_07",
+      "review_text": "Product Quality: Good | Performance: Good | Good product for a price... I will order again if needed. Thanks seller!",
+      "text_label": "liv",
+      "ground_truth": "liv",
+      "reference_prediction": "liv",
+      "candidate_prediction": "liv",
+      "candidate_roberta_prediction": "liv",
+      "reference_probabilities": [
+        0.3445938229560852,
+        0.004615367390215397,
+        0.6428914666175842,
+        0.007899340242147446
+      ],
+      "candidate_probabilities": [
+        0.18387047946453094,
+        0.03500596806406975,
+        0.75652676820755,
+        0.024596791714429855
+      ]
+    },
+    {
+      "review_id": "review_00380",
+      "product_id": "prod_07",
+      "review_text": "Performance: Good | Product Quality: Good | Best Feature: Secured | Maganda yung design and comfy sa tenga and ulo, at yung sound malakas pero hindi 3d yung sound, pag naka headphones test ka lagi lng naka tunug both sides.",
+      "text_label": "authentic",
+      "ground_truth": "authentic",
+      "reference_prediction": "authentic",
+      "candidate_prediction": "authentic",
+      "candidate_roberta_prediction": "authentic",
+      "reference_probabilities": [
+        0.6903245449066162,
+        0.0028615256305783987,
+        0.29492661356925964,
+        0.01188734546303749
+      ],
+      "candidate_probabilities": [
+        0.8050233125686646,
+        0.10914421826601028,
+        0.07468535006046295,
+        0.011147059500217438
+      ]
+    },
+    {
+      "review_id": "review_00381",
+      "product_id": "prod_07",
+      "review_text": "Performance: good | Product Quality: good | Best Feature: lights | the baby enjoyed the lights 😂😂😂 😂😂😂 😂😂😂 😂😂😂 😂😂😂 hope it lasts fine 🤞ok 🤞ok 🤞ok ok ok ok ok ok ok just fine guys enjoy the light",
+      "text_label": "liv",
+      "ground_truth": "liv",
+      "reference_prediction": "liv",
+      "candidate_prediction": "liv",
+      "candidate_roberta_prediction": "liv",
+      "reference_probabilities": [
+        0.2061288207769394,
+        0.019052643328905106,
+        0.7551606893539429,
+        0.019657889381051064
+      ],
+      "candidate_probabilities": [
+        0.2749582827091217,
+        0.020961789414286613,
+        0.6820128560066223,
+        0.022067122161388397
+      ]
+    },
+    {
+      "review_id": "review_00382",
+      "product_id": "prod_07",
+      "review_text": "Product Quality: Good | Best Feature: Good | Performance: Good | Mabilis dumating Wala NAMAN SYANG damage pero di ko expect na pang PC sya gagamitin ko SANA SA laptop pero ayun, overall MAGANDA ung color",
+      "text_label": "authentic",
+      "ground_truth": "authentic",
+      "reference_prediction": "liv",
+      "candidate_prediction": "authentic",
+      "candidate_roberta_prediction": "authentic",
+      "reference_probabilities": [
+        0.48002809286117554,
+        0.0060415309853851795,
+        0.507620632648468,
+        0.0063097188249230385
+      ],
+      "candidate_probabilities": [
+        0.7882240414619446,
+        0.019997630268335342,
+        0.1748432070016861,
+        0.01693512685596943
+      ]
+    },
+    {
+      "review_id": "review_00383",
+      "product_id": "prod_07",
+      "review_text": "Best Feature: gusto ko yung pagkaputi nya tas sinabayan nung ilaw grabe akala ko mamahalin | Nagulat ako nakalagay lase 21 biglang dumating within 4days 😅",
+      "text_label": "liv",
+      "ground_truth": "liv",
+      "reference_prediction": "authentic",
+      "candidate_prediction": "authentic",
+      "candidate_roberta_prediction": "authentic",
+      "reference_probabilities": [
+        0.6389544606208801,
+        0.006278131157159805,
+        0.34052780270576477,
+        0.014239637181162834
+      ],
+      "candidate_probabilities": [
+        0.7802631855010986,
+        0.020367560908198357,
+        0.18212084472179413,
+        0.017248405143618584
+      ]
+    },
+    {
+      "review_id": "review_00384",
+      "product_id": "prod_07",
+      "review_text": "Performance: 10/10 | Best Feature: clear microphone | Product Quality: good 9/10 | it’s just so sad hindi sya naka box and hindi na wrapped that much kaya nag bend. But overall okay naman performance & quality ng headset, performing very well naman and clear yung mic. Packaging lang talaga problem but will definitely order again from this shop😊",
+      "text_label": "authentic",
+      "ground_truth": "authentic",
+      "reference_prediction": "authentic",
+      "candidate_prediction": "authentic",
+      "candidate_roberta_prediction": "authentic",
+      "reference_probabilities": [
+        0.669256865978241,
+        0.003257696283981204,
+        0.30584219098091125,
+        0.021643230691552162
+      ],
+      "candidate_probabilities": [
+        0.7899796366691589,
+        0.10710460692644119,
+        0.09197704493999481,
+        0.010938751511275768
+      ]
+    },
+    {
+      "review_id": "review_00385",
+      "product_id": "prod_07",
+      "review_text": "Best Feature: rgb lights | Performance: sound quality is good. mic quality is bad | Product Quality: durable | Overall build quality is good!",
+      "text_label": "authentic",
+      "ground_truth": "authentic",
+      "reference_prediction": "liv",
+      "candidate_prediction": "authentic",
+      "candidate_roberta_prediction": "authentic",
+      "reference_probabilities": [
+        0.3131653666496277,
+        0.003126859199255705,
+        0.676981508731842,
+        0.006726215127855539
+      ],
+      "candidate_probabilities": [
+        0.7097919583320618,
+        0.014208854176104069,
+        0.24593603610992432,
+        0.03006315976381302
+      ]
+    },
+    {
+      "review_id": "review_00386",
+      "product_id": "prod_07",
+      "review_text": "Best Feature: good | Product Quality: good | Performance: good | The item is good, the price is affordable. Everything works very well its just that i expect this would be noice cancellation para sana sa wfh ko however its NOT. No offense but next time sell what you really have and not just bating customers with the description.",
+      "text_label": "authentic",
+      "ground_truth": "authentic",
+      "reference_prediction": "liv",
+      "candidate_prediction": "authentic",
+      "candidate_roberta_prediction": "authentic",
+      "reference_probabilities": [
+        0.3564903140068054,
+        0.005734623409807682,
+        0.6297104954719543,
+        0.008064587600529194
+      ],
+      "candidate_probabilities": [
+        0.8289292454719543,
+        0.01763698272407055,
+        0.1375187486410141,
+        0.01591501384973526
+      ]
+    },
+    {
+      "review_id": "review_00387",
+      "product_id": "prod_07",
+      "review_text": "Best Feature: The light | Performance: okay lang di sya ganon kalakas. | Product Quality: good quality | Okay naman sana di lang ganon kalakas yong headset.",
+      "text_label": "authentic",
+      "ground_truth": "authentic",
+      "reference_prediction": "liv",
+      "candidate_prediction": "authentic",
+      "candidate_roberta_prediction": "authentic",
+      "reference_probabilities": [
+        0.24402815103530884,
+        0.0024411610793322325,
+        0.7463601231575012,
+        0.007170590106397867
+      ],
+      "candidate_probabilities": [
+        0.9258571267127991,
+        0.007929443381726742,
+        0.05555066838860512,
+        0.010662760585546494
+      ]
+    },
+    {
+      "review_id": "review_00388",
+      "product_id": "prod_07",
+      "review_text": "Product Quality: 2 | Performance: 10/10 | Best Feature: 8 | Goods ang sounds pero may damage na",
+      "text_label": "liv",
+      "ground_truth": "liv",
+      "reference_prediction": "liv",
+      "candidate_prediction": "authentic",
+      "candidate_roberta_prediction": "authentic",
+      "reference_probabilities": [
+        0.3739972710609436,
+        0.0025470671243965626,
+        0.6049172282218933,
+        0.018538478761911392
+      ],
+      "candidate_probabilities": [
+        0.4924685060977936,
+        0.0350363664329052,
+        0.4505249857902527,
+        0.0219701137393713
+      ]
+    },
+    {
+      "review_id": "review_00389",
+      "product_id": "prod_07",
+      "review_text": "Product Quality: sakto lang mahina sya pag ginagamit ko | Best Feature: ganda color | Performance: Saks lang 50 50 Hina audio sakin kaya diko nagagamit e | Sdgs no poverty zero hunger",
+      "text_label": "authentic",
+      "ground_truth": "authentic",
+      "reference_prediction": "liv",
+      "candidate_prediction": "authentic",
+      "candidate_roberta_prediction": "authentic",
+      "reference_probabilities": [
+        0.37454959750175476,
+        0.002550829201936722,
+        0.6124160289764404,
+        0.010483593679964542
+      ],
+      "candidate_probabilities": [
+        0.7717927694320679,
+        0.10871706157922745,
+        0.10866609960794449,
+        0.010824083350598812
+      ]
+    },
+    {
+      "review_id": "review_00390",
+      "product_id": "prod_07",
+      "review_text": "Performance: for the product's performance, mahina yung sounds nya, as in, I cant hear footsteps kahit ang lapit na ng kalaban, also, sa mic, it's quite decent honestly, okay naman sya, tho parang ano lang, nasa banyo, I should've tried the other one nalang e, pero yon, mabilis naman yung shipping. | Best Feature: probably ano hmmm, lightweight sya, and actually its fine for its price naman. | Product Quality: sakto langs",
+      "text_label": "authentic",
+      "ground_truth": "authentic",
+      "reference_prediction": "authentic",
+      "candidate_prediction": "authentic",
+      "candidate_roberta_prediction": "authentic",
+      "reference_probabilities": [
+        0.7246166467666626,
+        0.003967276308685541,
+        0.2373145967721939,
+        0.034101445227861404
+      ],
+      "candidate_probabilities": [
+        0.7875676155090332,
+        0.020052704960107803,
+        0.17569580674171448,
+        0.016683876514434814
+      ]
+    },
+    {
+      "review_id": "review_00391",
+      "product_id": "prod_07",
+      "review_text": "Product Quality: okay naman siya, hindi sobrang ganda hindi sobrang panget ng quality | Performance: goods lang | Best Feature: 3 yung saksakan nya, pwede sya for pc and phone",
+      "text_label": "liv",
+      "ground_truth": "liv",
+      "reference_prediction": "liv",
+      "candidate_prediction": "authentic",
+      "candidate_roberta_prediction": "authentic",
+      "reference_probabilities": [
+        0.3227357864379883,
+        0.003926792182028294,
+        0.6666592359542847,
+        0.0066781919449567795
+      ],
+      "candidate_probabilities": [
+        0.8235538005828857,
+        0.0789123922586441,
+        0.09063985198736191,
+        0.006893910001963377
+      ]
+    },
+    {
+      "review_id": "review_00392",
+      "product_id": "prod_07",
+      "review_text": "Performance: GOOD | Best Feature: For me, it's the Mic | Product Quality: 6/10 | Hi sa mga nagrereview kung worth it ba itong bilhin. ITO ANG HONEST REVIEW KO.😊 DELIVERY: 1. Fast but the rider is impatient. (Anyways, first received order ko ito kaya okay lang. Mali daw address ko hahaha.) THE PRODUCT: 2. Not a noise cancelling electronic product. (Noise reduction pwede pa) 3. Fair appearance with two inputs. 4. The product is working. (Hindi sira natanggap ko🥳) 5. The sounds are not that loud as expected. Naitapon ko na yung balot kaya hindi ko na ibabalik. Okay naman na ito medyo mahina lang. Yung mic napansin ko sa settings na higher quality than INPLAY HN620 which is yung gamit ko last school year. Tips ko before gamitin sa online class, (dahil mahina nga) i-100 ang volume ng microphone sa pc i-sonic sounds din para hindi sabog ung mic mo lalo sa recording. Iwas sakit sa tainga. Pakinggan muna sa playback at ilagay sa highest quality ang mic ng pc which is yung sa headset na ito. (Gawin itong mga steps matapos ikabit ang usb connector at 2 inputs sa likod.) Thank you for reading my comment.🫶",
+      "text_label": "authentic",
+      "ground_truth": "authentic",
+      "reference_prediction": "authentic",
+      "candidate_prediction": "authentic",
+      "candidate_roberta_prediction": "authentic",
+      "reference_probabilities": [
+        0.6869906783103943,
+        0.005773298908025026,
+        0.29831770062446594,
+        0.00891835056245327
+      ],
+      "candidate_probabilities": [
+        0.8196836709976196,
+        0.01639959029853344,
+        0.15038315951824188,
+        0.013533592224121094
+      ]
+    },
+    {
+      "review_id": "review_00393",
+      "product_id": "prod_07",
+      "review_text": "Product Quality: 9 | Best Feature: 3 | Performance: 9 | Nadi nman umiilaw sayang naman",
+      "text_label": "liv",
+      "ground_truth": "liv",
+      "reference_prediction": "liv",
+      "candidate_prediction": "authentic",
+      "candidate_roberta_prediction": "authentic",
+      "reference_probabilities": [
+        0.3290451765060425,
+        0.0026602519210428,
+        0.6634221076965332,
+        0.004872510209679604
+      ],
+      "candidate_probabilities": [
+        0.8702489137649536,
+        0.00927768088877201,
+        0.10831151157617569,
+        0.012161860242486
+      ]
+    },
+    {
+      "review_id": "review_00394",
+      "product_id": "prod_07",
+      "review_text": "Performance: poor | Best Feature: poor | Product Quality: poor | I respect your product but pls ayusin nyo yung product bago nyo ipadala😭 sayang pera ko unang gamit sira agad gusto ko sana ng refund!😡😭",
+      "text_label": "authentic",
+      "ground_truth": "authentic",
+      "reference_prediction": "liv",
+      "candidate_prediction": "irrelevant",
+      "candidate_roberta_prediction": "liv",
+      "reference_probabilities": [
+        0.10785464197397232,
+        0.020508119836449623,
+        0.8268789052963257,
+        0.04475829750299454
+      ],
+      "candidate_probabilities": [
+        0.2993279993534088,
+        0.07383105903863907,
+        0.2979905605316162,
+        0.3288503587245941
+      ]
+    },
+    {
+      "review_id": "review_00395",
+      "product_id": "prod_07",
+      "review_text": "Product Quality: goods | Goods Pato sound swak s presyo",
+      "text_label": "liv",
+      "ground_truth": "liv",
+      "reference_prediction": "liv",
+      "candidate_prediction": "liv",
+      "candidate_roberta_prediction": "liv",
+      "reference_probabilities": [
+        0.194668710231781,
+        0.006197930779308081,
+        0.4510987401008606,
+        0.34803465008735657
+      ],
+      "candidate_probabilities": [
+        0.20742855966091156,
+        0.042535800486803055,
+        0.7175315618515015,
+        0.03250408545136452
+      ]
+    },
+    {
+      "review_id": "review_00396",
+      "product_id": "prod_07",
+      "review_text": "Best Feature: pag bukas ko may sira bweset | Performance: 2/10 | Product Quality: 1/100",
+      "text_label": "liv",
+      "ground_truth": "liv",
+      "reference_prediction": "liv",
+      "candidate_prediction": "liv",
+      "candidate_roberta_prediction": "liv",
+      "reference_probabilities": [
+        0.21829044818878174,
+        0.019398974254727364,
+        0.6547179222106934,
+        0.10759268701076508
+      ],
+      "candidate_probabilities": [
+        0.07922539860010147,
+        0.027441641315817833,
+        0.8792455792427063,
+        0.014087342657148838
+      ]
+    },
+    {
+      "review_id": "review_00397",
+      "product_id": "prod_07",
+      "review_text": "Best Feature: lights | Product Quality: minsan gumagana mic minsan hinfi kung gagana may static pa | Performance: 5/10",
+      "text_label": "authentic",
+      "ground_truth": "authentic",
+      "reference_prediction": "authentic",
+      "candidate_prediction": "authentic",
+      "candidate_roberta_prediction": "authentic",
+      "reference_probabilities": [
+        0.6235777735710144,
+        0.016340065747499466,
+        0.3340966999530792,
+        0.02598545327782631
+      ],
+      "candidate_probabilities": [
+        0.8399254679679871,
+        0.01734630949795246,
+        0.03711884841322899,
+        0.10560930520296097
+      ]
+    },
+    {
+      "review_id": "review_00398",
+      "product_id": "prod_07",
+      "review_text": "Performance: need to try first | Product Quality: good | Best Feature: good | I think it's unprofessional to receive a package without proper packaging. I'm a bit disappointed tbh. First I received a package na nakabalot lang sa black bubble wrap like plastic as seen in the video, where in fact dapat yung mga ganitong klaseng package supposedly naka box or something that is more sturdy. Second, as seen in the picture meron din konting pagtuklap sa pods ng headphones. Anyway, I'll try if the performance is good despite this frustrating package.",
+      "text_label": "authentic",
+      "ground_truth": "authentic",
+      "reference_prediction": "authentic",
+      "candidate_prediction": "authentic",
+      "candidate_roberta_prediction": "authentic",
+      "reference_probabilities": [
+        0.5543864965438843,
+        0.011224886402487755,
+        0.42543384432792664,
+        0.008954757824540138
+      ],
+      "candidate_probabilities": [
+        0.7962700724601746,
+        0.02020176127552986,
+        0.16642020642757416,
+        0.017107997089624405
+      ]
+    },
+    {
+      "review_id": "review_00399",
+      "product_id": "prod_07",
+      "review_text": "Product Quality: Worth the price | Performance: Not bad | Best Feature: bulky headset and thick cords | Wrong color.",
+      "text_label": "liv",
+      "ground_truth": "liv",
+      "reference_prediction": "liv",
+      "candidate_prediction": "liv",
+      "candidate_roberta_prediction": "liv",
+      "reference_probabilities": [
+        0.22178982198238373,
+        0.004221723414957523,
+        0.7498174905776978,
+        0.02417099103331566
+      ],
+      "candidate_probabilities": [
+        0.08093053847551346,
+        0.023436877876520157,
+        0.8821844458580017,
+        0.013448197394609451
+      ]
+    },
+    {
+      "review_id": "review_00400",
+      "product_id": "prod_07",
+      "review_text": "Performance: excellentt | Best Feature: rgb lights | Product Quality: good",
+      "text_label": "liv",
+      "ground_truth": "liv",
+      "reference_prediction": "liv",
+      "candidate_prediction": "liv",
+      "candidate_roberta_prediction": "liv",
+      "reference_probabilities": [
+        0.42216798663139343,
+        0.017077859491109848,
+        0.4642166197299957,
+        0.09653759002685547
+      ],
+      "candidate_probabilities": [
+        0.04182363301515579,
+        0.015059630386531353,
+        0.93278568983078,
+        0.010330984368920326
+      ]
+    },
+    {
+      "review_id": "review_00401",
+      "product_id": "prod_07",
+      "review_text": "Wouldn’t work kung USB port lang ang ipluplug. May cable for individual mic and headphones use but my laptop has not enough portal for all of that.",
+      "text_label": "authentic",
+      "ground_truth": "authentic",
+      "reference_prediction": "authentic",
+      "candidate_prediction": "authentic",
+      "candidate_roberta_prediction": "authentic",
+      "reference_probabilities": [
+        0.8875522613525391,
+        0.003806281602010131,
+        0.08413666486740112,
+        0.024504829198122025
+      ],
+      "candidate_probabilities": [
+        0.8156541585922241,
+        0.11088187992572784,
+        0.057008109986782074,
+        0.016455866396427155
+      ]
+    },
+    {
+      "review_id": "review_00402",
+      "product_id": "prod_07",
+      "review_text": "Performance: eh | Product Quality: mid | Best Feature: looks | just received it today and i must say im barely satisfied with it:( sound qual is so not good, super mahina sya even if u max the volume:( sayang it looks cute pa naman, now im left w no choice but to use volume booster :( not recommended. everything was fine tho, it's just the sound qual",
+      "text_label": "authentic",
+      "ground_truth": "authentic",
+      "reference_prediction": "authentic",
+      "candidate_prediction": "authentic",
+      "candidate_roberta_prediction": "authentic",
+      "reference_probabilities": [
+        0.6698992848396301,
+        0.006090907845646143,
+        0.31594014167785645,
+        0.008069668896496296
+      ],
+      "candidate_probabilities": [
+        0.7986116409301758,
+        0.020333902910351753,
+        0.16413657367229462,
+        0.01691783405840397
+      ]
+    },
+    {
+      "review_id": "review_00403",
+      "product_id": "prod_07",
+      "review_text": "Performance: Not that great | Thank you seller for sending me pictures before you shipped the item. Unfortunately there are problems that I noticed while using this headphones earlier. Triny ko siya first sa phone with the use of audio adapter and okay naman. Pero nong ginamit ko siya sa paglalaro my teammates said na the mic sounds awful and even the footsteps ay baliktad. I can't focus on the game because I can't use the mic also the left and right side audio of the headphones confuses me. Lastly, as you can see they only wrapped it in a bubble wrap na 2 beses lang inikutan. Thankfully walang damage sa item.",
+      "text_label": "authentic",
+      "ground_truth": "authentic",
+      "reference_prediction": "authentic",
+      "candidate_prediction": "authentic",
+      "candidate_roberta_prediction": "authentic",
+      "reference_probabilities": [
+        0.6832850575447083,
+        0.012314317747950554,
+        0.2960417568683624,
+        0.008358823135495186
+      ],
+      "candidate_probabilities": [
+        0.8278147578239441,
+        0.02082911878824234,
+        0.1337168663740158,
+        0.017639275640249252
+      ]
+    },
+    {
+      "review_id": "review_00404",
+      "product_id": "prod_07",
+      "review_text": "Performance: 3 | Product Quality: 5 | Best Feature: di malakas ang sound at wlang noise cancelation | wlang box kaloka, nayupi pa tlga tas yung sounds hindi malakas.",
+      "text_label": "authentic",
+      "ground_truth": "authentic",
+      "reference_prediction": "authentic",
+      "candidate_prediction": "authentic",
+      "candidate_roberta_prediction": "authentic",
+      "reference_probabilities": [
+        0.67146235704422,
+        0.0038542880211025476,
+        0.31728798151016235,
+        0.0073953717947006226
+      ],
+      "candidate_probabilities": [
+        0.8002610206604004,
+        0.10849854350090027,
+        0.08015936613082886,
+        0.011081116273999214
+      ]
+    },
+    {
+      "review_id": "review_00405",
+      "product_id": "prod_07",
+      "review_text": "Performance: Working ang headset | Best Feature: Lights, but it stopped working after 2 days lol | Product Quality: Disappointed | Hindi na gumana ang ilaw after 2 days sayang",
+      "text_label": "authentic",
+      "ground_truth": "authentic",
+      "reference_prediction": "authentic",
+      "candidate_prediction": "authentic",
+      "candidate_roberta_prediction": "authentic",
+      "reference_probabilities": [
+        0.6352683305740356,
+        0.01635081134736538,
+        0.32891106605529785,
+        0.01946977525949478
+      ],
+      "candidate_probabilities": [
+        0.8213380575180054,
+        0.020666154101490974,
+        0.14049452543258667,
+        0.017501268535852432
+      ]
+    },
+    {
+      "review_id": "review_00406",
+      "product_id": "prod_07",
+      "review_text": "Performance: bad | Product Quality: ok | Best Feature: color | Hindi sya gumagana. Umiilaw naman kaso kahit anong try ko ayaw talaga. Hinde naman yung computer may problema.",
+      "text_label": "authentic",
+      "ground_truth": "authentic",
+      "reference_prediction": "authentic",
+      "candidate_prediction": "authentic",
+      "candidate_roberta_prediction": "authentic",
+      "reference_probabilities": [
+        0.6227902770042419,
+        0.005934261716902256,
+        0.3642396628856659,
+        0.007035835180431604
+      ],
+      "candidate_probabilities": [
+        0.7470400929450989,
+        0.14260615408420563,
+        0.09527512639760971,
+        0.015078661032021046
+      ]
+    },
+    {
+      "review_id": "review_00407",
+      "product_id": "prod_07",
+      "review_text": "Performance: 3/10 for interviewers/for clients kapag kausap niyo sila mahina talaga yung boses nila pero kapag youtube 5/10 ewan ko ba sabog talaga yung boses. | Best Feature: only for gamers not for work or online classes | Product Quality: 4/10 | Product: Poor quality | after observing this headset,Hindi ko talaga naririnig masyado yung mga kausap ko sabog siya if gagamitin niyo for interviews/online classes pero kapag youtube okay parin, hindi siya suitable for work and online classes, This headset is only intended for gamings. I don’t recommend this headset those who want to use for work pero kung pang gaming okay lang siguro. Its just my honest opinion.",
+      "text_label": "authentic",
+      "ground_truth": "authentic",
+      "reference_prediction": "authentic",
+      "candidate_prediction": "authentic",
+      "candidate_roberta_prediction": "authentic",
+      "reference_probabilities": [
+        0.6938866376876831,
+        0.0064126113429665565,
+        0.2923719882965088,
+        0.007328770589083433
+      ],
+      "candidate_probabilities": [
+        0.7468563318252563,
+        0.021711140871047974,
+        0.21239730715751648,
+        0.01903519220650196
+      ]
+    },
+    {
+      "review_id": "review_00408",
+      "product_id": "prod_07",
+      "review_text": "In a span of one week after i ordered recieve the item no longer works. unluckily it has been ordered recieve thats why i can no longer return the faulty products",
+      "text_label": "liv",
+      "ground_truth": "liv",
+      "reference_prediction": "authentic",
+      "candidate_prediction": "authentic",
+      "candidate_roberta_prediction": "authentic",
+      "reference_probabilities": [
+        0.7365062832832336,
+        0.007633723318576813,
+        0.22128210961818695,
+        0.03457789495587349
+      ],
+      "candidate_probabilities": [
+        0.5781048536300659,
+        0.014288162812590599,
+        0.2857574224472046,
+        0.12184959650039673
+      ]
+    },
+    {
+      "review_id": "review_00409",
+      "product_id": "prod_07",
+      "review_text": "Performance: 2/10 | Product Quality: 2/10 | SIRA AGAD 2 DAYS KO PALANG GINAGAMIT.",
+      "text_label": "authentic",
+      "ground_truth": "authentic",
+      "reference_prediction": "liv",
+      "candidate_prediction": "liv",
+      "candidate_roberta_prediction": "liv",
+      "reference_probabilities": [
+        0.11394235491752625,
+        0.014772757887840271,
+        0.8116803765296936,
+        0.059604473412036896
+      ],
+      "candidate_probabilities": [
+        0.017759598791599274,
+        0.02682700753211975,
+        0.9401834011077881,
+        0.01522993203252554
+      ]
+    },
+    {
+      "review_id": "review_00410",
+      "product_id": "prod_07",
+      "review_text": "Best Feature: Appearance | Product Quality: 2/5 | Performance: 2/5 | lahat ng noise sa room sagap nya sa mic, kahit yung tulo ng tubig sa cr rinig, tapos kapag nag record ka na may humuhugong na. Kung makikinig ka lang yung sound quality di din ganon ka okay, kung mic naman may random noises na napipickup kaya garalgal ang tunog. Wala akong maisip na scenario kung saan pede tong gamitin ng hindi na cocompromise ang quality ng convo.",
+      "text_label": "authentic",
+      "ground_truth": "authentic",
+      "reference_prediction": "authentic",
+      "candidate_prediction": "authentic",
+      "candidate_roberta_prediction": "authentic",
+      "reference_probabilities": [
+        0.644254207611084,
+        0.0056656720116734505,
+        0.3429286777973175,
+        0.007151419762521982
+      ],
+      "candidate_probabilities": [
+        0.7193032503128052,
+        0.15824279189109802,
+        0.10572197288274765,
+        0.016732022166252136
+      ]
+    },
+    {
+      "review_id": "review_00411",
+      "product_id": "prod_07",
+      "review_text": "check niyo naman kung mukha pa bang presentable yung box ng product niyo. nakakahiya, official store pa naman kayo. nakabukas na amp, di na rin presentable yung box. pang regalo pa naman sana yan. AYUSIN NIYO SERBISYO NIYO SA SUSUNOD!!!",
+      "text_label": "authentic",
+      "ground_truth": "authentic",
+      "reference_prediction": "irrelevant",
+      "candidate_prediction": "authentic",
+      "candidate_roberta_prediction": "authentic",
+      "reference_probabilities": [
+        0.19361577928066254,
+        0.005961266811937094,
+        0.09942594170570374,
+        0.700996994972229
+      ],
+      "candidate_probabilities": [
+        0.5497118830680847,
+        0.038001563400030136,
+        0.32174307107925415,
+        0.09054343402385712
+      ]
+    },
+    {
+      "review_id": "review_00412",
+      "product_id": "prod_07",
+      "review_text": "Item arrived has damage. Due to failure sa pag secure ng item sa packaging.",
+      "text_label": "authentic",
+      "ground_truth": "authentic",
+      "reference_prediction": "authentic",
+      "candidate_prediction": "liv",
+      "candidate_roberta_prediction": "liv",
+      "reference_probabilities": [
+        0.49551916122436523,
+        0.013162503018975258,
+        0.43814900517463684,
+        0.05316932499408722
+      ],
+      "candidate_probabilities": [
+        0.35181328654289246,
+        0.03065117448568344,
+        0.5815412998199463,
+        0.03599423170089722
+      ]
+    },
+    {
+      "review_id": "review_00413",
+      "product_id": "prod_07",
+      "review_text": "Performance: DO NOT BUY IF YOUR USING LAPTOP | The mic was defective, both the headset and the usb works perfectly but the microphone was not working. Worst experience in buying ever, please dont make the same mistake as I did and buy legit earphones. The product was not packaged safely as it just came in a box with no protectors.",
+      "text_label": "authentic",
+      "ground_truth": "authentic",
+      "reference_prediction": "authentic",
+      "candidate_prediction": "authentic",
+      "candidate_roberta_prediction": "authentic",
+      "reference_probabilities": [
+        0.704423189163208,
+        0.005925072822719812,
+        0.2825496792793274,
+        0.0071020773611962795
+      ],
+      "candidate_probabilities": [
+        0.8289714455604553,
+        0.11321002244949341,
+        0.04614928364753723,
+        0.011669251136481762
+      ]
+    },
+    {
+      "review_id": "review_00414",
+      "product_id": "prod_07",
+      "review_text": "Product Quality: pangit | Performance: sira yung mic pag dating | Best Feature: maganda sana kaso sira yung mic | Sana ayosin nyo packaging nyo next time sira yung mic pag dating dito wla man lng box naka bubble wrap lng",
+      "text_label": "authentic",
+      "ground_truth": "authentic",
+      "reference_prediction": "authentic",
+      "candidate_prediction": "authentic",
+      "candidate_roberta_prediction": "authentic",
+      "reference_probabilities": [
+        0.5861767530441284,
+        0.00655755028128624,
+        0.40062323212623596,
+        0.006642486434429884
+      ],
+      "candidate_probabilities": [
+        0.7193032503128052,
+        0.15824279189109802,
+        0.10572197288274765,
+        0.016732022166252136
+      ]
+    },
+    {
+      "review_id": "review_00415",
+      "product_id": "prod_07",
+      "review_text": "Performance: mahina po Yung kaliwa | Best Feature: 👎 | Product Quality: 👎 | Wag na kayung umorder dito",
+      "text_label": "liv",
+      "ground_truth": "liv",
+      "reference_prediction": "liv",
+      "candidate_prediction": "liv",
+      "candidate_roberta_prediction": "liv",
+      "reference_probabilities": [
+        0.2694433331489563,
+        0.007821185514330864,
+        0.6921727061271667,
+        0.030562730506062508
+      ],
+      "candidate_probabilities": [
+        0.03273332118988037,
+        0.01624418795108795,
+        0.9398788809776306,
+        0.011143596842885017
+      ]
+    },
+    {
+      "review_id": "review_00416",
+      "product_id": "prod_07",
+      "review_text": "Best Feature: Lights | Performance: 0 | Product Quality: 0 | Napakahina ng sounds, lalo gnagamit pa sa gaming, low quality product. akala ko totoo yung malakas na sounds, hindi pala",
+      "text_label": "authentic",
+      "ground_truth": "authentic",
+      "reference_prediction": "authentic",
+      "candidate_prediction": "authentic",
+      "candidate_roberta_prediction": "authentic",
+      "reference_probabilities": [
+        0.5983210802078247,
+        0.006078910548239946,
+        0.3855009078979492,
+        0.010099148377776146
+      ],
+      "candidate_probabilities": [
+        0.8170090913772583,
+        0.11748477816581726,
+        0.05308376997709274,
+        0.012422414496541023
+      ]
+    },
+    {
+      "review_id": "review_00417",
+      "product_id": "prod_07",
+      "review_text": "Product Quality: good | Best Feature: i dont know | Performance: need mo pa pala mag buy ng splitter kasi yung 3 jacks need naka saksak lahat before sya gumana,",
+      "text_label": "authentic",
+      "ground_truth": "authentic",
+      "reference_prediction": "liv",
+      "candidate_prediction": "authentic",
+      "candidate_roberta_prediction": "authentic",
+      "reference_probabilities": [
+        0.24409210681915283,
+        0.02490680292248726,
+        0.44243165850639343,
+        0.2885694205760956
+      ],
+      "candidate_probabilities": [
+        0.825867235660553,
+        0.11179759353399277,
+        0.0505140982568264,
+        0.011821075342595577
+      ]
+    },
+    {
+      "review_id": "review_00778",
+      "product_id": "prod_14",
+      "review_text": "Appearance: good | Material Quality: good | Colour: good | Ganda nang polo at pants perfect na perfect! Correct size and color binigay ni seller salamat po at walang damage ang ganda pa nang tela kung sa mall to ang mahal neto.",
+      "text_label": "authentic",
+      "ground_truth": "authentic",
+      "reference_prediction": "authentic",
+      "candidate_prediction": "authentic",
+      "candidate_roberta_prediction": "authentic",
+      "reference_probabilities": [
+        0.7627764344215393,
+        0.001994398655369878,
+        0.2314860075712204,
+        0.003743138862773776
+      ],
+      "candidate_probabilities": [
+        0.799263596534729,
+        0.11042968183755875,
+        0.07902838289737701,
+        0.011278347112238407
+      ]
+    },
+    {
+      "review_id": "review_00779",
+      "product_id": "prod_14",
+      "review_text": "Material Quality: The best | Colour: The best | Appearance: the best | Looks good and neat perfect for any occasion. Quality polo for very affordable price. Thank you seller and Shopee! 🧡",
+      "text_label": "authentic",
+      "ground_truth": "authentic",
+      "reference_prediction": "authentic",
+      "candidate_prediction": "authentic",
+      "candidate_roberta_prediction": "liv",
+      "reference_probabilities": [
+        0.5573285818099976,
+        0.004802383482456207,
+        0.4236758351325989,
+        0.01419319212436676
+      ],
+      "candidate_probabilities": [
+        0.5920753479003906,
+        0.015468982048332691,
+        0.3778693675994873,
+        0.014586261473596096
+      ]
+    },
+    {
+      "review_id": "review_00780",
+      "product_id": "prod_14",
+      "review_text": "Material Quality: smooth and nice fabric | Colour: 10/10 | Appearance: Elegant | Ang ganda ng tela ng polo na to, it was my first time to order in this shop and i really like it, maganda yung quality and sakto yung size na napili ko. I recommend this shop, and oorder ulit ako soon. Thank you seller",
+      "text_label": "authentic",
+      "ground_truth": "authentic",
+      "reference_prediction": "authentic",
+      "candidate_prediction": "authentic",
+      "candidate_roberta_prediction": "authentic",
+      "reference_probabilities": [
+        0.9187343716621399,
+        0.0023173438385128975,
+        0.06939863413572311,
+        0.00954966340214014
+      ],
+      "candidate_probabilities": [
+        0.842003345489502,
+        0.0946248397231102,
+        0.049328628927469254,
+        0.014043174684047699
+      ]
+    },
+    {
+      "review_id": "review_00781",
+      "product_id": "prod_14",
+      "review_text": "Colour: maroon | Material Quality: smooth silky cotton | Appearance: nice design and cotton type | I really do like the type of the cotton they used😍i used to ordered the same style in other store but they have really different kind of cotton this one is more i love and like😍🥰..",
+      "text_label": "authentic",
+      "ground_truth": "authentic",
+      "reference_prediction": "authentic",
+      "candidate_prediction": "authentic",
+      "candidate_roberta_prediction": "authentic",
+      "reference_probabilities": [
+        0.5814253091812134,
+        0.001462944084778428,
+        0.41457703709602356,
+        0.002534674946218729
+      ],
+      "candidate_probabilities": [
+        0.7723537087440491,
+        0.021450325846672058,
+        0.1880168467760086,
+        0.01817907951772213
+      ]
+    },
+    {
+      "review_id": "review_00782",
+      "product_id": "prod_14",
+      "review_text": "Material Quality: Maganda yung tela hindi mainit | Appearance: Pleasing to the eyes. nakakasosyal | Colour: Black 9/10. hindi sya sobrang black talaga | Maganda naman yung item. Nagamit namin sa shoot. Salamat po",
+      "text_label": "authentic",
+      "ground_truth": "authentic",
+      "reference_prediction": "authentic",
+      "candidate_prediction": "authentic",
+      "candidate_roberta_prediction": "authentic",
+      "reference_probabilities": [
+        0.9175775051116943,
+        0.001885332865640521,
+        0.07546872645616531,
+        0.005068500991910696
+      ],
+      "candidate_probabilities": [
+        0.8331305384635925,
+        0.021757574751973152,
+        0.1266724169254303,
+        0.01843947544693947
+      ]
+    },
+    {
+      "review_id": "review_00783",
+      "product_id": "prod_14",
+      "review_text": "Appearance: maganda sya pero medyo manipis sakto Lang sa presyo nya Goods na goods pang porma at pang gimik I reigan ko | Colour: white | Material Quality: goods",
+      "text_label": "authentic",
+      "ground_truth": "authentic",
+      "reference_prediction": "authentic",
+      "candidate_prediction": "authentic",
+      "candidate_roberta_prediction": "authentic",
+      "reference_probabilities": [
+        0.7148028612136841,
+        0.001976208295673132,
+        0.27754828333854675,
+        0.005672714672982693
+      ],
+      "candidate_probabilities": [
+        0.8929523825645447,
+        0.05888296291232109,
+        0.04292212799191475,
+        0.005242567043751478
+      ]
+    },
+    {
+      "review_id": "review_00784",
+      "product_id": "prod_14",
+      "review_text": "Appearance: looks expensive | Colour: same as expected | Material Quality: excellent | Great! Maganda quality at mura pa..will avail again..thank you Shopee and Seller.",
+      "text_label": "liv",
+      "ground_truth": "liv",
+      "reference_prediction": "authentic",
+      "candidate_prediction": "authentic",
+      "candidate_roberta_prediction": "authentic",
+      "reference_probabilities": [
+        0.6572607755661011,
+        0.004061971325427294,
+        0.3352554142475128,
+        0.0034218328073620796
+      ],
+      "candidate_probabilities": [
+        0.7421125769615173,
+        0.011601519770920277,
+        0.23490366339683533,
+        0.01138229202479124
+      ]
+    },
+    {
+      "review_id": "review_00785",
+      "product_id": "prod_14",
+      "review_text": "Colour: Navy Blue | Appearance: Chinese Collar | Received the right item. Its pretty loose for me in this medium size, maluwag in short. I measured the shoulder length roughly 17.5inches. For those looking for loose polo, grab this, it has a good quality. Supposedly pang-gift sa inaanak, mukhang ako nalang gagamit 😆",
+      "text_label": "authentic",
+      "ground_truth": "authentic",
+      "reference_prediction": "authentic",
+      "candidate_prediction": "authentic",
+      "candidate_roberta_prediction": "authentic",
+      "reference_probabilities": [
+        0.8313193917274475,
+        0.0017571795033290982,
+        0.16355155408382416,
+        0.0033718575723469257
+      ],
+      "candidate_probabilities": [
+        0.8566043376922607,
+        0.0890035554766655,
+        0.045530784875154495,
+        0.008861369453370571
+      ]
+    },
+    {
+      "review_id": "review_00786",
+      "product_id": "prod_14",
+      "review_text": "Appearance: SUPER DUPER NICE 🥺❤️ | Material Quality: PERFECTLY MADE | Colour: BONGGA FOR OUR MOTIF | SOBRANG HAPPY PO NG PARTNER KO KASI NAKAKA POGI YUNG DAMIT. BILI NA KAYO",
+      "text_label": "liv",
+      "ground_truth": "liv",
+      "reference_prediction": "authentic",
+      "candidate_prediction": "authentic",
+      "candidate_roberta_prediction": "authentic",
+      "reference_probabilities": [
+        0.8375811576843262,
+        0.002671469235792756,
+        0.1550566703081131,
+        0.004690672270953655
+      ],
+      "candidate_probabilities": [
+        0.8799311518669128,
+        0.07052396982908249,
+        0.0432550311088562,
+        0.006289846729487181
+      ]
+    },
+    {
+      "review_id": "review_00787",
+      "product_id": "prod_14",
+      "review_text": "Exellent Quality!. Very Accommodating Seller!. Well-Packaged!. Item Shipped Immediately!. Will Order Again!. Thanks and God bless to your shop!.",
+      "text_label": "liv",
+      "ground_truth": "liv",
+      "reference_prediction": "liv",
+      "candidate_prediction": "liv",
+      "candidate_roberta_prediction": "liv",
+      "reference_probabilities": [
+        0.04618615657091141,
+        0.05392037332057953,
+        0.8637604117393494,
+        0.03613303229212761
+      ],
+      "candidate_probabilities": [
+        0.42769667506217957,
+        0.008428078144788742,
+        0.5547055006027222,
+        0.009169712662696838
+      ]
+    },
+    {
+      "review_id": "review_00788",
+      "product_id": "prod_14",
+      "review_text": "Appearance: maganda po sya at saktong sakto sa husband ko | Material Quality: good | Colour: true | Maganda po sya. Satisfy ako. Mura pero quality. Pang mall ang texture ng dami",
+      "text_label": "authentic",
+      "ground_truth": "authentic",
+      "reference_prediction": "authentic",
+      "candidate_prediction": "authentic",
+      "candidate_roberta_prediction": "authentic",
+      "reference_probabilities": [
+        0.5716755390167236,
+        0.0012329751625657082,
+        0.42535853385925293,
+        0.0017329729162156582
+      ],
+      "candidate_probabilities": [
+        0.9515408277511597,
+        0.004539904184639454,
+        0.03781930357217789,
+        0.0060999453999102116
+      ]
+    },
+    {
+      "review_id": "review_00789",
+      "product_id": "prod_14",
+      "review_text": "Material Quality: cotton | Colour: navy blue | Appearance: good | nagustuhan nang jowa ko. ang ganda nag tela. nkakapogi at kaka astig tingnan sa lalaki. Gusto kung bumili nang white ulit. kasi ang ganda talaga",
+      "text_label": "authentic",
+      "ground_truth": "authentic",
+      "reference_prediction": "authentic",
+      "candidate_prediction": "authentic",
+      "candidate_roberta_prediction": "authentic",
+      "reference_probabilities": [
+        0.813759982585907,
+        0.0021446363534778357,
+        0.1817905753850937,
+        0.002304819878190756
+      ],
+      "candidate_probabilities": [
+        0.9355685710906982,
+        0.005235885735601187,
+        0.05213160812854767,
+        0.0070639075711369514
+      ]
+    },
+    {
+      "review_id": "review_00790",
+      "product_id": "prod_14",
+      "review_text": "Appearance: good | Material Quality: good | Colour: white | Ok Naman Po Ang polos shirt di pa natry Ng asawa ko if kasya sa kanya , Sana kasya tingin ko kc maliit sya kahit XL na... But thank you KY seller hoping nagustuhan Ng asawa ko.",
+      "text_label": "liv",
+      "ground_truth": "liv",
+      "reference_prediction": "liv",
+      "candidate_prediction": "authentic",
+      "candidate_roberta_prediction": "authentic",
+      "reference_probabilities": [
+        0.07397077232599258,
+        0.002681884914636612,
+        0.8258424401283264,
+        0.0975048840045929
+      ],
+      "candidate_probabilities": [
+        0.9083592891693115,
+        0.006784623488783836,
+        0.06838023662567139,
+        0.016475891694426537
+      ]
+    },
+    {
+      "review_id": "review_00791",
+      "product_id": "prod_14",
+      "review_text": "Colour: Dark Blue | Material Quality: 8/0 | Appearance: 9/10 | Nice!",
+      "text_label": "liv",
+      "ground_truth": "liv",
+      "reference_prediction": "liv",
+      "candidate_prediction": "liv",
+      "candidate_roberta_prediction": "liv",
+      "reference_probabilities": [
+        0.16475389897823334,
+        0.008358130231499672,
+        0.806198000907898,
+        0.0206899493932724
+      ],
+      "candidate_probabilities": [
+        0.040933385491371155,
+        0.006800726056098938,
+        0.9438965916633606,
+        0.008369265124201775
+      ]
+    },
+    {
+      "review_id": "review_00792",
+      "product_id": "prod_14",
+      "review_text": "Material Quality: fair | Colour: good | Appearance: good | Puro labas sinulid at nasabit sinulid kapag sinusuot at naglalagay butones",
+      "text_label": "authentic",
+      "ground_truth": "authentic",
+      "reference_prediction": "authentic",
+      "candidate_prediction": "authentic",
+      "candidate_roberta_prediction": "authentic",
+      "reference_probabilities": [
+        0.6367763876914978,
+        0.0029655382968485355,
+        0.32386061549186707,
+        0.036397431045770645
+      ],
+      "candidate_probabilities": [
+        0.7798582315444946,
+        0.011408902704715729,
+        0.1613021045923233,
+        0.047430772334337234
+      ]
+    },
+    {
+      "review_id": "review_00793",
+      "product_id": "prod_14",
+      "review_text": "Colour: cream | Appearance: beautifully aesthetic | Material Quality: very good | Ganda.bagay sa binata ko.♥️ pang rampa nya daw sa beach.😂",
+      "text_label": "liv",
+      "ground_truth": "liv",
+      "reference_prediction": "liv",
+      "candidate_prediction": "authentic",
+      "candidate_roberta_prediction": "authentic",
+      "reference_probabilities": [
+        0.3545285761356354,
+        0.007411014288663864,
+        0.6258347630500793,
+        0.012225654907524586
+      ],
+      "candidate_probabilities": [
+        0.5133441686630249,
+        0.03435994312167168,
+        0.40142905712127686,
+        0.050866857171058655
+      ]
+    },
+    {
+      "review_id": "review_00794",
+      "product_id": "prod_14",
+      "review_text": "Material Quality: good | Colour: correct color | Appearance: nice | Thankyou seller and rider super nice ng polo shirt nagustohan ng mister ko",
+      "text_label": "liv",
+      "ground_truth": "liv",
+      "reference_prediction": "liv",
+      "candidate_prediction": "liv",
+      "candidate_roberta_prediction": "liv",
+      "reference_probabilities": [
+        0.1667872965335846,
+        0.009542267769575119,
+        0.8021487593650818,
+        0.0215216726064682
+      ],
+      "candidate_probabilities": [
+        0.34644898772239685,
+        0.02144874818623066,
+        0.6121072173118591,
+        0.01999504491686821
+      ]
+    },
+    {
+      "review_id": "review_00795",
+      "product_id": "prod_14",
+      "review_text": "Colour: goods | Appearance: goods | Material Quality: goods",
+      "text_label": "liv",
+      "ground_truth": "liv",
+      "reference_prediction": "liv",
+      "candidate_prediction": "liv",
+      "candidate_roberta_prediction": "liv",
+      "reference_probabilities": [
+        0.16146491467952728,
+        0.0069448454305529594,
+        0.8188313841819763,
+        0.01275886781513691
+      ],
+      "candidate_probabilities": [
+        0.028601285070180893,
+        0.020941458642482758,
+        0.9407094120979309,
+        0.009747848846018314
+      ]
+    },
+    {
+      "review_id": "review_00796",
+      "product_id": "prod_14",
+      "review_text": "Material Quality: Good | Colour: Good | Appearance: Good | Good",
+      "text_label": "liv",
+      "ground_truth": "liv",
+      "reference_prediction": "liv",
+      "candidate_prediction": "liv",
+      "candidate_roberta_prediction": "liv",
+      "reference_probabilities": [
+        0.37538430094718933,
+        0.007847078144550323,
+        0.605552613735199,
+        0.011216000653803349
+      ],
+      "candidate_probabilities": [
+        0.028317097574472427,
+        0.007188819814473391,
+        0.9577924609184265,
+        0.006701589096337557
+      ]
+    },
+    {
+      "review_id": "review_00797",
+      "product_id": "prod_14",
+      "review_text": "Colour: Brown | Appearance: the way it is showed is the same as i get it | Material Quality: good",
+      "text_label": "liv",
+      "ground_truth": "liv",
+      "reference_prediction": "liv",
+      "candidate_prediction": "liv",
+      "candidate_roberta_prediction": "liv",
+      "reference_probabilities": [
+        0.30277708172798157,
+        0.0036143597681075335,
+        0.6864137053489685,
+        0.007194816134870052
+      ],
+      "candidate_probabilities": [
+        0.16546432673931122,
+        0.023271050304174423,
+        0.7908675670623779,
+        0.020397061482071877
+      ]
+    },
+    {
+      "review_id": "review_00798",
+      "product_id": "prod_14",
+      "review_text": "Material Quality: Silk | Appearance: Good | Colour: Navy blue | Maganda yung product super sulit for the price pero maliit siya. If 40 yung measurement niyo sa chest, I advise na yung Large ang kunin niyo since maliit talaga yung medium para siyang small. Thanks parin sa seller.😊",
+      "text_label": "authentic",
+      "ground_truth": "authentic",
+      "reference_prediction": "authentic",
+      "candidate_prediction": "authentic",
+      "candidate_roberta_prediction": "authentic",
+      "reference_probabilities": [
+        0.7184609174728394,
+        0.002939773490652442,
+        0.2678051292896271,
+        0.010794187895953655
+      ],
+      "candidate_probabilities": [
+        0.8050233125686646,
+        0.10914421826601028,
+        0.07468535006046295,
+        0.011147059500217438
+      ]
+    },
+    {
+      "review_id": "review_00799",
+      "product_id": "prod_14",
+      "review_text": "Colour: 10 | Appearance: 10 | Material Quality: 10 | I order again nextime maganda Ang tela sakto sa gusto Ng Asawa ko.thank you seller and Rider 🙏",
+      "text_label": "liv",
+      "ground_truth": "liv",
+      "reference_prediction": "liv",
+      "candidate_prediction": "authentic",
+      "candidate_roberta_prediction": "authentic",
+      "reference_probabilities": [
+        0.28994855284690857,
+        0.0025301675777882338,
+        0.6912943124771118,
+        0.01622697152197361
+      ],
+      "candidate_probabilities": [
+        0.8030040264129639,
+        0.11311356723308563,
+        0.07262060791254044,
+        0.011261808685958385
+      ]
+    },
+    {
+      "review_id": "review_00800",
+      "product_id": "prod_14",
+      "review_text": "Material Quality: nice | Appearance: goods",
+      "text_label": "liv",
+      "ground_truth": "liv",
+      "reference_prediction": "liv",
+      "candidate_prediction": "liv",
+      "candidate_roberta_prediction": "liv",
+      "reference_probabilities": [
+        0.10020197182893753,
+        0.023439232259988785,
+        0.8478257656097412,
+        0.02853303961455822
+      ],
+      "candidate_probabilities": [
+        0.06505367904901505,
+        0.007866594940423965,
+        0.9173987507820129,
+        0.009680969640612602
+      ]
+    },
+    {
+      "review_id": "review_00801",
+      "product_id": "prod_14",
+      "review_text": "Mabilis madeliver ung order tas goods nman ung product wala damage",
+      "text_label": "liv",
+      "ground_truth": "liv",
+      "reference_prediction": "authentic",
+      "candidate_prediction": "authentic",
+      "candidate_roberta_prediction": "authentic",
+      "reference_probabilities": [
+        0.7568022012710571,
+        0.0030262847431004047,
+        0.2178633213043213,
+        0.022308237850666046
+      ],
+      "candidate_probabilities": [
+        0.8142827153205872,
+        0.11039959639310837,
+        0.06404240429401398,
+        0.011275273747742176
+      ]
+    },
+    {
+      "review_id": "review_00802",
+      "product_id": "prod_14",
+      "review_text": "Material Quality: cheap. It’s POLYESTER | Pwede na for the price. TY",
+      "text_label": "liv",
+      "ground_truth": "liv",
+      "reference_prediction": "liv",
+      "candidate_prediction": "liv",
+      "candidate_roberta_prediction": "liv",
+      "reference_probabilities": [
+        0.25393950939178467,
+        0.003953877836465836,
+        0.700061023235321,
+        0.04204556345939636
+      ],
+      "candidate_probabilities": [
+        0.12796425819396973,
+        0.02169826813042164,
+        0.8379177451133728,
+        0.012419717386364937
+      ]
+    },
+    {
+      "review_id": "review_00803",
+      "product_id": "prod_14",
+      "review_text": "Sakto lang sa price. Mas makapal pa yung table cloth namin",
+      "text_label": "liv",
+      "ground_truth": "liv",
+      "reference_prediction": "authentic",
+      "candidate_prediction": "authentic",
+      "candidate_roberta_prediction": "authentic",
+      "reference_probabilities": [
+        0.8369399309158325,
+        0.0023906107526272535,
+        0.1222548633813858,
+        0.03841458633542061
+      ],
+      "candidate_probabilities": [
+        0.7958565950393677,
+        0.10819055885076523,
+        0.07989638298749924,
+        0.016056450083851814
+      ]
+    },
+    {
+      "review_id": "review_00804",
+      "product_id": "prod_14",
+      "review_text": "Appearance: manipis ang tela | Colour: beige and green | Goods naman kaso lang malaki sa hubby ko and s anak ko.. medium cguro kasya s 155cm. Dpende kc anak ko payat lang",
+      "text_label": "liv",
+      "ground_truth": "liv",
+      "reference_prediction": "liv",
+      "candidate_prediction": "authentic",
+      "candidate_roberta_prediction": "authentic",
+      "reference_probabilities": [
+        0.4582434594631195,
+        0.0035106444265693426,
+        0.5286945104598999,
+        0.009551324881613255
+      ],
+      "candidate_probabilities": [
+        0.7852464318275452,
+        0.10646288841962814,
+        0.09741749614477158,
+        0.010873211547732353
+      ]
+    },
+    {
+      "review_id": "review_00805",
+      "product_id": "prod_14",
+      "review_text": "Appearance: fair | Colour: good | Material Quality: poor | fast shipping",
+      "text_label": "liv",
+      "ground_truth": "liv",
+      "reference_prediction": "liv",
+      "candidate_prediction": "liv",
+      "candidate_roberta_prediction": "liv",
+      "reference_probabilities": [
+        0.2495231330394745,
+        0.006553398445248604,
+        0.7331742644309998,
+        0.010749232955276966
+      ],
+      "candidate_probabilities": [
+        0.03891027718782425,
+        0.012823470868170261,
+        0.9416995644569397,
+        0.006566690746694803
+      ]
+    },
+    {
+      "review_id": "review_00806",
+      "product_id": "prod_14",
+      "review_text": "Manipis lang pala ska kahaba Ng manggas mainit din sa katawan Yung tela",
+      "text_label": "authentic",
+      "ground_truth": "authentic",
+      "reference_prediction": "authentic",
+      "candidate_prediction": "liv",
+      "candidate_roberta_prediction": "authentic",
+      "reference_probabilities": [
+        0.7297240495681763,
+        0.002489442238584161,
+        0.2420634776353836,
+        0.025723043829202652
+      ],
+      "candidate_probabilities": [
+        0.4631229043006897,
+        0.02285826951265335,
+        0.48889657855033875,
+        0.02512228488922119
+      ]
+    },
+    {
+      "review_id": "review_00807",
+      "product_id": "prod_14",
+      "review_text": "D sya ganyan ang tela. Muka pang pari. D sinuot ng asawa ko. Sayang lang",
+      "text_label": "liv",
+      "ground_truth": "liv",
+      "reference_prediction": "authentic",
+      "candidate_prediction": "authentic",
+      "candidate_roberta_prediction": "authentic",
+      "reference_probabilities": [
+        0.8076568245887756,
+        0.007688296493142843,
+        0.13608431816101074,
+        0.048570599406957626
+      ],
+      "candidate_probabilities": [
+        0.7985108494758606,
+        0.10281671583652496,
+        0.0884358212351799,
+        0.010236633010208607
+      ]
+    },
+    {
+      "review_id": "review_00808",
+      "product_id": "prod_14",
+      "review_text": "Okay na sana. Pero not responsive sa chats and inquiries. Medyo palpak hehe",
+      "text_label": "liv",
+      "ground_truth": "liv",
+      "reference_prediction": "authentic",
+      "candidate_prediction": "liv",
+      "candidate_roberta_prediction": "liv",
+      "reference_probabilities": [
+        0.5956211686134338,
+        0.0029927880968898535,
+        0.38325929641723633,
+        0.018126748502254486
+      ],
+      "candidate_probabilities": [
+        0.19682501256465912,
+        0.04692113399505615,
+        0.7225944995880127,
+        0.03365936130285263
+      ]
+    },
+    {
+      "review_id": "review_00809",
+      "product_id": "prod_14",
+      "review_text": "pwede na",
+      "text_label": "liv",
+      "ground_truth": "liv",
+      "reference_prediction": "liv",
+      "candidate_prediction": "liv",
+      "candidate_roberta_prediction": "liv",
+      "reference_probabilities": [
+        0.19108542799949646,
+        0.03425389528274536,
+        0.7354397177696228,
+        0.0392209067940712
+      ],
+      "candidate_probabilities": [
+        0.024937773123383522,
+        0.01099316030740738,
+        0.9577767252922058,
+        0.006292296573519707
+      ]
+    },
+    {
+      "review_id": "review_00810",
+      "product_id": "prod_14",
+      "review_text": "Colour: yung brown is parang kulay rust",
+      "text_label": "liv",
+      "ground_truth": "liv",
+      "reference_prediction": "authentic",
+      "candidate_prediction": "liv",
+      "candidate_roberta_prediction": "liv",
+      "reference_probabilities": [
+        0.5700169801712036,
+        0.00571246026083827,
+        0.357520192861557,
+        0.06675035506486893
+      ],
+      "candidate_probabilities": [
+        0.36903834342956543,
+        0.027101770043373108,
+        0.5869023203849792,
+        0.016957584768533707
+      ]
+    },
+    {
+      "review_id": "review_00811",
+      "product_id": "prod_14",
+      "review_text": "Not true to size.",
+      "text_label": "authentic",
+      "ground_truth": "liv",
+      "reference_prediction": "liv",
+      "candidate_prediction": "liv",
+      "candidate_roberta_prediction": "liv",
+      "reference_probabilities": [
+        0.080143503844738,
+        0.00131562992464751,
+        0.9152291417121887,
+        0.0033117448911070824
+      ],
+      "candidate_probabilities": [
+        0.08456747233867645,
+        0.02533761039376259,
+        0.8771199584007263,
+        0.012974977493286133
+      ]
+    },
+    {
+      "review_id": "review_00812",
+      "product_id": "prod_14",
+      "review_text": "pa-load ka na sa tnt katropa",
+      "text_label": "irrelevant",
+      "ground_truth": "irrelevant",
+      "reference_prediction": "liv",
+      "candidate_prediction": "liv",
+      "candidate_roberta_prediction": "liv",
+      "reference_probabilities": [
+        0.03014022298157215,
+        0.020328573882579803,
+        0.8231058716773987,
+        0.12642528116703033
+      ],
+      "candidate_probabilities": [
+        0.029585493728518486,
+        0.05069233477115631,
+        0.9099161624908447,
+        0.009806049056351185
+      ]
+    },
+    {
+      "review_id": "review_00813",
+      "product_id": "prod_14",
+      "review_text": "bro chill out bruhhhh pwede na to",
+      "text_label": "liv",
+      "ground_truth": "liv",
+      "reference_prediction": "liv",
+      "candidate_prediction": "liv",
+      "candidate_roberta_prediction": "liv",
+      "reference_probabilities": [
+        0.06506025791168213,
+        0.009873736649751663,
+        0.7900684475898743,
+        0.13499753177165985
+      ],
+      "candidate_probabilities": [
+        0.16045962274074554,
+        0.047664009034633636,
+        0.7729171514511108,
+        0.01895923539996147
+      ]
+    },
+    {
+      "review_id": "review_00814",
+      "product_id": "prod_14",
+      "review_text": "Suot ni mister di tlga kasya ayaw pa refund ni shopee at seller hassle!!",
+      "text_label": "liv",
+      "ground_truth": "liv",
+      "reference_prediction": "deceptive",
+      "candidate_prediction": "liv",
+      "candidate_roberta_prediction": "liv",
+      "reference_probabilities": [
+        0.12484182417392731,
+        0.41597187519073486,
+        0.3812255263328552,
+        0.0779607817530632
+      ],
+      "candidate_probabilities": [
+        0.08876936137676239,
+        0.08694802969694138,
+        0.7483835220336914,
+        0.07589906454086304
+      ]
+    },
+    {
+      "review_id": "review_00815",
+      "product_id": "prod_14",
+      "review_text": "Colour: Right color | Appearance: good | Material Quality: Good | Medyo maliit yung XL nila.",
+      "text_label": "liv",
+      "ground_truth": "liv",
+      "reference_prediction": "authentic",
+      "candidate_prediction": "authentic",
+      "candidate_roberta_prediction": "authentic",
+      "reference_probabilities": [
+        0.7768175601959229,
+        0.00340765668079257,
+        0.20155836641788483,
+        0.018216460943222046
+      ],
+      "candidate_probabilities": [
+        0.7393614053726196,
+        0.014732147566974163,
+        0.17253273725509644,
+        0.07337373495101929
+      ]
+    },
+    {
+      "review_id": "review_00816",
+      "product_id": "prod_14",
+      "review_text": "too small.. yung XL ay fit sa medium frame",
+      "text_label": "authentic",
+      "ground_truth": "liv",
+      "reference_prediction": "liv",
+      "candidate_prediction": "liv",
+      "candidate_roberta_prediction": "liv",
+      "reference_probabilities": [
+        0.17397364974021912,
+        0.015081214718520641,
+        0.7220494747161865,
+        0.08889568597078323
+      ],
+      "candidate_probabilities": [
+        0.08077158033847809,
+        0.020031491294503212,
+        0.8675344586372375,
+        0.031662505120038986
+      ]
+    },
+    {
+      "review_id": "review_00817",
+      "product_id": "prod_14",
+      "review_text": "wrong size!!!",
+      "text_label": "authentic",
+      "ground_truth": "liv",
+      "reference_prediction": "deceptive",
+      "candidate_prediction": "liv",
+      "candidate_roberta_prediction": "liv",
+      "reference_probabilities": [
+        0.034779880195856094,
+        0.8437120318412781,
+        0.10159821808338165,
+        0.019909851253032684
+      ],
+      "candidate_probabilities": [
+        0.018285654485225677,
+        0.024193711578845978,
+        0.9505455493927002,
+        0.006975098978728056
+      ]
+    },
+    {
+      "review_id": "review_00818",
+      "product_id": "prod_14",
+      "review_text": "nakakainis si seller, sabi ko medium dumating large",
+      "text_label": "liv",
+      "ground_truth": "liv",
+      "reference_prediction": "liv",
+      "candidate_prediction": "liv",
+      "candidate_roberta_prediction": "liv",
+      "reference_probabilities": [
+        0.18267089128494263,
+        0.0580565370619297,
+        0.7071975469589233,
+        0.052075065672397614
+      ],
+      "candidate_probabilities": [
+        0.058633044362068176,
+        0.026469307020306587,
+        0.8967396020889282,
+        0.018158085644245148
+      ]
+    },
+    {
+      "review_id": "review_00819",
+      "product_id": "prod_14",
+      "review_text": "wrong color",
+      "text_label": "liv",
+      "ground_truth": "liv",
+      "reference_prediction": "liv",
+      "candidate_prediction": "liv",
+      "candidate_roberta_prediction": "liv",
+      "reference_probabilities": [
+        0.3752377927303314,
+        0.03848139941692352,
+        0.5035389065742493,
+        0.082741878926754
+      ],
+      "candidate_probabilities": [
+        0.01932956650853157,
+        0.027779901400208473,
+        0.9448814988136292,
+        0.008009009063243866
+      ]
+    },
+    {
+      "review_id": "review_00820",
+      "product_id": "prod_14",
+      "review_text": "unreliable sizing guide",
+      "text_label": "authentic",
+      "ground_truth": "liv",
+      "reference_prediction": "liv",
+      "candidate_prediction": "liv",
+      "candidate_roberta_prediction": "liv",
+      "reference_probabilities": [
+        0.22017696499824524,
+        0.061714768409729004,
+        0.4732460379600525,
+        0.24486225843429565
+      ],
+      "candidate_probabilities": [
+        0.0365496464073658,
+        0.049373868852853775,
+        0.8999585509300232,
+        0.01411795150488615
+      ]
+    },
+    {
+      "review_id": "review_00821",
+      "product_id": "prod_14",
+      "review_text": "hay nako.",
+      "text_label": "irrelevant",
+      "ground_truth": "irrelevant",
+      "reference_prediction": "deceptive",
+      "candidate_prediction": "liv",
+      "candidate_roberta_prediction": "liv",
+      "reference_probabilities": [
+        0.06701083481311798,
+        0.5399203896522522,
+        0.34069719910621643,
+        0.052371613681316376
+      ],
+      "candidate_probabilities": [
+        0.01711331680417061,
+        0.029093066230416298,
+        0.9454748034477234,
+        0.008318864740431309
+      ]
+    },
+    {
+      "review_id": "review_00822",
+      "product_id": "prod_14",
+      "review_text": "Appearance: good | Colour: good | Material Quality: good kahit manipis | maganda naman kaso nagorder ako ng large kaso medium binigay ka BO2 ng seller naglagay pa ng pagpipiliang size eh iisang size lang naman ata benta nila. okay na sana lahat kaso yun lang puro maliit sakin kasi di binigay large na inorder ko. nasa pic naman large inorder ko na drown para sakin. kaso medium binigay.",
+      "text_label": "authentic",
+      "ground_truth": "authentic",
+      "reference_prediction": "authentic",
+      "candidate_prediction": "authentic",
+      "candidate_roberta_prediction": "authentic",
+      "reference_probabilities": [
+        0.7205876708030701,
+        0.007073503918945789,
+        0.259417861700058,
+        0.01292102038860321
+      ],
+      "candidate_probabilities": [
+        0.8034026026725769,
+        0.022243013605475426,
+        0.15485286712646484,
+        0.019501516595482826
+      ]
+    },
+    {
+      "review_id": "review_00823",
+      "product_id": "prod_14",
+      "review_text": "Okay sana sya .. kaso mukhang mainit na tela.. tska ang price na ganito is pang bangketa lang, worth 100 lang.. grabehan sa 188",
+      "text_label": "liv",
+      "ground_truth": "liv",
+      "reference_prediction": "authentic",
+      "candidate_prediction": "authentic",
+      "candidate_roberta_prediction": "authentic",
+      "reference_probabilities": [
+        0.5195608735084534,
+        0.005944510456174612,
+        0.46669232845306396,
+        0.007802299223840237
+      ],
+      "candidate_probabilities": [
+        0.8056768178939819,
+        0.12037056684494019,
+        0.0615452416241169,
+        0.012407331727445126
+      ]
+    },
+    {
+      "review_id": "review_00824",
+      "product_id": "prod_14",
+      "review_text": "Material Quality: good | Appearance: good | Colour: good | Mabilis dumating , kaso kulang Ang items na pinadala , walang aksyon Ang seller , sakto Yung bad ko tas kulang Ang items na dumating ! Be responsible namn seller !",
+      "text_label": "authentic",
+      "ground_truth": "authentic",
+      "reference_prediction": "liv",
+      "candidate_prediction": "authentic",
+      "candidate_roberta_prediction": "authentic",
+      "reference_probabilities": [
+        0.26463067531585693,
+        0.013021155260503292,
+        0.42206743359565735,
+        0.30028071999549866
+      ],
+      "candidate_probabilities": [
+        0.5478960871696472,
+        0.026757854968309402,
+        0.3965946137905121,
+        0.028751421719789505
+      ]
+    },
+    {
+      "review_id": "review_00825",
+      "product_id": "prod_14",
+      "review_text": "Material Quality: good | Colour: accurate | Appearance: wrong item | Ordered a polo but received a shirt.",
+      "text_label": "authentic",
+      "ground_truth": "authentic",
+      "reference_prediction": "liv",
+      "candidate_prediction": "authentic",
+      "candidate_roberta_prediction": "authentic",
+      "reference_probabilities": [
+        0.2204924076795578,
+        0.006979119963943958,
+        0.7480458617210388,
+        0.024482566863298416
+      ],
+      "candidate_probabilities": [
+        0.6122854948043823,
+        0.02289118990302086,
+        0.3445938229560852,
+        0.020229509100317955
+      ]
+    },
+    {
+      "review_id": "review_00826",
+      "product_id": "prod_14",
+      "review_text": "Appearance: ok | Colour: ok | Material Quality: ok | Wrong sizing, XL pero parang XL na pang kids. Sinundan ko pa yung sizing chart nila pero maliit padin.",
+      "text_label": "authentic",
+      "ground_truth": "authentic",
+      "reference_prediction": "liv",
+      "candidate_prediction": "authentic",
+      "candidate_roberta_prediction": "authentic",
+      "reference_probabilities": [
+        0.4212871491909027,
+        0.007032051216810942,
+        0.5385406613349915,
+        0.033140115439891815
+      ],
+      "candidate_probabilities": [
+        0.6818700432777405,
+        0.037035517394542694,
+        0.19018517434597015,
+        0.09090926498174667
+      ]
+    },
+    {
+      "review_id": "review_00827",
+      "product_id": "prod_14",
+      "review_text": "False size",
+      "text_label": "authentic",
+      "ground_truth": "authentic",
+      "reference_prediction": "liv",
+      "candidate_prediction": "liv",
+      "candidate_roberta_prediction": "liv",
+      "reference_probabilities": [
+        0.1877123862504959,
+        0.022086286917328835,
+        0.7376880049705505,
+        0.052513305097818375
+      ],
+      "candidate_probabilities": [
+        0.022556554526090622,
+        0.028565160930156708,
+        0.9406428933143616,
+        0.008235396817326546
+      ]
+    },
+    {
+      "review_id": "review_00828",
+      "product_id": "prod_14",
+      "review_text": "Not accurate size",
+      "text_label": "authentic",
+      "ground_truth": "authentic",
+      "reference_prediction": "liv",
+      "candidate_prediction": "liv",
+      "candidate_roberta_prediction": "liv",
+      "reference_probabilities": [
+        0.09329040348529816,
+        0.4284857213497162,
+        0.45774921774864197,
+        0.02047460898756981
+      ],
+      "candidate_probabilities": [
+        0.044897325336933136,
+        0.04595561325550079,
+        0.8958979845046997,
+        0.013249102048575878
+      ]
+    },
+    {
+      "review_id": "review_00829",
+      "product_id": "prod_14",
+      "review_text": "not true to size",
+      "text_label": "authentic",
+      "ground_truth": "authentic",
+      "reference_prediction": "liv",
+      "candidate_prediction": "liv",
+      "candidate_roberta_prediction": "liv",
+      "reference_probabilities": [
+        0.10491380095481873,
+        0.04372348636388779,
+        0.7792625427246094,
+        0.07210011035203934
+      ],
+      "candidate_probabilities": [
+        0.0322667732834816,
+        0.05050032213330269,
+        0.9027928709983826,
+        0.014440051279962063
+      ]
+    },
+    {
+      "review_id": "review_00830",
+      "product_id": "prod_14",
+      "review_text": "Wrong item",
+      "text_label": "authentic",
+      "ground_truth": "authentic",
+      "reference_prediction": "liv",
+      "candidate_prediction": "liv",
+      "candidate_roberta_prediction": "liv",
+      "reference_probabilities": [
+        0.12241854518651962,
+        0.06153963878750801,
+        0.6230732798576355,
+        0.19296854734420776
+      ],
+      "candidate_probabilities": [
+        0.027433881536126137,
+        0.03958382457494736,
+        0.8979142904281616,
+        0.03506796807050705
+      ]
+    },
+    {
+      "review_id": "review_00831",
+      "product_id": "prod_14",
+      "review_text": "wkwkwkwkwkwkwk",
+      "text_label": "irrelevant",
+      "ground_truth": "irrelevant",
+      "reference_prediction": "irrelevant",
+      "candidate_prediction": "irrelevant",
+      "candidate_roberta_prediction": "irrelevant",
+      "reference_probabilities": [
+        0.01837022788822651,
+        0.05739498883485794,
+        0.03597312048077583,
+        0.8882616758346558
+      ],
+      "candidate_probabilities": [
+        0.09985213726758957,
+        0.2809334397315979,
+        0.17116686701774597,
+        0.44804754853248596
+      ]
+    },
+    {
+      "review_id": "review_00832",
+      "product_id": "prod_14",
+      "review_text": "thumbs down!!",
+      "text_label": "liv",
+      "ground_truth": "liv",
+      "reference_prediction": "liv",
+      "candidate_prediction": "liv",
+      "candidate_roberta_prediction": "liv",
+      "reference_probabilities": [
+        0.13256393373012543,
+        0.03368404507637024,
+        0.6247913241386414,
+        0.20896074175834656
+      ],
+      "candidate_probabilities": [
+        0.031697873026132584,
+        0.039476264268159866,
+        0.895474374294281,
+        0.033351439982652664
+      ]
+    },
+    {
+      "review_id": "review_00833",
+      "product_id": "prod_14",
+      "review_text": "very disappointing",
+      "text_label": "liv",
+      "ground_truth": "liv",
+      "reference_prediction": "deceptive",
+      "candidate_prediction": "liv",
+      "candidate_roberta_prediction": "liv",
+      "reference_probabilities": [
+        0.06739706546068192,
+        0.41804859042167664,
+        0.4010922312736511,
+        0.1134621649980545
+      ],
+      "candidate_probabilities": [
+        0.028577428311109543,
+        0.04123383387923241,
+        0.9022657871246338,
+        0.02792292833328247
+      ]
+    },
+    {
+      "review_id": "review_01123",
+      "product_id": "prod_32",
+      "review_text": "cutesy good for travel sya napaka handy and since ita cetaphil trusted na tlga super light weight and d gressy feels aa skin",
+      "text_label": "authentic",
+      "ground_truth": "authentic",
+      "reference_prediction": "authentic",
+      "candidate_prediction": "authentic",
+      "candidate_roberta_prediction": "authentic",
+      "reference_probabilities": [
+        0.7339219450950623,
+        0.0025343485176563263,
+        0.25797539949417114,
+        0.005568313412368298
+      ],
+      "candidate_probabilities": [
+        0.8999532461166382,
+        0.05876373127102852,
+        0.036042019724845886,
+        0.005240981467068195
+      ]
+    },
+    {
+      "review_id": "review_01124",
+      "product_id": "prod_32",
+      "review_text": "Dermatologist tested and clinically proven, Effective in removing dirt and makeup, Gentle and non-drying cleanser, Does not clog pores,",
+      "text_label": "authentic",
+      "ground_truth": "authentic",
+      "reference_prediction": "liv",
+      "candidate_prediction": "authentic",
+      "candidate_roberta_prediction": "liv",
+      "reference_probabilities": [
+        0.35297584533691406,
+        0.008803972974419594,
+        0.632027804851532,
+        0.0061923544853925705
+      ],
+      "candidate_probabilities": [
+        0.5434983372688293,
+        0.014399156905710697,
+        0.42898398637771606,
+        0.013118501752614975
+      ]
+    },
+    {
+      "review_id": "review_01125",
+      "product_id": "prod_32",
+      "review_text": "The product is a perfect must have to anyone like me who has a very sensitive skin. It is very lightweight and it leaves your skin moisturized.",
+      "text_label": "authentic",
+      "ground_truth": "authentic",
+      "reference_prediction": "authentic",
+      "candidate_prediction": "authentic",
+      "candidate_roberta_prediction": "authentic",
+      "reference_probabilities": [
+        0.8917586803436279,
+        0.0024086060002446175,
+        0.10319536179304123,
+        0.0026373183354735374
+      ],
+      "candidate_probabilities": [
+        0.8422590494155884,
+        0.09107660502195358,
+        0.05759657174348831,
+        0.009067767299711704
+      ]
+    },
+    {
+      "review_id": "review_01126",
+      "product_id": "prod_32",
+      "review_text": "Glycerin and Vitamin B3 nourish the skin, Paraben-free and safe to use, Perfect for sensitive skin, Leaves skin feeling fresh and clean,",
+      "text_label": "liv",
+      "ground_truth": "liv",
+      "reference_prediction": "liv",
+      "candidate_prediction": "liv",
+      "candidate_roberta_prediction": "liv",
+      "reference_probabilities": [
+        0.34375035762786865,
+        0.01604354754090309,
+        0.6271789073944092,
+        0.013027229346334934
+      ],
+      "candidate_probabilities": [
+        0.30470311641693115,
+        0.008183459751307964,
+        0.6794307231903076,
+        0.007682690396904945
+      ]
+    },
+    {
+      "review_id": "review_01127",
+      "product_id": "prod_32",
+      "review_text": "Hypoallergenic formula, Leaves skin feeling moisturized, Leaves skin feeling fresh and clean, Suitable for all skin types, Suitable for all skin types, Paraben-free and safe to use, Paraben-free and safe to use, Compact size, perfect for travel, Gentle and non-drying cleanser, | mahal haha | goods | jajshksksjdkkd",
+      "text_label": "liv",
+      "ground_truth": "liv",
+      "reference_prediction": "liv",
+      "candidate_prediction": "liv",
+      "candidate_roberta_prediction": "liv",
+      "reference_probabilities": [
+        0.36025890707969666,
+        0.016814036294817924,
+        0.6091905236244202,
+        0.013736531138420105
+      ],
+      "candidate_probabilities": [
+        0.33006367087364197,
+        0.009436598978936672,
+        0.6516405940055847,
+        0.008859146386384964
+      ]
+    },
+    {
+      "review_id": "review_01128",
+      "product_id": "prod_32",
+      "review_text": "This is a mild cleanser and very gentle on the skin, also very suitable for sensitive skin like me. I use it daily and I like it coz it didn't give me breakouts after using it.",
+      "text_label": "authentic",
+      "ground_truth": "authentic",
+      "reference_prediction": "authentic",
+      "candidate_prediction": "authentic",
+      "candidate_roberta_prediction": "authentic",
+      "reference_probabilities": [
+        0.7732747793197632,
+        0.0033112175296992064,
+        0.2173614203929901,
+        0.006052558310329914
+      ],
+      "candidate_probabilities": [
+        0.8516600728034973,
+        0.0886385440826416,
+        0.050648584961891174,
+        0.00905278418213129
+      ]
+    },
+    {
+      "review_id": "review_01129",
+      "product_id": "prod_32",
+      "review_text": "Leaves skin feeling fresh and clean, Leaves skin feeling moisturized, Dermatologist tested and clinically proven. I love this product.",
+      "text_label": "liv",
+      "ground_truth": "liv",
+      "reference_prediction": "liv",
+      "candidate_prediction": "authentic",
+      "candidate_roberta_prediction": "liv",
+      "reference_probabilities": [
+        0.18975968658924103,
+        0.02951055020093918,
+        0.7731215953826904,
+        0.0076081459410488605
+      ],
+      "candidate_probabilities": [
+        0.5884520411491394,
+        0.02696812152862549,
+        0.3655906021595001,
+        0.01898920349776745
+      ]
+    },
+    {
+      "review_id": "review_01130",
+      "product_id": "prod_32",
+      "review_text": "Dermatologist tested and clinically proven, Leaves skin feeling fresh and clean, Perfect for sensitive skin, i love this product.",
+      "text_label": "liv",
+      "ground_truth": "liv",
+      "reference_prediction": "liv",
+      "candidate_prediction": "liv",
+      "candidate_roberta_prediction": "liv",
+      "reference_probabilities": [
+        0.17404073476791382,
+        0.011372202076017857,
+        0.8076474666595459,
+        0.00693955272436142
+      ],
+      "candidate_probabilities": [
+        0.48030924797058105,
+        0.01857876405119896,
+        0.48364555835723877,
+        0.01746637560427189
+      ]
+    },
+    {
+      "review_id": "review_01131",
+      "product_id": "prod_32",
+      "review_text": "Leaves skin feeling fresh and clean, Suitable for all skin types, Effective in removing dirt and makeup,",
+      "text_label": "liv",
+      "ground_truth": "liv",
+      "reference_prediction": "authentic",
+      "candidate_prediction": "liv",
+      "candidate_roberta_prediction": "liv",
+      "reference_probabilities": [
+        0.5300825834274292,
+        0.024941060692071915,
+        0.4358557462692261,
+        0.009120565839111805
+      ],
+      "candidate_probabilities": [
+        0.26694536209106445,
+        0.0076222228817641735,
+        0.7183061838150024,
+        0.007126204203814268
+      ]
+    },
+    {
+      "review_id": "review_01132",
+      "product_id": "prod_32",
+      "review_text": "Gentle and non-drying cleanser, Effective in removing dirt and makeup, Dermatologist tested and clinically proven, Perfect for sensitive skin, Compact size, perfect for travel, Gentle enough for daily use,",
+      "text_label": "liv",
+      "ground_truth": "liv",
+      "reference_prediction": "authentic",
+      "candidate_prediction": "liv",
+      "candidate_roberta_prediction": "liv",
+      "reference_probabilities": [
+        0.7216894626617432,
+        0.021219654008746147,
+        0.2533702552318573,
+        0.0037206613924354315
+      ],
+      "candidate_probabilities": [
+        0.3602432608604431,
+        0.016342448070645332,
+        0.6094558238983154,
+        0.013958428055047989
+      ]
+    },
+    {
+      "review_id": "review_01133",
+      "product_id": "prod_32",
+      "review_text": "Hypoallergenic formula, Improves skin's texture and appearance, Leaves skin feeling fresh and clean, Does not clog pores, Suitable for all skin types,",
+      "text_label": "liv",
+      "ground_truth": "liv",
+      "reference_prediction": "liv",
+      "candidate_prediction": "liv",
+      "candidate_roberta_prediction": "liv",
+      "reference_probabilities": [
+        0.09601955115795135,
+        0.01518319919705391,
+        0.8595242500305176,
+        0.029273007065057755
+      ],
+      "candidate_probabilities": [
+        0.08119860291481018,
+        0.008645678870379925,
+        0.9016637802124023,
+        0.0084919985383749
+      ]
+    },
+    {
+      "review_id": "review_01134",
+      "product_id": "prod_32",
+      "review_text": "I would have rated it 5 stars however i felt like it does not really suit my skin type and did not address my skin problems.",
+      "text_label": "authentic",
+      "ground_truth": "authentic",
+      "reference_prediction": "authentic",
+      "candidate_prediction": "authentic",
+      "candidate_roberta_prediction": "authentic",
+      "reference_probabilities": [
+        0.7059730291366577,
+        0.0032830305863171816,
+        0.2742800712585449,
+        0.016463859006762505
+      ],
+      "candidate_probabilities": [
+        0.8098828792572021,
+        0.11408254504203796,
+        0.061953939497470856,
+        0.014080675318837166
+      ]
+    },
+    {
+      "review_id": "review_01135",
+      "product_id": "prod_32",
+      "review_text": "Ok naman kahit maliit.",
+      "text_label": "liv",
+      "ground_truth": "liv",
+      "reference_prediction": "authentic",
+      "candidate_prediction": "liv",
+      "candidate_roberta_prediction": "liv",
+      "reference_probabilities": [
+        0.5495918989181519,
+        0.009577572345733643,
+        0.4319930672645569,
+        0.008837434463202953
+      ],
+      "candidate_probabilities": [
+        0.14162753522396088,
+        0.03860274702310562,
+        0.7785333395004272,
+        0.04123636707663536
+      ]
+    },
+    {
+      "review_id": "review_01136",
+      "product_id": "prod_32",
+      "review_text": "Improves skin's texture and appearance, Perfect for sensitive skin, Gentle enough for daily use, Gentle and non-drying cleanser, Dermatologist tested and clinically proven,",
+      "text_label": "liv",
+      "ground_truth": "liv",
+      "reference_prediction": "liv",
+      "candidate_prediction": "liv",
+      "candidate_roberta_prediction": "liv",
+      "reference_probabilities": [
+        0.11350668966770172,
+        0.21435685455799103,
+        0.6573620438575745,
+        0.014774439856410027
+      ],
+      "candidate_probabilities": [
+        0.03412264212965965,
+        0.011655311100184917,
+        0.9432352781295776,
+        0.010986755602061749
+      ]
+    },
+    {
+      "review_id": "review_01137",
+      "product_id": "prod_32",
+      "review_text": "good packaging, may tape so hindi sya natapon. I haven't used it yet so hopefully it's okay for me. photo not related.",
+      "text_label": "authentic",
+      "ground_truth": "authentic",
+      "reference_prediction": "liv",
+      "candidate_prediction": "authentic",
+      "candidate_roberta_prediction": "authentic",
+      "reference_probabilities": [
+        0.30771008133888245,
+        0.002036477904766798,
+        0.6859843134880066,
+        0.004269097000360489
+      ],
+      "candidate_probabilities": [
+        0.8438112735748291,
+        0.021773694083094597,
+        0.11628565192222595,
+        0.01812942884862423
+      ]
+    },
+    {
+      "review_id": "review_01138",
+      "product_id": "prod_32",
+      "review_text": "Hindi siya suitable for all skin types kase combination skin po ako ta's mga one week ko ginamit lalo po nag oily face ko gamit ko naman pong soap ay Cetaphil din, di lang siguro hiyang hehe",
+      "text_label": "authentic",
+      "ground_truth": "authentic",
+      "reference_prediction": "liv",
+      "candidate_prediction": "authentic",
+      "candidate_roberta_prediction": "authentic",
+      "reference_probabilities": [
+        0.09596911072731018,
+        0.01647082157433033,
+        0.8323826789855957,
+        0.055177319794893265
+      ],
+      "candidate_probabilities": [
+        0.7025063633918762,
+        0.01670956425368786,
+        0.2487887442111969,
+        0.031995296478271484
+      ]
+    },
+    {
+      "review_id": "review_01139",
+      "product_id": "prod_32",
+      "review_text": "Leaves skin feeling moisturized, Compact size, perfect for travel, Effective in removing dirt and makeup, Gentle and non-drying cleanser,",
+      "text_label": "liv",
+      "ground_truth": "liv",
+      "reference_prediction": "liv",
+      "candidate_prediction": "liv",
+      "candidate_roberta_prediction": "liv",
+      "reference_probabilities": [
+        0.4108636975288391,
+        0.0030634880531579256,
+        0.5803654789924622,
+        0.0057073053903877735
+      ],
+      "candidate_probabilities": [
+        0.08682172745466232,
+        0.010324237868189812,
+        0.8924477100372314,
+        0.010406347922980785
+      ]
+    },
+    {
+      "review_id": "review_01140",
+      "product_id": "prod_32",
+      "review_text": "Glycerin and Vitamin B3 nourish the skin, Leaves skin feeling moisturized, Effective in removing dirt and makeup, Great value for money, Improves skin's texture and appearance,",
+      "text_label": "liv",
+      "ground_truth": "liv",
+      "reference_prediction": "liv",
+      "candidate_prediction": "liv",
+      "candidate_roberta_prediction": "liv",
+      "reference_probabilities": [
+        0.0609295628964901,
+        0.13116620481014252,
+        0.7898691892623901,
+        0.01803508773446083
+      ],
+      "candidate_probabilities": [
+        0.06568755209445953,
+        0.008490080013871193,
+        0.9179423451423645,
+        0.007879999466240406
+      ]
+    },
+    {
+      "review_id": "review_01141",
+      "product_id": "prod_32",
+      "review_text": "No smell. Good naman. No smell. Good naman. No smell. Good naman. No smell. Good naman. No smell. Good naman.",
+      "text_label": "liv",
+      "ground_truth": "liv",
+      "reference_prediction": "authentic",
+      "candidate_prediction": "authentic",
+      "candidate_roberta_prediction": "authentic",
+      "reference_probabilities": [
+        0.7667570114135742,
+        0.0027365516871213913,
+        0.21795539557933807,
+        0.012551043182611465
+      ],
+      "candidate_probabilities": [
+        0.7969274520874023,
+        0.02176373265683651,
+        0.16333496570587158,
+        0.01797386445105076
+      ]
+    },
+    {
+      "review_id": "review_01142",
+      "product_id": "prod_32",
+      "review_text": "Quality is good, I used physiogel before this and akala ko bumubula to but turns out hindi rin pala. Nonetheless the product is still good, very good for sensitive skin kasi soap-free siya.",
+      "text_label": "authentic",
+      "ground_truth": "authentic",
+      "reference_prediction": "authentic",
+      "candidate_prediction": "authentic",
+      "candidate_roberta_prediction": "authentic",
+      "reference_probabilities": [
+        0.712318480014801,
+        0.0033431348856538534,
+        0.26543307304382324,
+        0.018905319273471832
+      ],
+      "candidate_probabilities": [
+        0.8098828792572021,
+        0.11408254504203796,
+        0.061953939497470856,
+        0.014080675318837166
+      ]
+    },
+    {
+      "review_id": "review_01143",
+      "product_id": "prod_32",
+      "review_text": "grabe porket 142 ko lng nakuha, ganto yung pag deliver. nakakdismaya.",
+      "text_label": "irrelevant",
+      "ground_truth": "irrelevant",
+      "reference_prediction": "authentic",
+      "candidate_prediction": "authentic",
+      "candidate_roberta_prediction": "authentic",
+      "reference_probabilities": [
+        0.7086509466171265,
+        0.007720134686678648,
+        0.22300677001476288,
+        0.06062213331460953
+      ],
+      "candidate_probabilities": [
+        0.8183209300041199,
+        0.03031294420361519,
+        0.13697226345539093,
+        0.014393804594874382
+      ]
+    },
+    {
+      "review_id": "review_01144",
+      "product_id": "prod_32",
+      "review_text": "I’m really disappointed with this order. My gentle cleanser arrived leaking because of poor packaging, and the liquid was all over the box. A lot of the product was wasted before I even got to use it. It’s frustrating to pay for something and lose half of it to bad packaging. Please improve the sealing and add protective wrap. Hopefully the brand will have something to do regarding this issue!",
+      "text_label": "authentic",
+      "ground_truth": "authentic",
+      "reference_prediction": "authentic",
+      "candidate_prediction": "authentic",
+      "candidate_roberta_prediction": "authentic",
+      "reference_probabilities": [
+        0.6650370955467224,
+        0.0027212107088416815,
+        0.31333521008491516,
+        0.0189064871519804
+      ],
+      "candidate_probabilities": [
+        0.8028908371925354,
+        0.10409985482692719,
+        0.08016078919172287,
+        0.012848560698330402
+      ]
+    },
+    {
+      "review_id": "review_01145",
+      "product_id": "prod_32",
+      "review_text": "I dont know if works on me but couse my face are still oily and sweaty while playing on my computer Of course i shower first before i play on my computer but i don't know it's still oily and sweaty",
+      "text_label": "authentic",
+      "ground_truth": "authentic",
+      "reference_prediction": "liv",
+      "candidate_prediction": "authentic",
+      "candidate_roberta_prediction": "authentic",
+      "reference_probabilities": [
+        0.11908191442489624,
+        0.009177601896226406,
+        0.6488714218139648,
+        0.22286902368068695
+      ],
+      "candidate_probabilities": [
+        0.8063229322433472,
+        0.021691635251045227,
+        0.15390770137310028,
+        0.018077701330184937
+      ]
+    },
+    {
+      "review_id": "review_01146",
+      "product_id": "prod_32",
+      "review_text": "Nag-leak! Di inayos packaging.",
+      "text_label": "authentic",
+      "ground_truth": "authentic",
+      "reference_prediction": "authentic",
+      "candidate_prediction": "liv",
+      "candidate_roberta_prediction": "liv",
+      "reference_probabilities": [
+        0.5279830098152161,
+        0.0038950538728386164,
+        0.173545241355896,
+        0.2945766746997833
+      ],
+      "candidate_probabilities": [
+        0.16748535633087158,
+        0.03038765862584114,
+        0.7852739691734314,
+        0.01685306616127491
+      ]
+    },
+    {
+      "review_id": "review_01147",
+      "product_id": "prod_32",
+      "review_text": "It's been several years since I last bought it, and I am surprised that they changed the formula to cater all skin types. I like the previous formula as it helps to calm my rashes and smooths my dry skin faster. But the new formula now, I'm not so sure. Pros: my skin doesn't get sensitive after several uses of it unlike before. Cons: not that effective for dry flaky skin, imo. I highly prefer the previous one where it focuses on dry skin only. I think I have to find an alternative :/",
+      "text_label": "authentic",
+      "ground_truth": "authentic",
+      "reference_prediction": "authentic",
+      "candidate_prediction": "authentic",
+      "candidate_roberta_prediction": "authentic",
+      "reference_probabilities": [
+        0.5062226057052612,
+        0.003007309278473258,
+        0.47553324699401855,
+        0.015236792154610157
+      ],
+      "candidate_probabilities": [
+        0.8097891211509705,
+        0.10426891595125198,
+        0.0755607858300209,
+        0.010381217114627361
+      ]
+    },
+    {
+      "review_id": "review_01148",
+      "product_id": "prod_32",
+      "review_text": "Di maganda pakabalot Pero na deliver on time. salamat sa rider next time pakiaayos pag balot",
+      "text_label": "authentic",
+      "ground_truth": "authentic",
+      "reference_prediction": "authentic",
+      "candidate_prediction": "authentic",
+      "candidate_roberta_prediction": "authentic",
+      "reference_probabilities": [
+        0.5450084805488586,
+        0.003730455180630088,
+        0.4356471002101898,
+        0.01561396848410368
+      ],
+      "candidate_probabilities": [
+        0.7931624054908752,
+        0.10123294591903687,
+        0.09526559710502625,
+        0.010339071974158287
+      ]
+    },
+    {
+      "review_id": "review_01149",
+      "product_id": "prod_32",
+      "review_text": "di ko pa siya na susubukan, pero sa maganda tohh at maging effective sya sakin :))) sayang ang bili ang mahal kung di nmn magiging effective divaaahhhhh????",
+      "text_label": "liv",
+      "ground_truth": "liv",
+      "reference_prediction": "authentic",
+      "candidate_prediction": "authentic",
+      "candidate_roberta_prediction": "authentic",
+      "reference_probabilities": [
+        0.7050396800041199,
+        0.013163109309971333,
+        0.2691802978515625,
+        0.012616920284926891
+      ],
+      "candidate_probabilities": [
+        0.6960460543632507,
+        0.13957791030406952,
+        0.15012076497077942,
+        0.014255300164222717
+      ]
+    },
+    {
+      "review_id": "review_01150",
+      "product_id": "prod_32",
+      "review_text": "packaging wasn't good. with leak.",
+      "text_label": "authentic",
+      "ground_truth": "liv",
+      "reference_prediction": "authentic",
+      "candidate_prediction": "authentic",
+      "candidate_roberta_prediction": "authentic",
+      "reference_probabilities": [
+        0.8572301864624023,
+        0.002859613159671426,
+        0.07898477464914322,
+        0.06092536821961403
+      ],
+      "candidate_probabilities": [
+        0.7688788175582886,
+        0.1338336020708084,
+        0.07742547243833542,
+        0.019862107932567596
+      ]
+    },
+    {
+      "review_id": "review_01151",
+      "product_id": "prod_32",
+      "review_text": "2/10 as a sensitive skin girly | good | pricy it leave such a gentle n smooth skin BUT, this leaves me so much tiny bumps after 2 DAYS of using it huhu, i dont recommend this for sensitive skins",
+      "text_label": "authentic",
+      "ground_truth": "authentic",
+      "reference_prediction": "liv",
+      "candidate_prediction": "authentic",
+      "candidate_roberta_prediction": "authentic",
+      "reference_probabilities": [
+        0.34326720237731934,
+        0.0070952484384179115,
+        0.6399999260902405,
+        0.009637663140892982
+      ],
+      "candidate_probabilities": [
+        0.82133948802948,
+        0.019918125122785568,
+        0.14187456667423248,
+        0.016867799684405327
+      ]
+    },
+    {
+      "review_id": "review_01152",
+      "product_id": "prod_32",
+      "review_text": "too bad the products spilled out",
+      "text_label": "authentic",
+      "ground_truth": "authentic",
+      "reference_prediction": "liv",
+      "candidate_prediction": "liv",
+      "candidate_roberta_prediction": "liv",
+      "reference_probabilities": [
+        0.31640908122062683,
+        0.04955202341079712,
+        0.5852282643318176,
+        0.048810675740242004
+      ],
+      "candidate_probabilities": [
+        0.16116994619369507,
+        0.04546530544757843,
+        0.7704007625579834,
+        0.022963983938097954
+      ]
+    },
+    {
+      "review_id": "review_01153",
+      "product_id": "prod_32",
+      "review_text": "first time user here. di ako hiyang, nangangati yung mukha ko and nagbreakout in just 2 days using it. nagkapimples din ako on areas of my face na di naman talaga ako nagkakapimples. i thought it's good for sensitive skin. good thing that i opted for a smaller one first just to try, kundi sayang yung product.",
+      "text_label": "authentic",
+      "ground_truth": "authentic",
+      "reference_prediction": "authentic",
+      "candidate_prediction": "authentic",
+      "candidate_roberta_prediction": "authentic",
+      "reference_probabilities": [
+        0.6866813898086548,
+        0.004681449383497238,
+        0.3005451560020447,
+        0.008092040196061134
+      ],
+      "candidate_probabilities": [
+        0.8002610206604004,
+        0.10849854350090027,
+        0.08015936613082886,
+        0.011081116273999214
+      ]
+    },
+    {
+      "review_id": "review_01154",
+      "product_id": "prod_32",
+      "review_text": "ttry pa lang sana pero pagkaopen kala mo defective eh natapon amp. Kaasar yern? Di ko pa alam kung okie to kasi ittry pa nga lang hahaha badtrip lang sa packaging andaming natapon.",
+      "text_label": "authentic",
+      "ground_truth": "authentic",
+      "reference_prediction": "irrelevant",
+      "candidate_prediction": "authentic",
+      "candidate_roberta_prediction": "authentic",
+      "reference_probabilities": [
+        0.19817738234996796,
+        0.12694086134433746,
+        0.16770769655704498,
+        0.5071740746498108
+      ],
+      "candidate_probabilities": [
+        0.8053614497184753,
+        0.10310385376214981,
+        0.08220481127500534,
+        0.009329873137176037
+      ]
+    },
+    {
+      "review_id": "review_01155",
+      "product_id": "prod_32",
+      "review_text": "Ano ba naman yan cetaphil naturingang flagship store di maayos pagkakapackaging ang mahal ng mga item niyo tas di man lang naka sealed. Nag leak ung clenser na inorder ko ang daming natapon sayang pera hays.",
+      "text_label": "authentic",
+      "ground_truth": "authentic",
+      "reference_prediction": "authentic",
+      "candidate_prediction": "authentic",
+      "candidate_roberta_prediction": "authentic",
+      "reference_probabilities": [
+        0.7246853709220886,
+        0.010686668567359447,
+        0.24884086847305298,
+        0.015787072479724884
+      ],
+      "candidate_probabilities": [
+        0.81284099817276,
+        0.01979212462902069,
+        0.1508997678756714,
+        0.016467072069644928
+      ]
+    },
+    {
+      "review_id": "review_01156",
+      "product_id": "prod_32",
+      "review_text": "Dermatologist tested and clinically proven, Gentle enough for daily use, Leaves skin feeling fresh and clean,",
+      "text_label": "deceptive",
+      "ground_truth": "deceptive",
+      "reference_prediction": "deceptive",
+      "candidate_prediction": "liv",
+      "candidate_roberta_prediction": "liv",
+      "reference_probabilities": [
+        0.04896650090813637,
+        0.9149148464202881,
+        0.03298430144786835,
+        0.0031343302689492702
+      ],
+      "candidate_probabilities": [
+        0.027653338387608528,
+        0.0298774354159832,
+        0.9340065717697144,
+        0.008462624624371529
+      ]
+    },
+    {
+      "review_id": "review_01157",
+      "product_id": "prod_32",
+      "review_text": "i was disappointed, too too small lng pla,,,",
+      "text_label": "authentic",
+      "ground_truth": "authentic",
+      "reference_prediction": "irrelevant",
+      "candidate_prediction": "authentic",
+      "candidate_roberta_prediction": "authentic",
+      "reference_probabilities": [
+        0.030835648998618126,
+        0.049102336168289185,
+        0.06764736026525497,
+        0.8524147272109985
+      ],
+      "candidate_probabilities": [
+        0.6734742522239685,
+        0.16556155681610107,
+        0.10446334630250931,
+        0.056500840932130814
+      ]
+    },
+    {
+      "review_id": "review_01158",
+      "product_id": "prod_32",
+      "review_text": "fake Yun item🤬, malabnaw at Hindi Tama Ang sealed ni tape lang. 😡. ni try Kong gamiting mainit siya sa balat. ano ba Yan. kainis....",
+      "text_label": "authentic",
+      "ground_truth": "authentic",
+      "reference_prediction": "authentic",
+      "candidate_prediction": "authentic",
+      "candidate_roberta_prediction": "authentic",
+      "reference_probabilities": [
+        0.6893298029899597,
+        0.015390273183584213,
+        0.27022236585617065,
+        0.025057541206479073
+      ],
+      "candidate_probabilities": [
+        0.7975174784660339,
+        0.021360836923122406,
+        0.051070813089609146,
+        0.1300508677959442
+      ]
+    },
+    {
+      "review_id": "review_01159",
+      "product_id": "prod_32",
+      "review_text": "Hindi Ako satisfied Wala manlang ka amoy amoy.. fake ata binigay sakin. so 😢",
+      "text_label": "authentic",
+      "ground_truth": "authentic",
+      "reference_prediction": "authentic",
+      "candidate_prediction": "authentic",
+      "candidate_roberta_prediction": "authentic",
+      "reference_probabilities": [
+        0.8012351393699646,
+        0.01570812426507473,
+        0.10559598356485367,
+        0.07746072858572006
+      ],
+      "candidate_probabilities": [
+        0.7975174784660339,
+        0.021360836923122406,
+        0.051070813089609146,
+        0.1300508677959442
+      ]
+    },
+    {
+      "review_id": "review_01160",
+      "product_id": "prod_32",
+      "review_text": "di maganda yung smell",
+      "text_label": "authentic",
+      "ground_truth": "authentic",
+      "reference_prediction": "liv",
+      "candidate_prediction": "authentic",
+      "candidate_roberta_prediction": "authentic",
+      "reference_probabilities": [
+        0.1827353537082672,
+        0.14819227159023285,
+        0.5852835178375244,
+        0.08378884196281433
+      ],
+      "candidate_probabilities": [
+        0.9301984906196594,
+        0.0076922024600207806,
+        0.0233321450650692,
+        0.038777124136686325
+      ]
+    },
+    {
+      "review_id": "review_01161",
+      "product_id": "prod_32",
+      "review_text": "super BANGO! sulit na sulit pera niya rito GAGO",
+      "text_label": "deceptive",
+      "ground_truth": "deceptive",
+      "reference_prediction": "irrelevant",
+      "candidate_prediction": "deceptive",
+      "candidate_roberta_prediction": "deceptive",
+      "reference_probabilities": [
+        0.002636171178892255,
+        0.019811563193798065,
+        0.003087369492277503,
+        0.9744648933410645
+      ],
+      "candidate_probabilities": [
+        0.017711173743009567,
+        0.9339860677719116,
+        0.01129157841205597,
+        0.03701118007302284
+      ]
+    },
+    {
+      "review_id": "review_01162",
+      "product_id": "prod_32",
+      "review_text": "bad",
+      "text_label": "liv",
+      "ground_truth": "liv",
+      "reference_prediction": "liv",
+      "candidate_prediction": "liv",
+      "candidate_roberta_prediction": "liv",
+      "reference_probabilities": [
+        0.16506429016590118,
+        0.1720743030309677,
+        0.3430901765823364,
+        0.31977128982543945
+      ],
+      "candidate_probabilities": [
+        0.2800895571708679,
+        0.07368145883083344,
+        0.6101315021514893,
+        0.036097511649131775
+      ]
+    },
+    {
+      "review_id": "review_01163",
+      "product_id": "prod_32",
+      "review_text": "Is this legit? amoy ipis na amoy plastic.... I'am appointed",
+      "text_label": "authentic",
+      "ground_truth": "authentic",
+      "reference_prediction": "authentic",
+      "candidate_prediction": "authentic",
+      "candidate_roberta_prediction": "authentic",
+      "reference_probabilities": [
+        0.4904886782169342,
+        0.006328107789158821,
+        0.12004181742668152,
+        0.3831413984298706
+      ],
+      "candidate_probabilities": [
+        0.6814072728157043,
+        0.0690518468618393,
+        0.17843134701251984,
+        0.07110955566167831
+      ]
+    },
+    {
+      "review_id": "review_01164",
+      "product_id": "prod_32",
+      "review_text": "poor packaging.. no carton, no signage of fragile.. poor handling! di man lang ni-secure yung mga takip kaya natapon lang ang binili ko, together with other items.. very disappointing! 🤦🏻",
+      "text_label": "authentic",
+      "ground_truth": "authentic",
+      "reference_prediction": "authentic",
+      "candidate_prediction": "authentic",
+      "candidate_roberta_prediction": "authentic",
+      "reference_probabilities": [
+        0.8202165365219116,
+        0.006211793981492519,
+        0.1601617932319641,
+        0.01340989489108324
+      ],
+      "candidate_probabilities": [
+        0.8240934610366821,
+        0.11590532213449478,
+        0.04766529053449631,
+        0.01233597006648779
+      ]
+    },
+    {
+      "review_id": "review_01165",
+      "product_id": "prod_32",
+      "review_text": "Compact size, perfect for travel, Effective in removing dirt and makeup, Glycerin and Vitamin B3 nourish the skin,",
+      "text_label": "deceptive",
+      "ground_truth": "deceptive",
+      "reference_prediction": "liv",
+      "candidate_prediction": "liv",
+      "candidate_roberta_prediction": "liv",
+      "reference_probabilities": [
+        0.4018551707267761,
+        0.01764938049018383,
+        0.5667787194252014,
+        0.0137167451903224
+      ],
+      "candidate_probabilities": [
+        0.13331177830696106,
+        0.03867347538471222,
+        0.8042663335800171,
+        0.023748459294438362
+      ]
+    },
+    {
+      "review_id": "review_01166",
+      "product_id": "prod_32",
+      "review_text": "Nag spill yung item. Basa yung packaging. Huhuhu Nag spill yung item. Basa yung packaging. Huhuhu",
+      "text_label": "authentic",
+      "ground_truth": "authentic",
+      "reference_prediction": "authentic",
+      "candidate_prediction": "authentic",
+      "candidate_roberta_prediction": "authentic",
+      "reference_probabilities": [
+        0.8410825133323669,
+        0.0042702858336269855,
+        0.14866812527179718,
+        0.005979085806757212
+      ],
+      "candidate_probabilities": [
+        0.8339197635650635,
+        0.1138858050107956,
+        0.040455520153045654,
+        0.011738907545804977
+      ]
+    },
+    {
+      "review_id": "review_01167",
+      "product_id": "prod_32",
+      "review_text": "Paraben-free and safe to use, Hypoallergenic formula, Leaves skin feeling fresh and clean, Great value for money,",
+      "text_label": "deceptive",
+      "ground_truth": "deceptive",
+      "reference_prediction": "liv",
+      "candidate_prediction": "liv",
+      "candidate_roberta_prediction": "liv",
+      "reference_probabilities": [
+        0.08482805639505386,
+        0.08228778839111328,
+        0.7619526982307434,
+        0.07093141973018646
+      ],
+      "candidate_probabilities": [
+        0.02337813377380371,
+        0.030931560322642326,
+        0.9367726445198059,
+        0.008917635306715965
+      ]
+    },
+    {
+      "review_id": "review_01168",
+      "product_id": "prod_32",
+      "review_text": "There's already a leakage when package arrived. most of the contents were spilled. what a waste.",
+      "text_label": "authentic",
+      "ground_truth": "authentic",
+      "reference_prediction": "authentic",
+      "candidate_prediction": "authentic",
+      "candidate_roberta_prediction": "authentic",
+      "reference_probabilities": [
+        0.6792894601821899,
+        0.00553470803424716,
+        0.30615195631980896,
+        0.009023894555866718
+      ],
+      "candidate_probabilities": [
+        0.8056768178939819,
+        0.12037056684494019,
+        0.0615452416241169,
+        0.012407331727445126
+      ]
+    },
+    {
+      "review_id": "review_01169",
+      "product_id": "prod_32",
+      "review_text": "SOBRANG TAGAL NG DELIVERY. SOBRANG TAGAL NG DELIVERY.",
+      "text_label": "irrelevant",
+      "ground_truth": "irrelevant",
+      "reference_prediction": "liv",
+      "candidate_prediction": "authentic",
+      "candidate_roberta_prediction": "authentic",
+      "reference_probabilities": [
+        0.0765589103102684,
+        0.022450169548392296,
+        0.891897976398468,
+        0.009092913009226322
+      ],
+      "candidate_probabilities": [
+        0.7437931895256042,
+        0.0797840803861618,
+        0.13580918312072754,
+        0.04061352461576462
+      ]
+    },
+    {
+      "review_id": "review_01170",
+      "product_id": "prod_32",
+      "review_text": "item missing, I requested for a refund but it got rejected. I attached photo of the invoice, and the items that arrived and the empty box, but the reason it got rejected is still lack of evidence of the product. how can I send a photo of missing item??!",
+      "text_label": "authentic",
+      "ground_truth": "authentic",
+      "reference_prediction": "authentic",
+      "candidate_prediction": "authentic",
+      "candidate_roberta_prediction": "authentic",
+      "reference_probabilities": [
+        0.807796835899353,
+        0.009617803618311882,
+        0.1055140495300293,
+        0.07707135379314423
+      ],
+      "candidate_probabilities": [
+        0.842212975025177,
+        0.025978272780776024,
+        0.06600809097290039,
+        0.06580061465501785
+      ]
+    },
+    {
+      "review_id": "review_01171",
+      "product_id": "prod_32",
+      "review_text": "NG LEAK YUNG ITEM👎👎👎",
+      "text_label": "authentic",
+      "ground_truth": "authentic",
+      "reference_prediction": "irrelevant",
+      "candidate_prediction": "liv",
+      "candidate_roberta_prediction": "liv",
+      "reference_probabilities": [
+        0.10829062014818192,
+        0.04870463162660599,
+        0.3464040756225586,
+        0.4966007173061371
+      ],
+      "candidate_probabilities": [
+        0.03904135897755623,
+        0.03908611834049225,
+        0.902504026889801,
+        0.019368445500731468
+      ]
+    },
+    {
+      "review_id": "review_01172",
+      "product_id": "prod_32",
+      "review_text": "poor packaging. Natapon halos half na lang laman",
+      "text_label": "authentic",
+      "ground_truth": "authentic",
+      "reference_prediction": "authentic",
+      "candidate_prediction": "authentic",
+      "candidate_roberta_prediction": "authentic",
+      "reference_probabilities": [
+        0.6679219007492065,
+        0.009650788269937038,
+        0.3011590540409088,
+        0.021268274635076523
+      ],
+      "candidate_probabilities": [
+        0.9386739134788513,
+        0.007974961772561073,
+        0.03545042872428894,
+        0.017900653183460236
+      ]
+    }
+  ]
+}

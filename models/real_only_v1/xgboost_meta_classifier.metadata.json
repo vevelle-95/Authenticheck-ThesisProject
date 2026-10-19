@@ -1,0 +1,4391 @@
+{
+  "augmentation_usage": {
+    "approved_rows": 0,
+    "unreviewed_rows": 0
+  },
+  "input_version": "product-context-six-features-v5-text-target",
+  "dataset_sha256": "766c2361a19ee0ab1b86b355ff91ae185711b3a8e68dcfa294e854b595281737",
+  "class_order": [
+    "authentic",
+    "deceptive",
+    "liv",
+    "irrelevant"
+  ],
+  "feature_columns": [
+    "dim1_prob_auth",
+    "dim2_prob_dec",
+    "dim3_prob_liv",
+    "dim4_prob_irr",
+    "dim5_clip_sim",
+    "dim6_star_rating"
+  ],
+  "quality_weighting": "uniform",
+  "xgboost_sample_weighting": "row-balanced",
+  "source_weight_summary": null,
+  "settings": {
+    "n_estimators": 100,
+    "max_depth": 6,
+    "learning_rate": 0.05
+  },
+  "validation_metrics": {
+    "count": 226,
+    "accuracy": 0.7123893805309734,
+    "macro_precision": 0.705516475379489,
+    "macro_recall": 0.4713533114395183,
+    "macro_f1": 0.5153326798947004,
+    "support": [
+      126,
+      5,
+      87,
+      8
+    ],
+    "confusion_matrix": [
+      [
+        107,
+        0,
+        17,
+        2
+      ],
+      [
+        0,
+        1,
+        4,
+        0
+      ],
+      [
+        35,
+        0,
+        51,
+        1
+      ],
+      [
+        4,
+        0,
+        2,
+        2
+      ]
+    ]
+  },
+  "validation_trials": [
+    {
+      "settings": {
+        "n_estimators": 100,
+        "max_depth": 2,
+        "learning_rate": 0.05
+      },
+      "metrics": {
+        "count": 226,
+        "accuracy": 0.7035398230088495,
+        "macro_precision": 0.6660230352303523,
+        "macro_recall": 0.4700533661740558,
+        "macro_f1": 0.5009989457933756,
+        "support": [
+          126,
+          5,
+          87,
+          8
+        ],
+        "confusion_matrix": [
+          [
+            102,
+            0,
+            21,
+            3
+          ],
+          [
+            0,
+            1,
+            4,
+            0
+          ],
+          [
+            30,
+            0,
+            54,
+            3
+          ],
+          [
+            3,
+            0,
+            3,
+            2
+          ]
+        ]
+      }
+    },
+    {
+      "settings": {
+        "n_estimators": 100,
+        "max_depth": 2,
+        "learning_rate": 0.1
+      },
+      "metrics": {
+        "count": 226,
+        "accuracy": 0.7035398230088495,
+        "macro_precision": 0.6575325508894188,
+        "macro_recall": 0.47094280240831965,
+        "macro_f1": 0.4965914773607081,
+        "support": [
+          126,
+          5,
+          87,
+          8
+        ],
+        "confusion_matrix": [
+          [
+            101,
+            0,
+            20,
+            5
+          ],
+          [
+            0,
+            1,
+            4,
+            0
+          ],
+          [
+            29,
+            0,
+            55,
+            3
+          ],
+          [
+            3,
+            0,
+            3,
+            2
+          ]
+        ]
+      }
+    },
+    {
+      "settings": {
+        "n_estimators": 100,
+        "max_depth": 4,
+        "learning_rate": 0.05
+      },
+      "metrics": {
+        "count": 226,
+        "accuracy": 0.7035398230088495,
+        "macro_precision": 0.674995004995005,
+        "macro_recall": 0.46738505747126435,
+        "macro_f1": 0.5025746936527605,
+        "support": [
+          126,
+          5,
+          87,
+          8
+        ],
+        "confusion_matrix": [
+          [
+            105,
+            0,
+            18,
+            3
+          ],
+          [
+            0,
+            1,
+            4,
+            0
+          ],
+          [
+            34,
+            0,
+            51,
+            2
+          ],
+          [
+            4,
+            0,
+            2,
+            2
+          ]
+        ]
+      }
+    },
+    {
+      "settings": {
+        "n_estimators": 100,
+        "max_depth": 4,
+        "learning_rate": 0.1
+      },
+      "metrics": {
+        "count": 226,
+        "accuracy": 0.6858407079646017,
+        "macro_precision": 0.6365175520347934,
+        "macro_recall": 0.4284038040503557,
+        "macro_f1": 0.4631034509102855,
+        "support": [
+          126,
+          5,
+          87,
+          8
+        ],
+        "confusion_matrix": [
+          [
+            104,
+            0,
+            19,
+            3
+          ],
+          [
+            1,
+            1,
+            3,
+            0
+          ],
+          [
+            36,
+            0,
+            49,
+            2
+          ],
+          [
+            4,
+            0,
+            3,
+            1
+          ]
+        ]
+      }
+    },
+    {
+      "settings": {
+        "n_estimators": 100,
+        "max_depth": 6,
+        "learning_rate": 0.05
+      },
+      "metrics": {
+        "count": 226,
+        "accuracy": 0.7123893805309734,
+        "macro_precision": 0.705516475379489,
+        "macro_recall": 0.4713533114395183,
+        "macro_f1": 0.5153326798947004,
+        "support": [
+          126,
+          5,
+          87,
+          8
+        ],
+        "confusion_matrix": [
+          [
+            107,
+            0,
+            17,
+            2
+          ],
+          [
+            0,
+            1,
+            4,
+            0
+          ],
+          [
+            35,
+            0,
+            51,
+            1
+          ],
+          [
+            4,
+            0,
+            2,
+            2
+          ]
+        ]
+      }
+    },
+    {
+      "settings": {
+        "n_estimators": 100,
+        "max_depth": 6,
+        "learning_rate": 0.1
+      },
+      "metrics": {
+        "count": 226,
+        "accuracy": 0.6858407079646017,
+        "macro_precision": 0.7138585916570991,
+        "macro_recall": 0.4239566228790367,
+        "macro_f1": 0.4694528875379939,
+        "support": [
+          126,
+          5,
+          87,
+          8
+        ],
+        "confusion_matrix": [
+          [
+            109,
+            0,
+            17,
+            0
+          ],
+          [
+            1,
+            1,
+            3,
+            0
+          ],
+          [
+            42,
+            0,
+            44,
+            1
+          ],
+          [
+            4,
+            0,
+            3,
+            1
+          ]
+        ]
+      }
+    }
+  ],
+  "fit_review_ids": [
+    "review_00001",
+    "review_00002",
+    "review_00003",
+    "review_00004",
+    "review_00005",
+    "review_00006",
+    "review_00007",
+    "review_00008",
+    "review_00009",
+    "review_00010",
+    "review_00011",
+    "review_00012",
+    "review_00013",
+    "review_00014",
+    "review_00015",
+    "review_00016",
+    "review_00017",
+    "review_00018",
+    "review_00019",
+    "review_00020",
+    "review_00021",
+    "review_00022",
+    "review_00023",
+    "review_00024",
+    "review_00025",
+    "review_00026",
+    "review_00027",
+    "review_00028",
+    "review_00029",
+    "review_00030",
+    "review_00031",
+    "review_00032",
+    "review_00033",
+    "review_00034",
+    "review_00035",
+    "review_00036",
+    "review_00037",
+    "review_00038",
+    "review_00039",
+    "review_00040",
+    "review_00041",
+    "review_00042",
+    "review_00043",
+    "review_00044",
+    "review_00045",
+    "review_00046",
+    "review_00047",
+    "review_00048",
+    "review_00049",
+    "review_00050",
+    "review_00051",
+    "review_00052",
+    "review_00053",
+    "review_00054",
+    "review_00055",
+    "review_00056",
+    "review_00057",
+    "review_00058",
+    "review_00059",
+    "review_00060",
+    "review_00061",
+    "review_00062",
+    "review_00063",
+    "review_00064",
+    "review_00065",
+    "review_00066",
+    "review_00067",
+    "review_00068",
+    "review_00069",
+    "review_00070",
+    "review_00071",
+    "review_00072",
+    "review_00073",
+    "review_00074",
+    "review_00075",
+    "review_00076",
+    "review_00077",
+    "review_00078",
+    "review_00079",
+    "review_00080",
+    "review_00081",
+    "review_00082",
+    "review_00083",
+    "review_00084",
+    "review_00085",
+    "review_00086",
+    "review_00087",
+    "review_00088",
+    "review_00089",
+    "review_00090",
+    "review_00091",
+    "review_00092",
+    "review_00093",
+    "review_00094",
+    "review_00095",
+    "review_00096",
+    "review_00097",
+    "review_00098",
+    "review_00099",
+    "review_00100",
+    "review_00101",
+    "review_00102",
+    "review_00103",
+    "review_00104",
+    "review_00105",
+    "review_00106",
+    "review_00107",
+    "review_00108",
+    "review_00109",
+    "review_00110",
+    "review_00111",
+    "review_00112",
+    "review_00113",
+    "review_00114",
+    "review_00115",
+    "review_00116",
+    "review_00117",
+    "review_00178",
+    "review_00179",
+    "review_00180",
+    "review_00181",
+    "review_00182",
+    "review_00183",
+    "review_00184",
+    "review_00185",
+    "review_00186",
+    "review_00187",
+    "review_00188",
+    "review_00189",
+    "review_00190",
+    "review_00191",
+    "review_00192",
+    "review_00193",
+    "review_00194",
+    "review_00195",
+    "review_00196",
+    "review_00197",
+    "review_00198",
+    "review_00199",
+    "review_00200",
+    "review_00201",
+    "review_00202",
+    "review_00203",
+    "review_00204",
+    "review_00205",
+    "review_00206",
+    "review_00207",
+    "review_00208",
+    "review_00209",
+    "review_00210",
+    "review_00211",
+    "review_00212",
+    "review_00213",
+    "review_00214",
+    "review_00215",
+    "review_00216",
+    "review_00217",
+    "review_00218",
+    "review_00219",
+    "review_00220",
+    "review_00221",
+    "review_00222",
+    "review_00223",
+    "review_00224",
+    "review_00225",
+    "review_00226",
+    "review_00227",
+    "review_00228",
+    "review_00229",
+    "review_00230",
+    "review_00231",
+    "review_00232",
+    "review_00233",
+    "review_00234",
+    "review_00235",
+    "review_00236",
+    "review_00237",
+    "review_00238",
+    "review_00239",
+    "review_00240",
+    "review_00241",
+    "review_00242",
+    "review_00243",
+    "review_00244",
+    "review_00245",
+    "review_00246",
+    "review_00247",
+    "review_00248",
+    "review_00249",
+    "review_00250",
+    "review_00251",
+    "review_00252",
+    "review_00253",
+    "review_00254",
+    "review_00255",
+    "review_00256",
+    "review_00257",
+    "review_00258",
+    "review_00259",
+    "review_00260",
+    "review_00261",
+    "review_00262",
+    "review_00263",
+    "review_00264",
+    "review_00265",
+    "review_00266",
+    "review_00267",
+    "review_00268",
+    "review_00269",
+    "review_00270",
+    "review_00271",
+    "review_00272",
+    "review_00273",
+    "review_00274",
+    "review_00275",
+    "review_00276",
+    "review_00277",
+    "review_00278",
+    "review_00279",
+    "review_00280",
+    "review_00281",
+    "review_00282",
+    "review_00283",
+    "review_00284",
+    "review_00285",
+    "review_00286",
+    "review_00287",
+    "review_00288",
+    "review_00289",
+    "review_00290",
+    "review_00291",
+    "review_00292",
+    "review_00293",
+    "review_00294",
+    "review_00295",
+    "review_00296",
+    "review_00297",
+    "review_00418",
+    "review_00419",
+    "review_00420",
+    "review_00421",
+    "review_00422",
+    "review_00423",
+    "review_00424",
+    "review_00425",
+    "review_00426",
+    "review_00427",
+    "review_00428",
+    "review_00429",
+    "review_00430",
+    "review_00431",
+    "review_00432",
+    "review_00433",
+    "review_00434",
+    "review_00435",
+    "review_00436",
+    "review_00437",
+    "review_00438",
+    "review_00439",
+    "review_00440",
+    "review_00441",
+    "review_00442",
+    "review_00443",
+    "review_00444",
+    "review_00445",
+    "review_00446",
+    "review_00447",
+    "review_00448",
+    "review_00449",
+    "review_00450",
+    "review_00451",
+    "review_00452",
+    "review_00453",
+    "review_00454",
+    "review_00455",
+    "review_00456",
+    "review_00457",
+    "review_00458",
+    "review_00459",
+    "review_00460",
+    "review_00461",
+    "review_00462",
+    "review_00463",
+    "review_00464",
+    "review_00465",
+    "review_00466",
+    "review_00467",
+    "review_00468",
+    "review_00469",
+    "review_00470",
+    "review_00471",
+    "review_00472",
+    "review_00473",
+    "review_00474",
+    "review_00475",
+    "review_00476",
+    "review_00477",
+    "review_00538",
+    "review_00539",
+    "review_00540",
+    "review_00541",
+    "review_00542",
+    "review_00543",
+    "review_00544",
+    "review_00545",
+    "review_00546",
+    "review_00547",
+    "review_00548",
+    "review_00549",
+    "review_00550",
+    "review_00551",
+    "review_00552",
+    "review_00553",
+    "review_00554",
+    "review_00555",
+    "review_00556",
+    "review_00557",
+    "review_00558",
+    "review_00559",
+    "review_00560",
+    "review_00561",
+    "review_00562",
+    "review_00563",
+    "review_00564",
+    "review_00565",
+    "review_00566",
+    "review_00567",
+    "review_00568",
+    "review_00569",
+    "review_00570",
+    "review_00571",
+    "review_00572",
+    "review_00573",
+    "review_00574",
+    "review_00575",
+    "review_00576",
+    "review_00577",
+    "review_00578",
+    "review_00579",
+    "review_00580",
+    "review_00581",
+    "review_00582",
+    "review_00583",
+    "review_00584",
+    "review_00585",
+    "review_00586",
+    "review_00587",
+    "review_00588",
+    "review_00589",
+    "review_00590",
+    "review_00591",
+    "review_00592",
+    "review_00593",
+    "review_00594",
+    "review_00595",
+    "review_00596",
+    "review_00597",
+    "review_00658",
+    "review_00659",
+    "review_00660",
+    "review_00661",
+    "review_00662",
+    "review_00663",
+    "review_00664",
+    "review_00665",
+    "review_00666",
+    "review_00667",
+    "review_00668",
+    "review_00669",
+    "review_00670",
+    "review_00671",
+    "review_00672",
+    "review_00673",
+    "review_00674",
+    "review_00675",
+    "review_00676",
+    "review_00677",
+    "review_00678",
+    "review_00679",
+    "review_00680",
+    "review_00681",
+    "review_00682",
+    "review_00683",
+    "review_00684",
+    "review_00685",
+    "review_00686",
+    "review_00687",
+    "review_00688",
+    "review_00689",
+    "review_00690",
+    "review_00691",
+    "review_00692",
+    "review_00693",
+    "review_00694",
+    "review_00695",
+    "review_00696",
+    "review_00697",
+    "review_00698",
+    "review_00699",
+    "review_00700",
+    "review_00701",
+    "review_00702",
+    "review_00703",
+    "review_00704",
+    "review_00705",
+    "review_00706",
+    "review_00707",
+    "review_00708",
+    "review_00709",
+    "review_00710",
+    "review_00711",
+    "review_00712",
+    "review_00713",
+    "review_00714",
+    "review_00715",
+    "review_00716",
+    "review_00717",
+    "review_00718",
+    "review_00719",
+    "review_00720",
+    "review_00721",
+    "review_00722",
+    "review_00723",
+    "review_00724",
+    "review_00725",
+    "review_00726",
+    "review_00727",
+    "review_00728",
+    "review_00729",
+    "review_00730",
+    "review_00731",
+    "review_00732",
+    "review_00733",
+    "review_00734",
+    "review_00735",
+    "review_00736",
+    "review_00737",
+    "review_00738",
+    "review_00739",
+    "review_00740",
+    "review_00741",
+    "review_00742",
+    "review_00743",
+    "review_00744",
+    "review_00745",
+    "review_00746",
+    "review_00747",
+    "review_00748",
+    "review_00749",
+    "review_00750",
+    "review_00751",
+    "review_00752",
+    "review_00753",
+    "review_00754",
+    "review_00755",
+    "review_00756",
+    "review_00757",
+    "review_00758",
+    "review_00759",
+    "review_00760",
+    "review_00761",
+    "review_00762",
+    "review_00763",
+    "review_00764",
+    "review_00765",
+    "review_00766",
+    "review_00767",
+    "review_00768",
+    "review_00769",
+    "review_00770",
+    "review_00771",
+    "review_00772",
+    "review_00773",
+    "review_00774",
+    "review_00775",
+    "review_00776",
+    "review_00777",
+    "review_00834",
+    "review_00835",
+    "review_00836",
+    "review_00837",
+    "review_00838",
+    "review_00839",
+    "review_00840",
+    "review_00841",
+    "review_00842",
+    "review_00843",
+    "review_00844",
+    "review_00845",
+    "review_00846",
+    "review_00847",
+    "review_00848",
+    "review_00849",
+    "review_00850",
+    "review_00851",
+    "review_00852",
+    "review_00853",
+    "review_00854",
+    "review_00855",
+    "review_00856",
+    "review_00857",
+    "review_00858",
+    "review_00859",
+    "review_00860",
+    "review_00861",
+    "review_00862",
+    "review_00863",
+    "review_00864",
+    "review_00865",
+    "review_00866",
+    "review_00867",
+    "review_00868",
+    "review_00869",
+    "review_00870",
+    "review_00871",
+    "review_00872",
+    "review_00873",
+    "review_00874",
+    "review_00875",
+    "review_00876",
+    "review_00877",
+    "review_00878",
+    "review_00879",
+    "review_00880",
+    "review_00881",
+    "review_00882",
+    "review_00883",
+    "review_00884",
+    "review_00885",
+    "review_00886",
+    "review_00887",
+    "review_00888",
+    "review_00889",
+    "review_00890",
+    "review_00891",
+    "review_00892",
+    "review_00893",
+    "review_00894",
+    "review_00895",
+    "review_00896",
+    "review_00897",
+    "review_00898",
+    "review_00899",
+    "review_00900",
+    "review_00901",
+    "review_00902",
+    "review_00903",
+    "review_00904",
+    "review_00905",
+    "review_00906",
+    "review_00907",
+    "review_00908",
+    "review_00909",
+    "review_00910",
+    "review_00911",
+    "review_00912",
+    "review_00913",
+    "review_00914",
+    "review_00915",
+    "review_00916",
+    "review_00917",
+    "review_00918",
+    "review_00919",
+    "review_00920",
+    "review_00921",
+    "review_00922",
+    "review_00923",
+    "review_00924",
+    "review_00925",
+    "review_00926",
+    "review_00927",
+    "review_00928",
+    "review_00929",
+    "review_00930",
+    "review_00931",
+    "review_00932",
+    "review_00933",
+    "review_00934",
+    "review_00935",
+    "review_00936",
+    "review_00937",
+    "review_00938",
+    "review_00939",
+    "review_00940",
+    "review_00941",
+    "review_00942",
+    "review_00943",
+    "review_00944",
+    "review_00945",
+    "review_00946",
+    "review_00947",
+    "review_00948",
+    "review_00949",
+    "review_00950",
+    "review_00951",
+    "review_00952",
+    "review_00953",
+    "review_00954",
+    "review_00955",
+    "review_00956",
+    "review_00957",
+    "review_00958",
+    "review_00959",
+    "review_00960",
+    "review_00961",
+    "review_00962",
+    "review_00963",
+    "review_00964",
+    "review_00965",
+    "review_00966",
+    "review_00967",
+    "review_00968",
+    "review_00969",
+    "review_00970",
+    "review_00971",
+    "review_00972",
+    "review_00973",
+    "review_00974",
+    "review_00975",
+    "review_00976",
+    "review_00977",
+    "review_00978",
+    "review_00979",
+    "review_00980",
+    "review_00981",
+    "review_00982",
+    "review_00983",
+    "review_00984",
+    "review_00985",
+    "review_00986",
+    "review_00987",
+    "review_00988",
+    "review_00989",
+    "review_00990",
+    "review_00991",
+    "review_00992",
+    "review_00993",
+    "review_00994",
+    "review_00995",
+    "review_00996",
+    "review_00997",
+    "review_00998",
+    "review_00999",
+    "review_01000",
+    "review_01001",
+    "review_01002",
+    "review_01003",
+    "review_01004",
+    "review_01005",
+    "review_01006",
+    "review_01007",
+    "review_01008",
+    "review_01009",
+    "review_01010",
+    "review_01011",
+    "review_01012",
+    "review_01013",
+    "review_01014",
+    "review_01015",
+    "review_01016",
+    "review_01017",
+    "review_01018",
+    "review_01019",
+    "review_01020",
+    "review_01021",
+    "review_01022",
+    "review_01023",
+    "review_01024",
+    "review_01025",
+    "review_01026",
+    "review_01027",
+    "review_01028",
+    "review_01029",
+    "review_01030",
+    "review_01031",
+    "review_01032",
+    "review_01033",
+    "review_01034",
+    "review_01035",
+    "review_01036",
+    "review_01037",
+    "review_01038",
+    "review_01039",
+    "review_01040",
+    "review_01041",
+    "review_01042",
+    "review_01043",
+    "review_01044",
+    "review_01045",
+    "review_01046",
+    "review_01047",
+    "review_01048",
+    "review_01049",
+    "review_01050",
+    "review_01051",
+    "review_01052",
+    "review_01053",
+    "review_01054",
+    "review_01055",
+    "review_01056",
+    "review_01057",
+    "review_01058",
+    "review_01059",
+    "review_01060",
+    "review_01061",
+    "review_01062",
+    "review_01063",
+    "review_01064",
+    "review_01065",
+    "review_01066",
+    "review_01067",
+    "review_01068",
+    "review_01069",
+    "review_01070",
+    "review_01071",
+    "review_01072",
+    "review_01073",
+    "review_01074",
+    "review_01075",
+    "review_01076",
+    "review_01077",
+    "review_01078",
+    "review_01079",
+    "review_01080",
+    "review_01081",
+    "review_01082",
+    "review_01083",
+    "review_01084",
+    "review_01085",
+    "review_01086",
+    "review_01087",
+    "review_01088",
+    "review_01089",
+    "review_01090",
+    "review_01091",
+    "review_01092",
+    "review_01093",
+    "review_01094",
+    "review_01095",
+    "review_01096",
+    "review_01097",
+    "review_01098",
+    "review_01099",
+    "review_01100",
+    "review_01101",
+    "review_01102",
+    "review_01103",
+    "review_01104",
+    "review_01105",
+    "review_01106",
+    "review_01107",
+    "review_01108",
+    "review_01109",
+    "review_01110",
+    "review_01111",
+    "review_01112",
+    "review_01113",
+    "review_01114",
+    "review_01115",
+    "review_01116",
+    "review_01117",
+    "review_01118",
+    "review_01119",
+    "review_01120",
+    "review_01121",
+    "review_01122",
+    "review_01173",
+    "review_01174",
+    "review_01175",
+    "review_01176",
+    "review_01177",
+    "review_01178",
+    "review_01179",
+    "review_01180",
+    "review_01181",
+    "review_01182",
+    "review_01183",
+    "review_01184",
+    "review_01185",
+    "review_01186",
+    "review_01187",
+    "review_01188",
+    "review_01189",
+    "review_01190",
+    "review_01191",
+    "review_01192",
+    "review_01193",
+    "review_01194",
+    "review_01195",
+    "review_01196",
+    "review_01197",
+    "review_01198",
+    "review_01199",
+    "review_01200",
+    "review_01201",
+    "review_01202",
+    "review_01203",
+    "review_01204",
+    "review_01205",
+    "review_01206",
+    "review_01207",
+    "review_01208",
+    "review_01209",
+    "review_01210",
+    "review_01211",
+    "review_01212",
+    "review_01213",
+    "review_01214",
+    "review_01215",
+    "review_01216",
+    "review_01217",
+    "review_01218",
+    "review_01219",
+    "review_01220",
+    "review_01221",
+    "review_01222",
+    "review_01223",
+    "review_01224",
+    "review_01225",
+    "review_01226",
+    "review_01227",
+    "review_01228",
+    "review_01229",
+    "review_01230",
+    "review_01231",
+    "review_01232",
+    "review_01233",
+    "review_01234",
+    "review_01235",
+    "review_01236",
+    "review_01237",
+    "review_01238",
+    "review_01239",
+    "review_01240",
+    "review_01241",
+    "review_01242",
+    "review_01243",
+    "review_01244",
+    "review_01245",
+    "review_01246",
+    "review_01247",
+    "review_01248",
+    "review_01249",
+    "review_01250",
+    "review_01251",
+    "review_01252",
+    "review_01253",
+    "review_01254",
+    "review_01255",
+    "review_01256",
+    "review_01257",
+    "review_01258",
+    "review_01259",
+    "review_01260",
+    "review_01261",
+    "review_01262",
+    "review_01263",
+    "review_01264",
+    "review_01265",
+    "review_01266",
+    "review_01267",
+    "review_01268",
+    "review_01269",
+    "review_01270",
+    "review_01271",
+    "review_01272",
+    "review_01273",
+    "review_01274",
+    "review_01275",
+    "review_01276",
+    "review_01277",
+    "review_01278",
+    "review_01279",
+    "review_01280",
+    "review_01281",
+    "review_01282",
+    "review_01283",
+    "review_01284",
+    "review_01285",
+    "review_01286",
+    "review_01287",
+    "review_01288",
+    "review_01289",
+    "review_01290",
+    "review_01291",
+    "review_01292",
+    "review_01293",
+    "review_01294",
+    "review_01295",
+    "review_01296",
+    "review_01297",
+    "review_01298",
+    "review_01299",
+    "review_01300",
+    "review_01301",
+    "review_01302",
+    "review_01303",
+    "review_01304",
+    "review_01305",
+    "review_01306",
+    "review_01307",
+    "review_01308",
+    "review_01309",
+    "review_01310",
+    "review_01311",
+    "review_01312",
+    "review_01313",
+    "review_01314",
+    "review_01315",
+    "review_01316",
+    "review_01317",
+    "review_01318",
+    "review_01319",
+    "review_01320",
+    "review_01321",
+    "review_01322",
+    "review_01323",
+    "review_01324",
+    "review_01325",
+    "review_01326",
+    "review_01327",
+    "review_01328",
+    "review_01329",
+    "review_01330",
+    "review_01331",
+    "review_01332",
+    "review_01333",
+    "review_01334",
+    "review_01335",
+    "review_01336",
+    "review_01337",
+    "review_01338",
+    "review_01339",
+    "review_01340",
+    "review_01341",
+    "review_01342",
+    "review_01343",
+    "review_01344",
+    "review_01345",
+    "review_01346",
+    "review_01347",
+    "review_01348",
+    "review_01349",
+    "review_01350",
+    "review_01351",
+    "review_01352",
+    "review_01353",
+    "review_01354",
+    "review_01355",
+    "review_01356",
+    "review_01357",
+    "review_01358",
+    "review_01359",
+    "review_01360",
+    "review_01361",
+    "review_01362",
+    "review_01363",
+    "review_01364",
+    "review_01365",
+    "review_01366",
+    "review_01367",
+    "review_01368",
+    "review_01369",
+    "review_01370",
+    "review_01371",
+    "review_01372",
+    "review_01373",
+    "review_01374",
+    "review_01375",
+    "review_01376",
+    "review_01377",
+    "review_01378",
+    "review_01379",
+    "review_01380",
+    "review_01381",
+    "review_01382",
+    "review_01383",
+    "review_01384",
+    "review_01385",
+    "review_01386",
+    "review_01387",
+    "review_01388",
+    "review_01389",
+    "review_01390",
+    "review_01391",
+    "review_01392",
+    "review_01393",
+    "review_01394",
+    "review_01395",
+    "review_01396",
+    "review_01397",
+    "review_01398",
+    "review_01399",
+    "review_01400",
+    "review_01401",
+    "review_01402",
+    "review_01403",
+    "review_01404",
+    "review_01405",
+    "review_01406",
+    "review_01407",
+    "review_01408",
+    "review_01409",
+    "review_01410",
+    "review_01411",
+    "review_01412",
+    "review_01413",
+    "review_01414",
+    "review_01415",
+    "review_01416",
+    "review_01417",
+    "review_01418",
+    "review_01419",
+    "review_01420",
+    "review_01421",
+    "review_01422",
+    "review_01423",
+    "review_01424",
+    "review_01425",
+    "review_01426",
+    "review_01427",
+    "review_01428",
+    "review_01429",
+    "review_01430",
+    "review_01431",
+    "review_01432",
+    "review_01433",
+    "review_01434",
+    "review_01435",
+    "review_01436",
+    "review_01437",
+    "review_01438",
+    "review_01439",
+    "review_01440",
+    "review_01441",
+    "review_01442",
+    "review_01443",
+    "review_01444",
+    "review_01445",
+    "review_01446",
+    "review_01447",
+    "review_01448",
+    "review_01449",
+    "review_01450",
+    "review_01451",
+    "review_01452",
+    "review_01453",
+    "review_01454",
+    "review_01455",
+    "review_01456",
+    "review_01507",
+    "review_01508",
+    "review_01509",
+    "review_01510",
+    "review_01511",
+    "review_01512",
+    "review_01513",
+    "review_01514",
+    "review_01515",
+    "review_01516",
+    "review_01517",
+    "review_01518",
+    "review_01519",
+    "review_01520",
+    "review_01521",
+    "review_01522",
+    "review_01523",
+    "review_01524",
+    "review_01525",
+    "review_01526",
+    "review_01527",
+    "review_01528",
+    "review_01529",
+    "review_01530",
+    "review_01531",
+    "review_01532",
+    "review_01533",
+    "review_01534",
+    "review_01535",
+    "review_01536",
+    "review_01537",
+    "review_01538",
+    "review_01539",
+    "review_01540",
+    "review_01541",
+    "review_01542",
+    "review_01543",
+    "review_01544",
+    "review_01545",
+    "review_01546",
+    "review_01547",
+    "review_01548",
+    "review_01549",
+    "review_01550",
+    "review_01551",
+    "review_01552",
+    "review_01553",
+    "review_01554",
+    "review_01555",
+    "review_01556"
+  ],
+  "validation_review_ids": [
+    "review_00118",
+    "review_00119",
+    "review_00120",
+    "review_00121",
+    "review_00122",
+    "review_00123",
+    "review_00124",
+    "review_00125",
+    "review_00126",
+    "review_00127",
+    "review_00128",
+    "review_00129",
+    "review_00130",
+    "review_00131",
+    "review_00132",
+    "review_00133",
+    "review_00134",
+    "review_00135",
+    "review_00136",
+    "review_00137",
+    "review_00138",
+    "review_00139",
+    "review_00140",
+    "review_00141",
+    "review_00142",
+    "review_00143",
+    "review_00144",
+    "review_00145",
+    "review_00146",
+    "review_00147",
+    "review_00148",
+    "review_00149",
+    "review_00150",
+    "review_00151",
+    "review_00152",
+    "review_00153",
+    "review_00154",
+    "review_00155",
+    "review_00156",
+    "review_00157",
+    "review_00158",
+    "review_00159",
+    "review_00160",
+    "review_00161",
+    "review_00162",
+    "review_00163",
+    "review_00164",
+    "review_00165",
+    "review_00166",
+    "review_00167",
+    "review_00168",
+    "review_00169",
+    "review_00170",
+    "review_00171",
+    "review_00172",
+    "review_00173",
+    "review_00174",
+    "review_00175",
+    "review_00176",
+    "review_00177",
+    "review_00358",
+    "review_00359",
+    "review_00360",
+    "review_00361",
+    "review_00362",
+    "review_00363",
+    "review_00364",
+    "review_00365",
+    "review_00366",
+    "review_00367",
+    "review_00368",
+    "review_00369",
+    "review_00370",
+    "review_00371",
+    "review_00372",
+    "review_00373",
+    "review_00374",
+    "review_00375",
+    "review_00376",
+    "review_00377",
+    "review_00378",
+    "review_00379",
+    "review_00380",
+    "review_00381",
+    "review_00382",
+    "review_00383",
+    "review_00384",
+    "review_00385",
+    "review_00386",
+    "review_00387",
+    "review_00388",
+    "review_00389",
+    "review_00390",
+    "review_00391",
+    "review_00392",
+    "review_00393",
+    "review_00394",
+    "review_00395",
+    "review_00396",
+    "review_00397",
+    "review_00398",
+    "review_00399",
+    "review_00400",
+    "review_00401",
+    "review_00402",
+    "review_00403",
+    "review_00404",
+    "review_00405",
+    "review_00406",
+    "review_00407",
+    "review_00408",
+    "review_00409",
+    "review_00410",
+    "review_00411",
+    "review_00412",
+    "review_00413",
+    "review_00414",
+    "review_00415",
+    "review_00416",
+    "review_00417",
+    "review_00778",
+    "review_00779",
+    "review_00780",
+    "review_00781",
+    "review_00782",
+    "review_00783",
+    "review_00784",
+    "review_00785",
+    "review_00786",
+    "review_00787",
+    "review_00788",
+    "review_00789",
+    "review_00790",
+    "review_00791",
+    "review_00792",
+    "review_00793",
+    "review_00794",
+    "review_00795",
+    "review_00796",
+    "review_00797",
+    "review_00798",
+    "review_00799",
+    "review_00800",
+    "review_00801",
+    "review_00802",
+    "review_00803",
+    "review_00804",
+    "review_00805",
+    "review_00806",
+    "review_00807",
+    "review_00808",
+    "review_00809",
+    "review_00810",
+    "review_00811",
+    "review_00812",
+    "review_00813",
+    "review_00814",
+    "review_00815",
+    "review_00816",
+    "review_00817",
+    "review_00818",
+    "review_00819",
+    "review_00820",
+    "review_00821",
+    "review_00822",
+    "review_00823",
+    "review_00824",
+    "review_00825",
+    "review_00826",
+    "review_00827",
+    "review_00828",
+    "review_00829",
+    "review_00830",
+    "review_00831",
+    "review_00832",
+    "review_00833",
+    "review_01123",
+    "review_01124",
+    "review_01125",
+    "review_01126",
+    "review_01127",
+    "review_01128",
+    "review_01129",
+    "review_01130",
+    "review_01131",
+    "review_01132",
+    "review_01133",
+    "review_01134",
+    "review_01135",
+    "review_01136",
+    "review_01137",
+    "review_01138",
+    "review_01139",
+    "review_01140",
+    "review_01141",
+    "review_01142",
+    "review_01143",
+    "review_01144",
+    "review_01145",
+    "review_01146",
+    "review_01147",
+    "review_01148",
+    "review_01149",
+    "review_01150",
+    "review_01151",
+    "review_01152",
+    "review_01153",
+    "review_01154",
+    "review_01155",
+    "review_01156",
+    "review_01157",
+    "review_01158",
+    "review_01159",
+    "review_01160",
+    "review_01161",
+    "review_01162",
+    "review_01163",
+    "review_01164",
+    "review_01165",
+    "review_01166",
+    "review_01167",
+    "review_01168",
+    "review_01169",
+    "review_01170",
+    "review_01171",
+    "review_01172"
+  ],
+  "validation_predictions": [
+    {
+      "review_id": "review_00118",
+      "product_id": "prod_03",
+      "ground_truth": "authentic",
+      "prediction": "liv",
+      "probabilities": [
+        0.07486822456121445,
+        0.006494738161563873,
+        0.9106443524360657,
+        0.007992703467607498
+      ]
+    },
+    {
+      "review_id": "review_00119",
+      "product_id": "prod_03",
+      "ground_truth": "authentic",
+      "prediction": "authentic",
+      "probabilities": [
+        0.8422590494155884,
+        0.09107660502195358,
+        0.05759657174348831,
+        0.009067767299711704
+      ]
+    },
+    {
+      "review_id": "review_00120",
+      "product_id": "prod_03",
+      "ground_truth": "authentic",
+      "prediction": "authentic",
+      "probabilities": [
+        0.7763453722000122,
+        0.15337277948856354,
+        0.06142306327819824,
+        0.008858813904225826
+      ]
+    },
+    {
+      "review_id": "review_00121",
+      "product_id": "prod_03",
+      "ground_truth": "authentic",
+      "prediction": "authentic",
+      "probabilities": [
+        0.505294919013977,
+        0.031496934592723846,
+        0.39182791113853455,
+        0.07138019800186157
+      ]
+    },
+    {
+      "review_id": "review_00122",
+      "product_id": "prod_03",
+      "ground_truth": "authentic",
+      "prediction": "authentic",
+      "probabilities": [
+        0.710098385810852,
+        0.17030347883701324,
+        0.10736452043056488,
+        0.012233581393957138
+      ]
+    },
+    {
+      "review_id": "review_00123",
+      "product_id": "prod_03",
+      "ground_truth": "authentic",
+      "prediction": "authentic",
+      "probabilities": [
+        0.842003345489502,
+        0.0946248397231102,
+        0.049328628927469254,
+        0.014043174684047699
+      ]
+    },
+    {
+      "review_id": "review_00124",
+      "product_id": "prod_03",
+      "ground_truth": "authentic",
+      "prediction": "authentic",
+      "probabilities": [
+        0.8509654402732849,
+        0.09250352531671524,
+        0.04732123389840126,
+        0.0092098293825984
+      ]
+    },
+    {
+      "review_id": "review_00125",
+      "product_id": "prod_03",
+      "ground_truth": "authentic",
+      "prediction": "authentic",
+      "probabilities": [
+        0.8849857449531555,
+        0.06340083479881287,
+        0.04607469215989113,
+        0.005538796074688435
+      ]
+    },
+    {
+      "review_id": "review_00126",
+      "product_id": "prod_03",
+      "ground_truth": "authentic",
+      "prediction": "authentic",
+      "probabilities": [
+        0.9542973041534424,
+        0.005568928550928831,
+        0.03332929685711861,
+        0.00680455332621932
+      ]
+    },
+    {
+      "review_id": "review_00127",
+      "product_id": "prod_03",
+      "ground_truth": "authentic",
+      "prediction": "authentic",
+      "probabilities": [
+        0.9075532555580139,
+        0.010648009367287159,
+        0.07406989485025406,
+        0.007728852331638336
+      ]
+    },
+    {
+      "review_id": "review_00128",
+      "product_id": "prod_03",
+      "ground_truth": "authentic",
+      "prediction": "authentic",
+      "probabilities": [
+        0.7353795170783997,
+        0.013227051123976707,
+        0.24055559933185577,
+        0.010837866924703121
+      ]
+    },
+    {
+      "review_id": "review_00129",
+      "product_id": "prod_03",
+      "ground_truth": "authentic",
+      "prediction": "authentic",
+      "probabilities": [
+        0.5223242044448853,
+        0.056559596210718155,
+        0.38789311051368713,
+        0.03322308883070946
+      ]
+    },
+    {
+      "review_id": "review_00130",
+      "product_id": "prod_03",
+      "ground_truth": "authentic",
+      "prediction": "authentic",
+      "probabilities": [
+        0.8030040264129639,
+        0.11311356723308563,
+        0.07262060791254044,
+        0.011261808685958385
+      ]
+    },
+    {
+      "review_id": "review_00131",
+      "product_id": "prod_03",
+      "ground_truth": "authentic",
+      "prediction": "authentic",
+      "probabilities": [
+        0.8285928964614868,
+        0.10532304644584656,
+        0.05045317858457565,
+        0.01563088409602642
+      ]
+    },
+    {
+      "review_id": "review_00132",
+      "product_id": "prod_03",
+      "ground_truth": "authentic",
+      "prediction": "liv",
+      "probabilities": [
+        0.3163566291332245,
+        0.023242900148034096,
+        0.6431810259819031,
+        0.017219433560967445
+      ]
+    },
+    {
+      "review_id": "review_00133",
+      "product_id": "prod_03",
+      "ground_truth": "authentic",
+      "prediction": "authentic",
+      "probabilities": [
+        0.4664519131183624,
+        0.04351596161723137,
+        0.46388891339302063,
+        0.026143182069063187
+      ]
+    },
+    {
+      "review_id": "review_00134",
+      "product_id": "prod_03",
+      "ground_truth": "liv",
+      "prediction": "liv",
+      "probabilities": [
+        0.364208459854126,
+        0.03365197405219078,
+        0.5622093677520752,
+        0.03993021324276924
+      ]
+    },
+    {
+      "review_id": "review_00135",
+      "product_id": "prod_03",
+      "ground_truth": "authentic",
+      "prediction": "liv",
+      "probabilities": [
+        0.2964468002319336,
+        0.021613972261548042,
+        0.6556206345558167,
+        0.026318566873669624
+      ]
+    },
+    {
+      "review_id": "review_00136",
+      "product_id": "prod_03",
+      "ground_truth": "liv",
+      "prediction": "authentic",
+      "probabilities": [
+        0.6545097827911377,
+        0.014297597110271454,
+        0.3125511407852173,
+        0.018641456961631775
+      ]
+    },
+    {
+      "review_id": "review_00137",
+      "product_id": "prod_03",
+      "ground_truth": "liv",
+      "prediction": "liv",
+      "probabilities": [
+        0.028440330177545547,
+        0.00681278295814991,
+        0.9517346024513245,
+        0.013012317009270191
+      ]
+    },
+    {
+      "review_id": "review_00138",
+      "product_id": "prod_03",
+      "ground_truth": "liv",
+      "prediction": "authentic",
+      "probabilities": [
+        0.7495871186256409,
+        0.019729891791939735,
+        0.15509770810604095,
+        0.07558523118495941
+      ]
+    },
+    {
+      "review_id": "review_00139",
+      "product_id": "prod_03",
+      "ground_truth": "authentic",
+      "prediction": "authentic",
+      "probabilities": [
+        0.8248193264007568,
+        0.10620421171188354,
+        0.058402542024850845,
+        0.010573898442089558
+      ]
+    },
+    {
+      "review_id": "review_00140",
+      "product_id": "prod_03",
+      "ground_truth": "liv",
+      "prediction": "authentic",
+      "probabilities": [
+        0.6224719285964966,
+        0.012520018965005875,
+        0.35040560364723206,
+        0.014602423645555973
+      ]
+    },
+    {
+      "review_id": "review_00141",
+      "product_id": "prod_03",
+      "ground_truth": "deceptive",
+      "prediction": "liv",
+      "probabilities": [
+        0.3918992280960083,
+        0.03041759319603443,
+        0.48759227991104126,
+        0.09009093791246414
+      ]
+    },
+    {
+      "review_id": "review_00142",
+      "product_id": "prod_03",
+      "ground_truth": "irrelevant",
+      "prediction": "authentic",
+      "probabilities": [
+        0.6117373704910278,
+        0.04096590355038643,
+        0.26619091629981995,
+        0.08110587298870087
+      ]
+    },
+    {
+      "review_id": "review_00143",
+      "product_id": "prod_03",
+      "ground_truth": "liv",
+      "prediction": "authentic",
+      "probabilities": [
+        0.7771419286727905,
+        0.10536407679319382,
+        0.10673298686742783,
+        0.010760989040136337
+      ]
+    },
+    {
+      "review_id": "review_00144",
+      "product_id": "prod_03",
+      "ground_truth": "liv",
+      "prediction": "liv",
+      "probabilities": [
+        0.1867731362581253,
+        0.019732331857085228,
+        0.7794915437698364,
+        0.014003022573888302
+      ]
+    },
+    {
+      "review_id": "review_00145",
+      "product_id": "prod_03",
+      "ground_truth": "authentic",
+      "prediction": "authentic",
+      "probabilities": [
+        0.7849295735359192,
+        0.10641992092132568,
+        0.0977817103266716,
+        0.01086882408708334
+      ]
+    },
+    {
+      "review_id": "review_00146",
+      "product_id": "prod_03",
+      "ground_truth": "liv",
+      "prediction": "liv",
+      "probabilities": [
+        0.052004411816596985,
+        0.018343569710850716,
+        0.9197112321853638,
+        0.009940798394382
+      ]
+    },
+    {
+      "review_id": "review_00147",
+      "product_id": "prod_03",
+      "ground_truth": "liv",
+      "prediction": "liv",
+      "probabilities": [
+        0.16423584520816803,
+        0.04075578227639198,
+        0.5747137665748596,
+        0.22029460966587067
+      ]
+    },
+    {
+      "review_id": "review_00148",
+      "product_id": "prod_03",
+      "ground_truth": "liv",
+      "prediction": "authentic",
+      "probabilities": [
+        0.8594045042991638,
+        0.0195921678096056,
+        0.10479619354009628,
+        0.016207074746489525
+      ]
+    },
+    {
+      "review_id": "review_00149",
+      "product_id": "prod_03",
+      "ground_truth": "liv",
+      "prediction": "authentic",
+      "probabilities": [
+        0.6004346609115601,
+        0.07721933722496033,
+        0.23783837258815765,
+        0.08450758457183838
+      ]
+    },
+    {
+      "review_id": "review_00150",
+      "product_id": "prod_03",
+      "ground_truth": "liv",
+      "prediction": "authentic",
+      "probabilities": [
+        0.7906496524810791,
+        0.019893987104296684,
+        0.17260897159576416,
+        0.01684735342860222
+      ]
+    },
+    {
+      "review_id": "review_00151",
+      "product_id": "prod_03",
+      "ground_truth": "authentic",
+      "prediction": "liv",
+      "probabilities": [
+        0.01684306003153324,
+        0.026982396841049194,
+        0.9017760157585144,
+        0.0543985478579998
+      ]
+    },
+    {
+      "review_id": "review_00152",
+      "product_id": "prod_03",
+      "ground_truth": "liv",
+      "prediction": "liv",
+      "probabilities": [
+        0.09539277851581573,
+        0.01590929925441742,
+        0.8784253597259521,
+        0.010272589512169361
+      ]
+    },
+    {
+      "review_id": "review_00153",
+      "product_id": "prod_03",
+      "ground_truth": "authentic",
+      "prediction": "liv",
+      "probabilities": [
+        0.209259495139122,
+        0.018872704356908798,
+        0.39047151803970337,
+        0.38139623403549194
+      ]
+    },
+    {
+      "review_id": "review_00154",
+      "product_id": "prod_03",
+      "ground_truth": "liv",
+      "prediction": "authentic",
+      "probabilities": [
+        0.7938730716705322,
+        0.11182735115289688,
+        0.08316584676504135,
+        0.011133749969303608
+      ]
+    },
+    {
+      "review_id": "review_00155",
+      "product_id": "prod_03",
+      "ground_truth": "authentic",
+      "prediction": "authentic",
+      "probabilities": [
+        0.8002610206604004,
+        0.10849854350090027,
+        0.08015936613082886,
+        0.011081116273999214
+      ]
+    },
+    {
+      "review_id": "review_00156",
+      "product_id": "prod_03",
+      "ground_truth": "authentic",
+      "prediction": "authentic",
+      "probabilities": [
+        0.8098422884941101,
+        0.020546095445752144,
+        0.1522119641304016,
+        0.01739959977567196
+      ]
+    },
+    {
+      "review_id": "review_00157",
+      "product_id": "prod_03",
+      "ground_truth": "authentic",
+      "prediction": "authentic",
+      "probabilities": [
+        0.4292811453342438,
+        0.2437545359134674,
+        0.30056139826774597,
+        0.026402859017252922
+      ]
+    },
+    {
+      "review_id": "review_00158",
+      "product_id": "prod_03",
+      "ground_truth": "authentic",
+      "prediction": "liv",
+      "probabilities": [
+        0.32826995849609375,
+        0.04054424911737442,
+        0.596980631351471,
+        0.03420513495802879
+      ]
+    },
+    {
+      "review_id": "review_00159",
+      "product_id": "prod_03",
+      "ground_truth": "authentic",
+      "prediction": "authentic",
+      "probabilities": [
+        0.8089104294776917,
+        0.1149381548166275,
+        0.059093575924634933,
+        0.017057854682207108
+      ]
+    },
+    {
+      "review_id": "review_00160",
+      "product_id": "prod_03",
+      "ground_truth": "liv",
+      "prediction": "authentic",
+      "probabilities": [
+        0.4602857828140259,
+        0.16481122374534607,
+        0.3084670305252075,
+        0.06643596291542053
+      ]
+    },
+    {
+      "review_id": "review_00161",
+      "product_id": "prod_03",
+      "ground_truth": "liv",
+      "prediction": "liv",
+      "probabilities": [
+        0.038607049733400345,
+        0.014165317639708519,
+        0.9375101327896118,
+        0.009717481210827827
+      ]
+    },
+    {
+      "review_id": "review_00162",
+      "product_id": "prod_03",
+      "ground_truth": "liv",
+      "prediction": "irrelevant",
+      "probabilities": [
+        0.16886427998542786,
+        0.06578850001096725,
+        0.117465540766716,
+        0.6478817462921143
+      ]
+    },
+    {
+      "review_id": "review_00163",
+      "product_id": "prod_03",
+      "ground_truth": "authentic",
+      "prediction": "authentic",
+      "probabilities": [
+        0.8097411394119263,
+        0.10334892570972443,
+        0.07635478675365448,
+        0.010555179789662361
+      ]
+    },
+    {
+      "review_id": "review_00164",
+      "product_id": "prod_03",
+      "ground_truth": "authentic",
+      "prediction": "authentic",
+      "probabilities": [
+        0.8166934251785278,
+        0.019805453717708588,
+        0.0923476293683052,
+        0.07115350663661957
+      ]
+    },
+    {
+      "review_id": "review_00165",
+      "product_id": "prod_03",
+      "ground_truth": "authentic",
+      "prediction": "authentic",
+      "probabilities": [
+        0.8232383131980896,
+        0.11089905351400375,
+        0.05482137203216553,
+        0.011041324585676193
+      ]
+    },
+    {
+      "review_id": "review_00166",
+      "product_id": "prod_03",
+      "ground_truth": "authentic",
+      "prediction": "authentic",
+      "probabilities": [
+        0.8706981539726257,
+        0.08567342162132263,
+        0.0364241898059845,
+        0.007204218301922083
+      ]
+    },
+    {
+      "review_id": "review_00167",
+      "product_id": "prod_03",
+      "ground_truth": "liv",
+      "prediction": "liv",
+      "probabilities": [
+        0.04065098240971565,
+        0.035902317613363266,
+        0.9168726205825806,
+        0.006574081256985664
+      ]
+    },
+    {
+      "review_id": "review_00168",
+      "product_id": "prod_03",
+      "ground_truth": "liv",
+      "prediction": "authentic",
+      "probabilities": [
+        0.4230690896511078,
+        0.048293858766555786,
+        0.4152660369873047,
+        0.11337107419967651
+      ]
+    },
+    {
+      "review_id": "review_00169",
+      "product_id": "prod_03",
+      "ground_truth": "authentic",
+      "prediction": "authentic",
+      "probabilities": [
+        0.8841772675514221,
+        0.08213736116886139,
+        0.026919882744550705,
+        0.00676548108458519
+      ]
+    },
+    {
+      "review_id": "review_00170",
+      "product_id": "prod_03",
+      "ground_truth": "authentic",
+      "prediction": "irrelevant",
+      "probabilities": [
+        0.21379613876342773,
+        0.01796451397240162,
+        0.3685895502567291,
+        0.3996497690677643
+      ]
+    },
+    {
+      "review_id": "review_00171",
+      "product_id": "prod_03",
+      "ground_truth": "authentic",
+      "prediction": "liv",
+      "probabilities": [
+        0.09063530713319778,
+        0.020962310954928398,
+        0.8748139142990112,
+        0.01358846202492714
+      ]
+    },
+    {
+      "review_id": "review_00172",
+      "product_id": "prod_03",
+      "ground_truth": "liv",
+      "prediction": "authentic",
+      "probabilities": [
+        0.7830424308776855,
+        0.15327975153923035,
+        0.038583166897296906,
+        0.025094719603657722
+      ]
+    },
+    {
+      "review_id": "review_00173",
+      "product_id": "prod_03",
+      "ground_truth": "irrelevant",
+      "prediction": "authentic",
+      "probabilities": [
+        0.8901277780532837,
+        0.009422608651220798,
+        0.07683048397302628,
+        0.023619070649147034
+      ]
+    },
+    {
+      "review_id": "review_00174",
+      "product_id": "prod_03",
+      "ground_truth": "irrelevant",
+      "prediction": "irrelevant",
+      "probabilities": [
+        0.26532164216041565,
+        0.14343932271003723,
+        0.11033827066421509,
+        0.48090070486068726
+      ]
+    },
+    {
+      "review_id": "review_00175",
+      "product_id": "prod_03",
+      "ground_truth": "liv",
+      "prediction": "liv",
+      "probabilities": [
+        0.05628501996397972,
+        0.012042262591421604,
+        0.9225378632545471,
+        0.00913484487682581
+      ]
+    },
+    {
+      "review_id": "review_00176",
+      "product_id": "prod_03",
+      "ground_truth": "liv",
+      "prediction": "authentic",
+      "probabilities": [
+        0.6771494746208191,
+        0.016885563731193542,
+        0.2845340669155121,
+        0.021430930122733116
+      ]
+    },
+    {
+      "review_id": "review_00177",
+      "product_id": "prod_03",
+      "ground_truth": "authentic",
+      "prediction": "authentic",
+      "probabilities": [
+        0.5608983635902405,
+        0.018635712563991547,
+        0.39225563406944275,
+        0.028210297226905823
+      ]
+    },
+    {
+      "review_id": "review_00358",
+      "product_id": "prod_07",
+      "ground_truth": "liv",
+      "prediction": "authentic",
+      "probabilities": [
+        0.7217573523521423,
+        0.012289970181882381,
+        0.25382858514785767,
+        0.012124080210924149
+      ]
+    },
+    {
+      "review_id": "review_00359",
+      "product_id": "prod_07",
+      "ground_truth": "authentic",
+      "prediction": "authentic",
+      "probabilities": [
+        0.8517792224884033,
+        0.09259198606014252,
+        0.04641018807888031,
+        0.009218636900186539
+      ]
+    },
+    {
+      "review_id": "review_00360",
+      "product_id": "prod_07",
+      "ground_truth": "authentic",
+      "prediction": "authentic",
+      "probabilities": [
+        0.7955669164657593,
+        0.021376829594373703,
+        0.16493946313858032,
+        0.01811678521335125
+      ]
+    },
+    {
+      "review_id": "review_00361",
+      "product_id": "prod_07",
+      "ground_truth": "authentic",
+      "prediction": "authentic",
+      "probabilities": [
+        0.8422590494155884,
+        0.09107660502195358,
+        0.05759657174348831,
+        0.009067767299711704
+      ]
+    },
+    {
+      "review_id": "review_00362",
+      "product_id": "prod_07",
+      "ground_truth": "authentic",
+      "prediction": "authentic",
+      "probabilities": [
+        0.8486534357070923,
+        0.0883256196975708,
+        0.0540001206099987,
+        0.009020824916660786
+      ]
+    },
+    {
+      "review_id": "review_00363",
+      "product_id": "prod_07",
+      "ground_truth": "authentic",
+      "prediction": "authentic",
+      "probabilities": [
+        0.6198187470436096,
+        0.04149527847766876,
+        0.28799355030059814,
+        0.050692442804574966
+      ]
+    },
+    {
+      "review_id": "review_00364",
+      "product_id": "prod_07",
+      "ground_truth": "authentic",
+      "prediction": "authentic",
+      "probabilities": [
+        0.8479435443878174,
+        0.0916912853717804,
+        0.04904812574386597,
+        0.011317029595375061
+      ]
+    },
+    {
+      "review_id": "review_00365",
+      "product_id": "prod_07",
+      "ground_truth": "liv",
+      "prediction": "liv",
+      "probabilities": [
+        0.09602857381105423,
+        0.00862108450382948,
+        0.8872211575508118,
+        0.00812913104891777
+      ]
+    },
+    {
+      "review_id": "review_00366",
+      "product_id": "prod_07",
+      "ground_truth": "authentic",
+      "prediction": "authentic",
+      "probabilities": [
+        0.7955669164657593,
+        0.021376829594373703,
+        0.16493946313858032,
+        0.01811678521335125
+      ]
+    },
+    {
+      "review_id": "review_00367",
+      "product_id": "prod_07",
+      "ground_truth": "authentic",
+      "prediction": "authentic",
+      "probabilities": [
+        0.8422590494155884,
+        0.09107660502195358,
+        0.05759657174348831,
+        0.009067767299711704
+      ]
+    },
+    {
+      "review_id": "review_00368",
+      "product_id": "prod_07",
+      "ground_truth": "authentic",
+      "prediction": "authentic",
+      "probabilities": [
+        0.7723537087440491,
+        0.021450325846672058,
+        0.1880168467760086,
+        0.01817907951772213
+      ]
+    },
+    {
+      "review_id": "review_00369",
+      "product_id": "prod_07",
+      "ground_truth": "authentic",
+      "prediction": "authentic",
+      "probabilities": [
+        0.8439828753471375,
+        0.0878395214676857,
+        0.05920648202300072,
+        0.008971178904175758
+      ]
+    },
+    {
+      "review_id": "review_00370",
+      "product_id": "prod_07",
+      "ground_truth": "authentic",
+      "prediction": "authentic",
+      "probabilities": [
+        0.8050233125686646,
+        0.10914421826601028,
+        0.07468535006046295,
+        0.011147059500217438
+      ]
+    },
+    {
+      "review_id": "review_00371",
+      "product_id": "prod_07",
+      "ground_truth": "authentic",
+      "prediction": "authentic",
+      "probabilities": [
+        0.8275057077407837,
+        0.10655011236667633,
+        0.05533590540289879,
+        0.010608336888253689
+      ]
+    },
+    {
+      "review_id": "review_00372",
+      "product_id": "prod_07",
+      "ground_truth": "authentic",
+      "prediction": "authentic",
+      "probabilities": [
+        0.8059327006340027,
+        0.1165146604180336,
+        0.06900271028280258,
+        0.008549917489290237
+      ]
+    },
+    {
+      "review_id": "review_00373",
+      "product_id": "prod_07",
+      "ground_truth": "authentic",
+      "prediction": "authentic",
+      "probabilities": [
+        0.8142801523208618,
+        0.021239472553133965,
+        0.1464800089597702,
+        0.01800038106739521
+      ]
+    },
+    {
+      "review_id": "review_00374",
+      "product_id": "prod_07",
+      "ground_truth": "liv",
+      "prediction": "authentic",
+      "probabilities": [
+        0.6191146969795227,
+        0.02508806623518467,
+        0.2932475507259369,
+        0.0625496581196785
+      ]
+    },
+    {
+      "review_id": "review_00375",
+      "product_id": "prod_07",
+      "ground_truth": "authentic",
+      "prediction": "authentic",
+      "probabilities": [
+        0.8142827153205872,
+        0.11039959639310837,
+        0.06404240429401398,
+        0.011275273747742176
+      ]
+    },
+    {
+      "review_id": "review_00376",
+      "product_id": "prod_07",
+      "ground_truth": "authentic",
+      "prediction": "authentic",
+      "probabilities": [
+        0.7250056266784668,
+        0.15038025379180908,
+        0.10925555229187012,
+        0.015358558855950832
+      ]
+    },
+    {
+      "review_id": "review_00377",
+      "product_id": "prod_07",
+      "ground_truth": "liv",
+      "prediction": "liv",
+      "probabilities": [
+        0.02746741659939289,
+        0.008313518948853016,
+        0.9560173749923706,
+        0.0082016596570611
+      ]
+    },
+    {
+      "review_id": "review_00378",
+      "product_id": "prod_07",
+      "ground_truth": "liv",
+      "prediction": "authentic",
+      "probabilities": [
+        0.8142827153205872,
+        0.11039959639310837,
+        0.06404240429401398,
+        0.011275273747742176
+      ]
+    },
+    {
+      "review_id": "review_00379",
+      "product_id": "prod_07",
+      "ground_truth": "liv",
+      "prediction": "liv",
+      "probabilities": [
+        0.18387047946453094,
+        0.03500596806406975,
+        0.75652676820755,
+        0.024596791714429855
+      ]
+    },
+    {
+      "review_id": "review_00380",
+      "product_id": "prod_07",
+      "ground_truth": "authentic",
+      "prediction": "authentic",
+      "probabilities": [
+        0.8050233125686646,
+        0.10914421826601028,
+        0.07468535006046295,
+        0.011147059500217438
+      ]
+    },
+    {
+      "review_id": "review_00381",
+      "product_id": "prod_07",
+      "ground_truth": "liv",
+      "prediction": "liv",
+      "probabilities": [
+        0.2749582827091217,
+        0.020961789414286613,
+        0.6820128560066223,
+        0.022067122161388397
+      ]
+    },
+    {
+      "review_id": "review_00382",
+      "product_id": "prod_07",
+      "ground_truth": "authentic",
+      "prediction": "authentic",
+      "probabilities": [
+        0.7882240414619446,
+        0.019997630268335342,
+        0.1748432070016861,
+        0.01693512685596943
+      ]
+    },
+    {
+      "review_id": "review_00383",
+      "product_id": "prod_07",
+      "ground_truth": "liv",
+      "prediction": "authentic",
+      "probabilities": [
+        0.7802631855010986,
+        0.020367560908198357,
+        0.18212084472179413,
+        0.017248405143618584
+      ]
+    },
+    {
+      "review_id": "review_00384",
+      "product_id": "prod_07",
+      "ground_truth": "authentic",
+      "prediction": "authentic",
+      "probabilities": [
+        0.7899796366691589,
+        0.10710460692644119,
+        0.09197704493999481,
+        0.010938751511275768
+      ]
+    },
+    {
+      "review_id": "review_00385",
+      "product_id": "prod_07",
+      "ground_truth": "authentic",
+      "prediction": "authentic",
+      "probabilities": [
+        0.7097919583320618,
+        0.014208854176104069,
+        0.24593603610992432,
+        0.03006315976381302
+      ]
+    },
+    {
+      "review_id": "review_00386",
+      "product_id": "prod_07",
+      "ground_truth": "authentic",
+      "prediction": "authentic",
+      "probabilities": [
+        0.8289292454719543,
+        0.01763698272407055,
+        0.1375187486410141,
+        0.01591501384973526
+      ]
+    },
+    {
+      "review_id": "review_00387",
+      "product_id": "prod_07",
+      "ground_truth": "authentic",
+      "prediction": "authentic",
+      "probabilities": [
+        0.9258571267127991,
+        0.007929443381726742,
+        0.05555066838860512,
+        0.010662760585546494
+      ]
+    },
+    {
+      "review_id": "review_00388",
+      "product_id": "prod_07",
+      "ground_truth": "liv",
+      "prediction": "authentic",
+      "probabilities": [
+        0.4924685060977936,
+        0.0350363664329052,
+        0.4505249857902527,
+        0.0219701137393713
+      ]
+    },
+    {
+      "review_id": "review_00389",
+      "product_id": "prod_07",
+      "ground_truth": "authentic",
+      "prediction": "authentic",
+      "probabilities": [
+        0.7717927694320679,
+        0.10871706157922745,
+        0.10866609960794449,
+        0.010824083350598812
+      ]
+    },
+    {
+      "review_id": "review_00390",
+      "product_id": "prod_07",
+      "ground_truth": "authentic",
+      "prediction": "authentic",
+      "probabilities": [
+        0.7875676155090332,
+        0.020052704960107803,
+        0.17569580674171448,
+        0.016683876514434814
+      ]
+    },
+    {
+      "review_id": "review_00391",
+      "product_id": "prod_07",
+      "ground_truth": "liv",
+      "prediction": "authentic",
+      "probabilities": [
+        0.8235538005828857,
+        0.0789123922586441,
+        0.09063985198736191,
+        0.006893910001963377
+      ]
+    },
+    {
+      "review_id": "review_00392",
+      "product_id": "prod_07",
+      "ground_truth": "authentic",
+      "prediction": "authentic",
+      "probabilities": [
+        0.8196836709976196,
+        0.01639959029853344,
+        0.15038315951824188,
+        0.013533592224121094
+      ]
+    },
+    {
+      "review_id": "review_00393",
+      "product_id": "prod_07",
+      "ground_truth": "liv",
+      "prediction": "authentic",
+      "probabilities": [
+        0.8702489137649536,
+        0.00927768088877201,
+        0.10831151157617569,
+        0.012161860242486
+      ]
+    },
+    {
+      "review_id": "review_00394",
+      "product_id": "prod_07",
+      "ground_truth": "authentic",
+      "prediction": "irrelevant",
+      "probabilities": [
+        0.2993279993534088,
+        0.07383105903863907,
+        0.2979905605316162,
+        0.3288503587245941
+      ]
+    },
+    {
+      "review_id": "review_00395",
+      "product_id": "prod_07",
+      "ground_truth": "liv",
+      "prediction": "liv",
+      "probabilities": [
+        0.20742855966091156,
+        0.042535800486803055,
+        0.7175315618515015,
+        0.03250408545136452
+      ]
+    },
+    {
+      "review_id": "review_00396",
+      "product_id": "prod_07",
+      "ground_truth": "liv",
+      "prediction": "liv",
+      "probabilities": [
+        0.07922539860010147,
+        0.027441641315817833,
+        0.8792455792427063,
+        0.014087342657148838
+      ]
+    },
+    {
+      "review_id": "review_00397",
+      "product_id": "prod_07",
+      "ground_truth": "authentic",
+      "prediction": "authentic",
+      "probabilities": [
+        0.8399254679679871,
+        0.01734630949795246,
+        0.03711884841322899,
+        0.10560930520296097
+      ]
+    },
+    {
+      "review_id": "review_00398",
+      "product_id": "prod_07",
+      "ground_truth": "authentic",
+      "prediction": "authentic",
+      "probabilities": [
+        0.7962700724601746,
+        0.02020176127552986,
+        0.16642020642757416,
+        0.017107997089624405
+      ]
+    },
+    {
+      "review_id": "review_00399",
+      "product_id": "prod_07",
+      "ground_truth": "liv",
+      "prediction": "liv",
+      "probabilities": [
+        0.08093053847551346,
+        0.023436877876520157,
+        0.8821844458580017,
+        0.013448197394609451
+      ]
+    },
+    {
+      "review_id": "review_00400",
+      "product_id": "prod_07",
+      "ground_truth": "liv",
+      "prediction": "liv",
+      "probabilities": [
+        0.04182363301515579,
+        0.015059630386531353,
+        0.93278568983078,
+        0.010330984368920326
+      ]
+    },
+    {
+      "review_id": "review_00401",
+      "product_id": "prod_07",
+      "ground_truth": "authentic",
+      "prediction": "authentic",
+      "probabilities": [
+        0.8156541585922241,
+        0.11088187992572784,
+        0.057008109986782074,
+        0.016455866396427155
+      ]
+    },
+    {
+      "review_id": "review_00402",
+      "product_id": "prod_07",
+      "ground_truth": "authentic",
+      "prediction": "authentic",
+      "probabilities": [
+        0.7986116409301758,
+        0.020333902910351753,
+        0.16413657367229462,
+        0.01691783405840397
+      ]
+    },
+    {
+      "review_id": "review_00403",
+      "product_id": "prod_07",
+      "ground_truth": "authentic",
+      "prediction": "authentic",
+      "probabilities": [
+        0.8278147578239441,
+        0.02082911878824234,
+        0.1337168663740158,
+        0.017639275640249252
+      ]
+    },
+    {
+      "review_id": "review_00404",
+      "product_id": "prod_07",
+      "ground_truth": "authentic",
+      "prediction": "authentic",
+      "probabilities": [
+        0.8002610206604004,
+        0.10849854350090027,
+        0.08015936613082886,
+        0.011081116273999214
+      ]
+    },
+    {
+      "review_id": "review_00405",
+      "product_id": "prod_07",
+      "ground_truth": "authentic",
+      "prediction": "authentic",
+      "probabilities": [
+        0.8213380575180054,
+        0.020666154101490974,
+        0.14049452543258667,
+        0.017501268535852432
+      ]
+    },
+    {
+      "review_id": "review_00406",
+      "product_id": "prod_07",
+      "ground_truth": "authentic",
+      "prediction": "authentic",
+      "probabilities": [
+        0.7470400929450989,
+        0.14260615408420563,
+        0.09527512639760971,
+        0.015078661032021046
+      ]
+    },
+    {
+      "review_id": "review_00407",
+      "product_id": "prod_07",
+      "ground_truth": "authentic",
+      "prediction": "authentic",
+      "probabilities": [
+        0.7468563318252563,
+        0.021711140871047974,
+        0.21239730715751648,
+        0.01903519220650196
+      ]
+    },
+    {
+      "review_id": "review_00408",
+      "product_id": "prod_07",
+      "ground_truth": "liv",
+      "prediction": "authentic",
+      "probabilities": [
+        0.5781048536300659,
+        0.014288162812590599,
+        0.2857574224472046,
+        0.12184959650039673
+      ]
+    },
+    {
+      "review_id": "review_00409",
+      "product_id": "prod_07",
+      "ground_truth": "authentic",
+      "prediction": "liv",
+      "probabilities": [
+        0.017759598791599274,
+        0.02682700753211975,
+        0.9401834011077881,
+        0.01522993203252554
+      ]
+    },
+    {
+      "review_id": "review_00410",
+      "product_id": "prod_07",
+      "ground_truth": "authentic",
+      "prediction": "authentic",
+      "probabilities": [
+        0.7193032503128052,
+        0.15824279189109802,
+        0.10572197288274765,
+        0.016732022166252136
+      ]
+    },
+    {
+      "review_id": "review_00411",
+      "product_id": "prod_07",
+      "ground_truth": "authentic",
+      "prediction": "authentic",
+      "probabilities": [
+        0.5497118830680847,
+        0.038001563400030136,
+        0.32174307107925415,
+        0.09054343402385712
+      ]
+    },
+    {
+      "review_id": "review_00412",
+      "product_id": "prod_07",
+      "ground_truth": "authentic",
+      "prediction": "liv",
+      "probabilities": [
+        0.35181328654289246,
+        0.03065117448568344,
+        0.5815412998199463,
+        0.03599423170089722
+      ]
+    },
+    {
+      "review_id": "review_00413",
+      "product_id": "prod_07",
+      "ground_truth": "authentic",
+      "prediction": "authentic",
+      "probabilities": [
+        0.8289714455604553,
+        0.11321002244949341,
+        0.04614928364753723,
+        0.011669251136481762
+      ]
+    },
+    {
+      "review_id": "review_00414",
+      "product_id": "prod_07",
+      "ground_truth": "authentic",
+      "prediction": "authentic",
+      "probabilities": [
+        0.7193032503128052,
+        0.15824279189109802,
+        0.10572197288274765,
+        0.016732022166252136
+      ]
+    },
+    {
+      "review_id": "review_00415",
+      "product_id": "prod_07",
+      "ground_truth": "liv",
+      "prediction": "liv",
+      "probabilities": [
+        0.03273332118988037,
+        0.01624418795108795,
+        0.9398788809776306,
+        0.011143596842885017
+      ]
+    },
+    {
+      "review_id": "review_00416",
+      "product_id": "prod_07",
+      "ground_truth": "authentic",
+      "prediction": "authentic",
+      "probabilities": [
+        0.8170090913772583,
+        0.11748477816581726,
+        0.05308376997709274,
+        0.012422414496541023
+      ]
+    },
+    {
+      "review_id": "review_00417",
+      "product_id": "prod_07",
+      "ground_truth": "authentic",
+      "prediction": "authentic",
+      "probabilities": [
+        0.825867235660553,
+        0.11179759353399277,
+        0.0505140982568264,
+        0.011821075342595577
+      ]
+    },
+    {
+      "review_id": "review_00778",
+      "product_id": "prod_14",
+      "ground_truth": "authentic",
+      "prediction": "authentic",
+      "probabilities": [
+        0.799263596534729,
+        0.11042968183755875,
+        0.07902838289737701,
+        0.011278347112238407
+      ]
+    },
+    {
+      "review_id": "review_00779",
+      "product_id": "prod_14",
+      "ground_truth": "authentic",
+      "prediction": "authentic",
+      "probabilities": [
+        0.5920753479003906,
+        0.015468982048332691,
+        0.3778693675994873,
+        0.014586261473596096
+      ]
+    },
+    {
+      "review_id": "review_00780",
+      "product_id": "prod_14",
+      "ground_truth": "authentic",
+      "prediction": "authentic",
+      "probabilities": [
+        0.842003345489502,
+        0.0946248397231102,
+        0.049328628927469254,
+        0.014043174684047699
+      ]
+    },
+    {
+      "review_id": "review_00781",
+      "product_id": "prod_14",
+      "ground_truth": "authentic",
+      "prediction": "authentic",
+      "probabilities": [
+        0.7723537087440491,
+        0.021450325846672058,
+        0.1880168467760086,
+        0.01817907951772213
+      ]
+    },
+    {
+      "review_id": "review_00782",
+      "product_id": "prod_14",
+      "ground_truth": "authentic",
+      "prediction": "authentic",
+      "probabilities": [
+        0.8331305384635925,
+        0.021757574751973152,
+        0.1266724169254303,
+        0.01843947544693947
+      ]
+    },
+    {
+      "review_id": "review_00783",
+      "product_id": "prod_14",
+      "ground_truth": "authentic",
+      "prediction": "authentic",
+      "probabilities": [
+        0.8929523825645447,
+        0.05888296291232109,
+        0.04292212799191475,
+        0.005242567043751478
+      ]
+    },
+    {
+      "review_id": "review_00784",
+      "product_id": "prod_14",
+      "ground_truth": "liv",
+      "prediction": "authentic",
+      "probabilities": [
+        0.7421125769615173,
+        0.011601519770920277,
+        0.23490366339683533,
+        0.01138229202479124
+      ]
+    },
+    {
+      "review_id": "review_00785",
+      "product_id": "prod_14",
+      "ground_truth": "authentic",
+      "prediction": "authentic",
+      "probabilities": [
+        0.8566043376922607,
+        0.0890035554766655,
+        0.045530784875154495,
+        0.008861369453370571
+      ]
+    },
+    {
+      "review_id": "review_00786",
+      "product_id": "prod_14",
+      "ground_truth": "liv",
+      "prediction": "authentic",
+      "probabilities": [
+        0.8799311518669128,
+        0.07052396982908249,
+        0.0432550311088562,
+        0.006289846729487181
+      ]
+    },
+    {
+      "review_id": "review_00787",
+      "product_id": "prod_14",
+      "ground_truth": "liv",
+      "prediction": "liv",
+      "probabilities": [
+        0.42769667506217957,
+        0.008428078144788742,
+        0.5547055006027222,
+        0.009169712662696838
+      ]
+    },
+    {
+      "review_id": "review_00788",
+      "product_id": "prod_14",
+      "ground_truth": "authentic",
+      "prediction": "authentic",
+      "probabilities": [
+        0.9515408277511597,
+        0.004539904184639454,
+        0.03781930357217789,
+        0.0060999453999102116
+      ]
+    },
+    {
+      "review_id": "review_00789",
+      "product_id": "prod_14",
+      "ground_truth": "authentic",
+      "prediction": "authentic",
+      "probabilities": [
+        0.9355685710906982,
+        0.005235885735601187,
+        0.05213160812854767,
+        0.0070639075711369514
+      ]
+    },
+    {
+      "review_id": "review_00790",
+      "product_id": "prod_14",
+      "ground_truth": "liv",
+      "prediction": "authentic",
+      "probabilities": [
+        0.9083592891693115,
+        0.006784623488783836,
+        0.06838023662567139,
+        0.016475891694426537
+      ]
+    },
+    {
+      "review_id": "review_00791",
+      "product_id": "prod_14",
+      "ground_truth": "liv",
+      "prediction": "liv",
+      "probabilities": [
+        0.040933385491371155,
+        0.006800726056098938,
+        0.9438965916633606,
+        0.008369265124201775
+      ]
+    },
+    {
+      "review_id": "review_00792",
+      "product_id": "prod_14",
+      "ground_truth": "authentic",
+      "prediction": "authentic",
+      "probabilities": [
+        0.7798582315444946,
+        0.011408902704715729,
+        0.1613021045923233,
+        0.047430772334337234
+      ]
+    },
+    {
+      "review_id": "review_00793",
+      "product_id": "prod_14",
+      "ground_truth": "liv",
+      "prediction": "authentic",
+      "probabilities": [
+        0.5133441686630249,
+        0.03435994312167168,
+        0.40142905712127686,
+        0.050866857171058655
+      ]
+    },
+    {
+      "review_id": "review_00794",
+      "product_id": "prod_14",
+      "ground_truth": "liv",
+      "prediction": "liv",
+      "probabilities": [
+        0.34644898772239685,
+        0.02144874818623066,
+        0.6121072173118591,
+        0.01999504491686821
+      ]
+    },
+    {
+      "review_id": "review_00795",
+      "product_id": "prod_14",
+      "ground_truth": "liv",
+      "prediction": "liv",
+      "probabilities": [
+        0.028601285070180893,
+        0.020941458642482758,
+        0.9407094120979309,
+        0.009747848846018314
+      ]
+    },
+    {
+      "review_id": "review_00796",
+      "product_id": "prod_14",
+      "ground_truth": "liv",
+      "prediction": "liv",
+      "probabilities": [
+        0.028317097574472427,
+        0.007188819814473391,
+        0.9577924609184265,
+        0.006701589096337557
+      ]
+    },
+    {
+      "review_id": "review_00797",
+      "product_id": "prod_14",
+      "ground_truth": "liv",
+      "prediction": "liv",
+      "probabilities": [
+        0.16546432673931122,
+        0.023271050304174423,
+        0.7908675670623779,
+        0.020397061482071877
+      ]
+    },
+    {
+      "review_id": "review_00798",
+      "product_id": "prod_14",
+      "ground_truth": "authentic",
+      "prediction": "authentic",
+      "probabilities": [
+        0.8050233125686646,
+        0.10914421826601028,
+        0.07468535006046295,
+        0.011147059500217438
+      ]
+    },
+    {
+      "review_id": "review_00799",
+      "product_id": "prod_14",
+      "ground_truth": "liv",
+      "prediction": "authentic",
+      "probabilities": [
+        0.8030040264129639,
+        0.11311356723308563,
+        0.07262060791254044,
+        0.011261808685958385
+      ]
+    },
+    {
+      "review_id": "review_00800",
+      "product_id": "prod_14",
+      "ground_truth": "liv",
+      "prediction": "liv",
+      "probabilities": [
+        0.06505367904901505,
+        0.007866594940423965,
+        0.9173987507820129,
+        0.009680969640612602
+      ]
+    },
+    {
+      "review_id": "review_00801",
+      "product_id": "prod_14",
+      "ground_truth": "liv",
+      "prediction": "authentic",
+      "probabilities": [
+        0.8142827153205872,
+        0.11039959639310837,
+        0.06404240429401398,
+        0.011275273747742176
+      ]
+    },
+    {
+      "review_id": "review_00802",
+      "product_id": "prod_14",
+      "ground_truth": "liv",
+      "prediction": "liv",
+      "probabilities": [
+        0.12796425819396973,
+        0.02169826813042164,
+        0.8379177451133728,
+        0.012419717386364937
+      ]
+    },
+    {
+      "review_id": "review_00803",
+      "product_id": "prod_14",
+      "ground_truth": "liv",
+      "prediction": "authentic",
+      "probabilities": [
+        0.7958565950393677,
+        0.10819055885076523,
+        0.07989638298749924,
+        0.016056450083851814
+      ]
+    },
+    {
+      "review_id": "review_00804",
+      "product_id": "prod_14",
+      "ground_truth": "liv",
+      "prediction": "authentic",
+      "probabilities": [
+        0.7852464318275452,
+        0.10646288841962814,
+        0.09741749614477158,
+        0.010873211547732353
+      ]
+    },
+    {
+      "review_id": "review_00805",
+      "product_id": "prod_14",
+      "ground_truth": "liv",
+      "prediction": "liv",
+      "probabilities": [
+        0.03891027718782425,
+        0.012823470868170261,
+        0.9416995644569397,
+        0.006566690746694803
+      ]
+    },
+    {
+      "review_id": "review_00806",
+      "product_id": "prod_14",
+      "ground_truth": "authentic",
+      "prediction": "liv",
+      "probabilities": [
+        0.4631229043006897,
+        0.02285826951265335,
+        0.48889657855033875,
+        0.02512228488922119
+      ]
+    },
+    {
+      "review_id": "review_00807",
+      "product_id": "prod_14",
+      "ground_truth": "liv",
+      "prediction": "authentic",
+      "probabilities": [
+        0.7985108494758606,
+        0.10281671583652496,
+        0.0884358212351799,
+        0.010236633010208607
+      ]
+    },
+    {
+      "review_id": "review_00808",
+      "product_id": "prod_14",
+      "ground_truth": "liv",
+      "prediction": "liv",
+      "probabilities": [
+        0.19682501256465912,
+        0.04692113399505615,
+        0.7225944995880127,
+        0.03365936130285263
+      ]
+    },
+    {
+      "review_id": "review_00809",
+      "product_id": "prod_14",
+      "ground_truth": "liv",
+      "prediction": "liv",
+      "probabilities": [
+        0.024937773123383522,
+        0.01099316030740738,
+        0.9577767252922058,
+        0.006292296573519707
+      ]
+    },
+    {
+      "review_id": "review_00810",
+      "product_id": "prod_14",
+      "ground_truth": "liv",
+      "prediction": "liv",
+      "probabilities": [
+        0.36903834342956543,
+        0.027101770043373108,
+        0.5869023203849792,
+        0.016957584768533707
+      ]
+    },
+    {
+      "review_id": "review_00811",
+      "product_id": "prod_14",
+      "ground_truth": "liv",
+      "prediction": "liv",
+      "probabilities": [
+        0.08456747233867645,
+        0.02533761039376259,
+        0.8771199584007263,
+        0.012974977493286133
+      ]
+    },
+    {
+      "review_id": "review_00812",
+      "product_id": "prod_14",
+      "ground_truth": "irrelevant",
+      "prediction": "liv",
+      "probabilities": [
+        0.029585493728518486,
+        0.05069233477115631,
+        0.9099161624908447,
+        0.009806049056351185
+      ]
+    },
+    {
+      "review_id": "review_00813",
+      "product_id": "prod_14",
+      "ground_truth": "liv",
+      "prediction": "liv",
+      "probabilities": [
+        0.16045962274074554,
+        0.047664009034633636,
+        0.7729171514511108,
+        0.01895923539996147
+      ]
+    },
+    {
+      "review_id": "review_00814",
+      "product_id": "prod_14",
+      "ground_truth": "liv",
+      "prediction": "liv",
+      "probabilities": [
+        0.08876936137676239,
+        0.08694802969694138,
+        0.7483835220336914,
+        0.07589906454086304
+      ]
+    },
+    {
+      "review_id": "review_00815",
+      "product_id": "prod_14",
+      "ground_truth": "liv",
+      "prediction": "authentic",
+      "probabilities": [
+        0.7393614053726196,
+        0.014732147566974163,
+        0.17253273725509644,
+        0.07337373495101929
+      ]
+    },
+    {
+      "review_id": "review_00816",
+      "product_id": "prod_14",
+      "ground_truth": "liv",
+      "prediction": "liv",
+      "probabilities": [
+        0.08077158033847809,
+        0.020031491294503212,
+        0.8675344586372375,
+        0.031662505120038986
+      ]
+    },
+    {
+      "review_id": "review_00817",
+      "product_id": "prod_14",
+      "ground_truth": "liv",
+      "prediction": "liv",
+      "probabilities": [
+        0.018285654485225677,
+        0.024193711578845978,
+        0.9505455493927002,
+        0.006975098978728056
+      ]
+    },
+    {
+      "review_id": "review_00818",
+      "product_id": "prod_14",
+      "ground_truth": "liv",
+      "prediction": "liv",
+      "probabilities": [
+        0.058633044362068176,
+        0.026469307020306587,
+        0.8967396020889282,
+        0.018158085644245148
+      ]
+    },
+    {
+      "review_id": "review_00819",
+      "product_id": "prod_14",
+      "ground_truth": "liv",
+      "prediction": "liv",
+      "probabilities": [
+        0.01932956650853157,
+        0.027779901400208473,
+        0.9448814988136292,
+        0.008009009063243866
+      ]
+    },
+    {
+      "review_id": "review_00820",
+      "product_id": "prod_14",
+      "ground_truth": "liv",
+      "prediction": "liv",
+      "probabilities": [
+        0.0365496464073658,
+        0.049373868852853775,
+        0.8999585509300232,
+        0.01411795150488615
+      ]
+    },
+    {
+      "review_id": "review_00821",
+      "product_id": "prod_14",
+      "ground_truth": "irrelevant",
+      "prediction": "liv",
+      "probabilities": [
+        0.01711331680417061,
+        0.029093066230416298,
+        0.9454748034477234,
+        0.008318864740431309
+      ]
+    },
+    {
+      "review_id": "review_00822",
+      "product_id": "prod_14",
+      "ground_truth": "authentic",
+      "prediction": "authentic",
+      "probabilities": [
+        0.8034026026725769,
+        0.022243013605475426,
+        0.15485286712646484,
+        0.019501516595482826
+      ]
+    },
+    {
+      "review_id": "review_00823",
+      "product_id": "prod_14",
+      "ground_truth": "liv",
+      "prediction": "authentic",
+      "probabilities": [
+        0.8056768178939819,
+        0.12037056684494019,
+        0.0615452416241169,
+        0.012407331727445126
+      ]
+    },
+    {
+      "review_id": "review_00824",
+      "product_id": "prod_14",
+      "ground_truth": "authentic",
+      "prediction": "authentic",
+      "probabilities": [
+        0.5478960871696472,
+        0.026757854968309402,
+        0.3965946137905121,
+        0.028751421719789505
+      ]
+    },
+    {
+      "review_id": "review_00825",
+      "product_id": "prod_14",
+      "ground_truth": "authentic",
+      "prediction": "authentic",
+      "probabilities": [
+        0.6122854948043823,
+        0.02289118990302086,
+        0.3445938229560852,
+        0.020229509100317955
+      ]
+    },
+    {
+      "review_id": "review_00826",
+      "product_id": "prod_14",
+      "ground_truth": "authentic",
+      "prediction": "authentic",
+      "probabilities": [
+        0.6818700432777405,
+        0.037035517394542694,
+        0.19018517434597015,
+        0.09090926498174667
+      ]
+    },
+    {
+      "review_id": "review_00827",
+      "product_id": "prod_14",
+      "ground_truth": "authentic",
+      "prediction": "liv",
+      "probabilities": [
+        0.022556554526090622,
+        0.028565160930156708,
+        0.9406428933143616,
+        0.008235396817326546
+      ]
+    },
+    {
+      "review_id": "review_00828",
+      "product_id": "prod_14",
+      "ground_truth": "authentic",
+      "prediction": "liv",
+      "probabilities": [
+        0.044897325336933136,
+        0.04595561325550079,
+        0.8958979845046997,
+        0.013249102048575878
+      ]
+    },
+    {
+      "review_id": "review_00829",
+      "product_id": "prod_14",
+      "ground_truth": "authentic",
+      "prediction": "liv",
+      "probabilities": [
+        0.0322667732834816,
+        0.05050032213330269,
+        0.9027928709983826,
+        0.014440051279962063
+      ]
+    },
+    {
+      "review_id": "review_00830",
+      "product_id": "prod_14",
+      "ground_truth": "authentic",
+      "prediction": "liv",
+      "probabilities": [
+        0.027433881536126137,
+        0.03958382457494736,
+        0.8979142904281616,
+        0.03506796807050705
+      ]
+    },
+    {
+      "review_id": "review_00831",
+      "product_id": "prod_14",
+      "ground_truth": "irrelevant",
+      "prediction": "irrelevant",
+      "probabilities": [
+        0.09985213726758957,
+        0.2809334397315979,
+        0.17116686701774597,
+        0.44804754853248596
+      ]
+    },
+    {
+      "review_id": "review_00832",
+      "product_id": "prod_14",
+      "ground_truth": "liv",
+      "prediction": "liv",
+      "probabilities": [
+        0.031697873026132584,
+        0.039476264268159866,
+        0.895474374294281,
+        0.033351439982652664
+      ]
+    },
+    {
+      "review_id": "review_00833",
+      "product_id": "prod_14",
+      "ground_truth": "liv",
+      "prediction": "liv",
+      "probabilities": [
+        0.028577428311109543,
+        0.04123383387923241,
+        0.9022657871246338,
+        0.02792292833328247
+      ]
+    },
+    {
+      "review_id": "review_01123",
+      "product_id": "prod_32",
+      "ground_truth": "authentic",
+      "prediction": "authentic",
+      "probabilities": [
+        0.8999532461166382,
+        0.05876373127102852,
+        0.036042019724845886,
+        0.005240981467068195
+      ]
+    },
+    {
+      "review_id": "review_01124",
+      "product_id": "prod_32",
+      "ground_truth": "authentic",
+      "prediction": "authentic",
+      "probabilities": [
+        0.5434983372688293,
+        0.014399156905710697,
+        0.42898398637771606,
+        0.013118501752614975
+      ]
+    },
+    {
+      "review_id": "review_01125",
+      "product_id": "prod_32",
+      "ground_truth": "authentic",
+      "prediction": "authentic",
+      "probabilities": [
+        0.8422590494155884,
+        0.09107660502195358,
+        0.05759657174348831,
+        0.009067767299711704
+      ]
+    },
+    {
+      "review_id": "review_01126",
+      "product_id": "prod_32",
+      "ground_truth": "liv",
+      "prediction": "liv",
+      "probabilities": [
+        0.30470311641693115,
+        0.008183459751307964,
+        0.6794307231903076,
+        0.007682690396904945
+      ]
+    },
+    {
+      "review_id": "review_01127",
+      "product_id": "prod_32",
+      "ground_truth": "liv",
+      "prediction": "liv",
+      "probabilities": [
+        0.33006367087364197,
+        0.009436598978936672,
+        0.6516405940055847,
+        0.008859146386384964
+      ]
+    },
+    {
+      "review_id": "review_01128",
+      "product_id": "prod_32",
+      "ground_truth": "authentic",
+      "prediction": "authentic",
+      "probabilities": [
+        0.8516600728034973,
+        0.0886385440826416,
+        0.050648584961891174,
+        0.00905278418213129
+      ]
+    },
+    {
+      "review_id": "review_01129",
+      "product_id": "prod_32",
+      "ground_truth": "liv",
+      "prediction": "authentic",
+      "probabilities": [
+        0.5884520411491394,
+        0.02696812152862549,
+        0.3655906021595001,
+        0.01898920349776745
+      ]
+    },
+    {
+      "review_id": "review_01130",
+      "product_id": "prod_32",
+      "ground_truth": "liv",
+      "prediction": "liv",
+      "probabilities": [
+        0.48030924797058105,
+        0.01857876405119896,
+        0.48364555835723877,
+        0.01746637560427189
+      ]
+    },
+    {
+      "review_id": "review_01131",
+      "product_id": "prod_32",
+      "ground_truth": "liv",
+      "prediction": "liv",
+      "probabilities": [
+        0.26694536209106445,
+        0.0076222228817641735,
+        0.7183061838150024,
+        0.007126204203814268
+      ]
+    },
+    {
+      "review_id": "review_01132",
+      "product_id": "prod_32",
+      "ground_truth": "liv",
+      "prediction": "liv",
+      "probabilities": [
+        0.3602432608604431,
+        0.016342448070645332,
+        0.6094558238983154,
+        0.013958428055047989
+      ]
+    },
+    {
+      "review_id": "review_01133",
+      "product_id": "prod_32",
+      "ground_truth": "liv",
+      "prediction": "liv",
+      "probabilities": [
+        0.08119860291481018,
+        0.008645678870379925,
+        0.9016637802124023,
+        0.0084919985383749
+      ]
+    },
+    {
+      "review_id": "review_01134",
+      "product_id": "prod_32",
+      "ground_truth": "authentic",
+      "prediction": "authentic",
+      "probabilities": [
+        0.8098828792572021,
+        0.11408254504203796,
+        0.061953939497470856,
+        0.014080675318837166
+      ]
+    },
+    {
+      "review_id": "review_01135",
+      "product_id": "prod_32",
+      "ground_truth": "liv",
+      "prediction": "liv",
+      "probabilities": [
+        0.14162753522396088,
+        0.03860274702310562,
+        0.7785333395004272,
+        0.04123636707663536
+      ]
+    },
+    {
+      "review_id": "review_01136",
+      "product_id": "prod_32",
+      "ground_truth": "liv",
+      "prediction": "liv",
+      "probabilities": [
+        0.03412264212965965,
+        0.011655311100184917,
+        0.9432352781295776,
+        0.010986755602061749
+      ]
+    },
+    {
+      "review_id": "review_01137",
+      "product_id": "prod_32",
+      "ground_truth": "authentic",
+      "prediction": "authentic",
+      "probabilities": [
+        0.8438112735748291,
+        0.021773694083094597,
+        0.11628565192222595,
+        0.01812942884862423
+      ]
+    },
+    {
+      "review_id": "review_01138",
+      "product_id": "prod_32",
+      "ground_truth": "authentic",
+      "prediction": "authentic",
+      "probabilities": [
+        0.7025063633918762,
+        0.01670956425368786,
+        0.2487887442111969,
+        0.031995296478271484
+      ]
+    },
+    {
+      "review_id": "review_01139",
+      "product_id": "prod_32",
+      "ground_truth": "liv",
+      "prediction": "liv",
+      "probabilities": [
+        0.08682172745466232,
+        0.010324237868189812,
+        0.8924477100372314,
+        0.010406347922980785
+      ]
+    },
+    {
+      "review_id": "review_01140",
+      "product_id": "prod_32",
+      "ground_truth": "liv",
+      "prediction": "liv",
+      "probabilities": [
+        0.06568755209445953,
+        0.008490080013871193,
+        0.9179423451423645,
+        0.007879999466240406
+      ]
+    },
+    {
+      "review_id": "review_01141",
+      "product_id": "prod_32",
+      "ground_truth": "liv",
+      "prediction": "authentic",
+      "probabilities": [
+        0.7969274520874023,
+        0.02176373265683651,
+        0.16333496570587158,
+        0.01797386445105076
+      ]
+    },
+    {
+      "review_id": "review_01142",
+      "product_id": "prod_32",
+      "ground_truth": "authentic",
+      "prediction": "authentic",
+      "probabilities": [
+        0.8098828792572021,
+        0.11408254504203796,
+        0.061953939497470856,
+        0.014080675318837166
+      ]
+    },
+    {
+      "review_id": "review_01143",
+      "product_id": "prod_32",
+      "ground_truth": "irrelevant",
+      "prediction": "authentic",
+      "probabilities": [
+        0.8183209300041199,
+        0.03031294420361519,
+        0.13697226345539093,
+        0.014393804594874382
+      ]
+    },
+    {
+      "review_id": "review_01144",
+      "product_id": "prod_32",
+      "ground_truth": "authentic",
+      "prediction": "authentic",
+      "probabilities": [
+        0.8028908371925354,
+        0.10409985482692719,
+        0.08016078919172287,
+        0.012848560698330402
+      ]
+    },
+    {
+      "review_id": "review_01145",
+      "product_id": "prod_32",
+      "ground_truth": "authentic",
+      "prediction": "authentic",
+      "probabilities": [
+        0.8063229322433472,
+        0.021691635251045227,
+        0.15390770137310028,
+        0.018077701330184937
+      ]
+    },
+    {
+      "review_id": "review_01146",
+      "product_id": "prod_32",
+      "ground_truth": "authentic",
+      "prediction": "liv",
+      "probabilities": [
+        0.16748535633087158,
+        0.03038765862584114,
+        0.7852739691734314,
+        0.01685306616127491
+      ]
+    },
+    {
+      "review_id": "review_01147",
+      "product_id": "prod_32",
+      "ground_truth": "authentic",
+      "prediction": "authentic",
+      "probabilities": [
+        0.8097891211509705,
+        0.10426891595125198,
+        0.0755607858300209,
+        0.010381217114627361
+      ]
+    },
+    {
+      "review_id": "review_01148",
+      "product_id": "prod_32",
+      "ground_truth": "authentic",
+      "prediction": "authentic",
+      "probabilities": [
+        0.7931624054908752,
+        0.10123294591903687,
+        0.09526559710502625,
+        0.010339071974158287
+      ]
+    },
+    {
+      "review_id": "review_01149",
+      "product_id": "prod_32",
+      "ground_truth": "liv",
+      "prediction": "authentic",
+      "probabilities": [
+        0.6960460543632507,
+        0.13957791030406952,
+        0.15012076497077942,
+        0.014255300164222717
+      ]
+    },
+    {
+      "review_id": "review_01150",
+      "product_id": "prod_32",
+      "ground_truth": "liv",
+      "prediction": "authentic",
+      "probabilities": [
+        0.7688788175582886,
+        0.1338336020708084,
+        0.07742547243833542,
+        0.019862107932567596
+      ]
+    },
+    {
+      "review_id": "review_01151",
+      "product_id": "prod_32",
+      "ground_truth": "authentic",
+      "prediction": "authentic",
+      "probabilities": [
+        0.82133948802948,
+        0.019918125122785568,
+        0.14187456667423248,
+        0.016867799684405327
+      ]
+    },
+    {
+      "review_id": "review_01152",
+      "product_id": "prod_32",
+      "ground_truth": "authentic",
+      "prediction": "liv",
+      "probabilities": [
+        0.16116994619369507,
+        0.04546530544757843,
+        0.7704007625579834,
+        0.022963983938097954
+      ]
+    },
+    {
+      "review_id": "review_01153",
+      "product_id": "prod_32",
+      "ground_truth": "authentic",
+      "prediction": "authentic",
+      "probabilities": [
+        0.8002610206604004,
+        0.10849854350090027,
+        0.08015936613082886,
+        0.011081116273999214
+      ]
+    },
+    {
+      "review_id": "review_01154",
+      "product_id": "prod_32",
+      "ground_truth": "authentic",
+      "prediction": "authentic",
+      "probabilities": [
+        0.8053614497184753,
+        0.10310385376214981,
+        0.08220481127500534,
+        0.009329873137176037
+      ]
+    },
+    {
+      "review_id": "review_01155",
+      "product_id": "prod_32",
+      "ground_truth": "authentic",
+      "prediction": "authentic",
+      "probabilities": [
+        0.81284099817276,
+        0.01979212462902069,
+        0.1508997678756714,
+        0.016467072069644928
+      ]
+    },
+    {
+      "review_id": "review_01156",
+      "product_id": "prod_32",
+      "ground_truth": "deceptive",
+      "prediction": "liv",
+      "probabilities": [
+        0.027653338387608528,
+        0.0298774354159832,
+        0.9340065717697144,
+        0.008462624624371529
+      ]
+    },
+    {
+      "review_id": "review_01157",
+      "product_id": "prod_32",
+      "ground_truth": "authentic",
+      "prediction": "authentic",
+      "probabilities": [
+        0.6734742522239685,
+        0.16556155681610107,
+        0.10446334630250931,
+        0.056500840932130814
+      ]
+    },
+    {
+      "review_id": "review_01158",
+      "product_id": "prod_32",
+      "ground_truth": "authentic",
+      "prediction": "authentic",
+      "probabilities": [
+        0.7975174784660339,
+        0.021360836923122406,
+        0.051070813089609146,
+        0.1300508677959442
+      ]
+    },
+    {
+      "review_id": "review_01159",
+      "product_id": "prod_32",
+      "ground_truth": "authentic",
+      "prediction": "authentic",
+      "probabilities": [
+        0.7975174784660339,
+        0.021360836923122406,
+        0.051070813089609146,
+        0.1300508677959442
+      ]
+    },
+    {
+      "review_id": "review_01160",
+      "product_id": "prod_32",
+      "ground_truth": "authentic",
+      "prediction": "authentic",
+      "probabilities": [
+        0.9301984906196594,
+        0.0076922024600207806,
+        0.0233321450650692,
+        0.038777124136686325
+      ]
+    },
+    {
+      "review_id": "review_01161",
+      "product_id": "prod_32",
+      "ground_truth": "deceptive",
+      "prediction": "deceptive",
+      "probabilities": [
+        0.017711173743009567,
+        0.9339860677719116,
+        0.01129157841205597,
+        0.03701118007302284
+      ]
+    },
+    {
+      "review_id": "review_01162",
+      "product_id": "prod_32",
+      "ground_truth": "liv",
+      "prediction": "liv",
+      "probabilities": [
+        0.2800895571708679,
+        0.07368145883083344,
+        0.6101315021514893,
+        0.036097511649131775
+      ]
+    },
+    {
+      "review_id": "review_01163",
+      "product_id": "prod_32",
+      "ground_truth": "authentic",
+      "prediction": "authentic",
+      "probabilities": [
+        0.6814072728157043,
+        0.0690518468618393,
+        0.17843134701251984,
+        0.07110955566167831
+      ]
+    },
+    {
+      "review_id": "review_01164",
+      "product_id": "prod_32",
+      "ground_truth": "authentic",
+      "prediction": "authentic",
+      "probabilities": [
+        0.8240934610366821,
+        0.11590532213449478,
+        0.04766529053449631,
+        0.01233597006648779
+      ]
+    },
+    {
+      "review_id": "review_01165",
+      "product_id": "prod_32",
+      "ground_truth": "deceptive",
+      "prediction": "liv",
+      "probabilities": [
+        0.13331177830696106,
+        0.03867347538471222,
+        0.8042663335800171,
+        0.023748459294438362
+      ]
+    },
+    {
+      "review_id": "review_01166",
+      "product_id": "prod_32",
+      "ground_truth": "authentic",
+      "prediction": "authentic",
+      "probabilities": [
+        0.8339197635650635,
+        0.1138858050107956,
+        0.040455520153045654,
+        0.011738907545804977
+      ]
+    },
+    {
+      "review_id": "review_01167",
+      "product_id": "prod_32",
+      "ground_truth": "deceptive",
+      "prediction": "liv",
+      "probabilities": [
+        0.02337813377380371,
+        0.030931560322642326,
+        0.9367726445198059,
+        0.008917635306715965
+      ]
+    },
+    {
+      "review_id": "review_01168",
+      "product_id": "prod_32",
+      "ground_truth": "authentic",
+      "prediction": "authentic",
+      "probabilities": [
+        0.8056768178939819,
+        0.12037056684494019,
+        0.0615452416241169,
+        0.012407331727445126
+      ]
+    },
+    {
+      "review_id": "review_01169",
+      "product_id": "prod_32",
+      "ground_truth": "irrelevant",
+      "prediction": "authentic",
+      "probabilities": [
+        0.7437931895256042,
+        0.0797840803861618,
+        0.13580918312072754,
+        0.04061352461576462
+      ]
+    },
+    {
+      "review_id": "review_01170",
+      "product_id": "prod_32",
+      "ground_truth": "authentic",
+      "prediction": "authentic",
+      "probabilities": [
+        0.842212975025177,
+        0.025978272780776024,
+        0.06600809097290039,
+        0.06580061465501785
+      ]
+    },
+    {
+      "review_id": "review_01171",
+      "product_id": "prod_32",
+      "ground_truth": "authentic",
+      "prediction": "liv",
+      "probabilities": [
+        0.03904135897755623,
+        0.03908611834049225,
+        0.902504026889801,
+        0.019368445500731468
+      ]
+    },
+    {
+      "review_id": "review_01172",
+      "product_id": "prod_32",
+      "ground_truth": "authentic",
+      "prediction": "authentic",
+      "probabilities": [
+        0.9386739134788513,
+        0.007974961772561073,
+        0.03545042872428894,
+        0.017900653183460236
+      ]
+    }
+  ]
+}

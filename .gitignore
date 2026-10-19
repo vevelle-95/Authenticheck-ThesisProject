@@ -129,3 +129,26 @@ desktop.ini
 !/models/quality_balanced_v5/absa_model/tokenizer/
 !/models/quality_balanced_v5/absa_model/tokenizer/tokenizer.json
 !/models/quality_balanced_v5/absa_model/tokenizer/tokenizer_config.json
+
+# Real-only experimental runtime bundle; exclude OOF and optimizer checkpoints.
+!/models/real_only_v1/
+/models/real_only_v1/**
+!/models/real_only_v1/manifest.json
+!/models/real_only_v1/xgboost_meta_classifier.json
+!/models/real_only_v1/xgboost_meta_classifier.metadata.json
+!/models/real_only_v1/dost_roberta/
+!/models/real_only_v1/dost_roberta/config.json
+!/models/real_only_v1/dost_roberta/model.safetensors
+!/models/real_only_v1/dost_roberta/tokenizer.json
+!/models/real_only_v1/dost_roberta/tokenizer_config.json
+!/models/real_only_v1/dost_roberta/training_metadata.json
+!/models/real_only_v1/absa_model/
+!/models/real_only_v1/absa_model/absa_config.json
+!/models/real_only_v1/absa_model/model.pt
+!/models/real_only_v1/absa_model/training_metadata.json
+!/models/real_only_v1/absa_model/source_training_metadata.json
+!/models/real_only_v1/absa_model/encoder/
+!/models/real_only_v1/absa_model/encoder/config.json
+!/models/real_only_v1/absa_model/tokenizer/
+!/models/real_only_v1/absa_model/tokenizer/tokenizer.json
+!/models/real_only_v1/absa_model/tokenizer/tokenizer_config.json

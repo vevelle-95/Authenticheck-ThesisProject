@@ -1,0 +1,37 @@
+{
+  "bundle": "models/real_only_v1",
+  "api_ready": true,
+  "development_mode": false,
+  "text_encoder_hidden_size": 768,
+  "absa_encoder_hidden_size": 768,
+  "api_checks": [
+    {
+      "review_id": "review_00397",
+      "status": 200,
+      "prediction": "authentic",
+      "aspect_count": 7,
+      "missing_image_score": 0.0
+    },
+    {
+      "review_id": "review_01136",
+      "status": 200,
+      "prediction": "liv",
+      "aspect_count": 0,
+      "missing_image_score": 0.0
+    }
+  ],
+  "real_clip_embedding_check": {
+    "passed": true,
+    "cosine": 0.22215676307678223,
+    "probe": "generated solid-color image; functional check only",
+    "external_image_download_tested": false
+  },
+  "absa_retrained": false,
+  "test_evaluation_performed": false,
+  "scope": "Actual saved models, API startup and analyze requests on two validation cases; not an accuracy evaluation.",
+  "regression_checks": {
+    "own_model_tests": 84,
+    "api_contract_tests": 3,
+    "all_passed": true
+  }
+}

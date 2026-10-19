@@ -1,0 +1,70 @@
+{
+  "model_version": "authenticheck-2.2",
+  "bundle_name": "real_only_v1",
+  "bundle_status": "experimental_candidate",
+  "input_version": "product-context-six-features-v5-text-target",
+  "taxonomy_version": "fixed-ten-v1",
+  "sensory_domain_policy": "annotation-guidelines-only",
+  "sentiment_target_policy": "category-polarity-multilabel-v2",
+  "aspects": [
+    "product_quality",
+    "functionality",
+    "performance",
+    "design",
+    "aesthetics",
+    "sensory_experience",
+    "value",
+    "packaging",
+    "seller_service",
+    "accuracy_of_description"
+  ],
+  "dataset_sha256": "766c2361a19ee0ab1b86b355ff91ae185711b3a8e68dcfa294e854b595281737",
+  "splits": "data/splits_dataset.json",
+  "augmentations": null,
+  "augmentation_policy": "original-reviews-only",
+  "augmentation_usage": {
+    "approved_rows": 0,
+    "unreviewed_rows": 0
+  },
+  "quality_target_columns": {
+    "roberta": "text_label",
+    "xgboost": "ground_truth"
+  },
+  "quality_text_input": "review_text paired with bounded product_title + product_description",
+  "quality_text_policy": "review-first-bounded-context-v1",
+  "quality_weighting": "uniform",
+  "xgboost_sample_weighting": "row-balanced",
+  "oof_epochs": 6,
+  "absa_text_input": "review_text",
+  "absa_reused_from": "models/quality_balanced_v5",
+  "absa_retrained": false,
+  "test_evaluated": false,
+  "evaluation_reports": [
+    "reports/real_only_v1/validation_comparison.json"
+  ],
+  "validation_scope": "Quality classifier only; API smoke checks do not measure full-pipeline accuracy.",
+  "files_sha256": {
+    "xgboost_meta_classifier.json": "3dcb3ca3e61f54545d2d065f79396cbc3db1e9c7883bff9d012ebc3a75e096e9",
+    "xgboost_meta_classifier.metadata.json": "23f357c5225d405a639e866f57c7df779aa09319dfa1308ac0ba97aeacb3eda3",
+    "dost_roberta/config.json": "9aeca770943715e17d3218cd6b133a66b10c16279029984d3c28fed0064e43df",
+    "dost_roberta/model.safetensors": "34d1ec238d52d1f95b079fe0c4d834cbc94616e55018197f1e42986815b074f4",
+    "dost_roberta/tokenizer.json": "16474ff2e6366ed15bf68a9fd80349ddcad5697e2643efc8748aafb97168c6f0",
+    "dost_roberta/tokenizer_config.json": "9b8063c17fbba94f5332a846bf0a7f1140f8299f861c533222dbb3fdfd5ff8c6",
+    "dost_roberta/training_metadata.json": "efd36df20b1e9f883a27684690c479f357599e047be69d24b7f472e1740a08b7",
+    "absa_model/absa_config.json": "83e0d13bf11da540d8e84ef06cde28c2a680a9d3937c73c9b8ca667cf134cec0",
+    "absa_model/model.pt": "d0cdbf1a612f6d17ccc44da78717e668160277b4acfb83022daf5c052a8ce6ce",
+    "absa_model/encoder/config.json": "212eeb5a7a41f90b2664523c7e55135da7b5165fa220052941b29ab2a57de7c8",
+    "absa_model/tokenizer/tokenizer.json": "d714a94e36fbaf988a415cbe8579ab02f757397c39ec21e44112de56553fe4b2",
+    "absa_model/tokenizer/tokenizer_config.json": "54543c393ddee61f06ca6147fd67341997730cb308b738a3b2d015e9efc8f41d",
+    "absa_model/training_metadata.json": "8f2015d658f9e08fea42e9ef15e0262b144e24ea906ba80c2faea9f0d43c8023",
+    "absa_model/source_training_metadata.json": "c97a6b206733a7daa0a9d2889808fab4c61ec10332fd016e428ca604b2550f3b"
+  },
+  "environment": {
+    "torch": "2.11.0+cu128",
+    "transformers": "5.17.0",
+    "datasets": "5.0.1",
+    "scikit-learn": "1.9.1",
+    "xgboost": "3.2.0",
+    "sentence-transformers": "6.1.0"
+  }
+}
