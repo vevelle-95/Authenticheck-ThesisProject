@@ -1,0 +1,230 @@
+{
+  "reference_report": "results/quality_balanced_v5_test_per_aspect.json",
+  "candidate_report": "results/real_only_v1_test.json",
+  "partition": "test",
+  "review_count": 230,
+  "product_count": 4,
+  "comparability": {
+    "identical_review_ids_text_products_and_labels": true,
+    "identical_authentic_gold_annotations": true,
+    "identical_unfiltered_absa_predictions": true,
+    "identical_product_aspect_eligibility": true,
+    "eligible_product_aspect_pairs": 36,
+    "different_full_dataset_hashes_expected": "v5 includes training augmentation; real_only does not. Test membership and labels matched explicitly.",
+    "changed_recorded_visual_scores_count": 0
+  },
+  "quality": {
+    "v5": {
+      "count": 230,
+      "accuracy": 0.6086956521739131,
+      "macro_precision": 0.32957945478723405,
+      "macro_recall": 0.371765525477707,
+      "macro_f1": 0.33911281367976903,
+      "support": [
+        157,
+        4,
+        64,
+        5
+      ],
+      "confusion_matrix": [
+        [
+          101,
+          2,
+          54,
+          0
+        ],
+        [
+          2,
+          1,
+          1,
+          0
+        ],
+        [
+          22,
+          4,
+          38,
+          0
+        ],
+        [
+          3,
+          1,
+          1,
+          0
+        ]
+      ]
+    },
+    "real_only": {
+      "count": 230,
+      "accuracy": 0.7782608695652173,
+      "macro_precision": 0.7056255526083113,
+      "macro_recall": 0.47533339968152866,
+      "macro_f1": 0.5278635795395353,
+      "support": [
+        157,
+        4,
+        64,
+        5
+      ],
+      "confusion_matrix": [
+        [
+          142,
+          0,
+          15,
+          0
+        ],
+        [
+          3,
+          1,
+          0,
+          0
+        ],
+        [
+          27,
+          0,
+          35,
+          2
+        ],
+        [
+          2,
+          0,
+          2,
+          1
+        ]
+      ]
+    },
+    "real_only_roberta": {
+      "count": 230,
+      "accuracy": 0.7652173913043478,
+      "macro_precision": 0.6137456293706294,
+      "macro_recall": 0.4198347929936306,
+      "macro_f1": 0.4582634358496428,
+      "support": [
+        157,
+        4,
+        64,
+        5
+      ],
+      "confusion_matrix": [
+        [
+          141,
+          0,
+          16,
+          0
+        ],
+        [
+          3,
+          1,
+          0,
+          0
+        ],
+        [
+          29,
+          0,
+          34,
+          1
+        ],
+        [
+          3,
+          0,
+          2,
+          0
+        ]
+      ]
+    }
+  },
+  "by_aspect": [
+    {
+      "category": "product_quality",
+      "paired_products": 4,
+      "v5_filtered_mae": 0.2943035426731079,
+      "real_only_filtered_mae": 0.17537878787878786,
+      "absa_only_unfiltered_mae": 0.12600646051103367,
+      "reduction_vs_v5": 0.11892475479432002
+    },
+    {
+      "category": "functionality",
+      "paired_products": 4,
+      "v5_filtered_mae": 0.4219343753617947,
+      "real_only_filtered_mae": 0.3271918363927658,
+      "absa_only_unfiltered_mae": 0.1674741529439151,
+      "reduction_vs_v5": 0.0947425389690289
+    },
+    {
+      "category": "performance",
+      "paired_products": 4,
+      "v5_filtered_mae": 0.38090557771483435,
+      "real_only_filtered_mae": 0.3665018019016358,
+      "absa_only_unfiltered_mae": 0.41631521212266553,
+      "reduction_vs_v5": 0.014403775813198572
+    },
+    {
+      "category": "design",
+      "paired_products": 4,
+      "v5_filtered_mae": 0.4056502525252525,
+      "real_only_filtered_mae": 0.3169512322472849,
+      "absa_only_unfiltered_mae": 0.22765376984126984,
+      "reduction_vs_v5": 0.08869902027796761
+    },
+    {
+      "category": "aesthetics",
+      "paired_products": 4,
+      "v5_filtered_mae": 0.03348214285714285,
+      "real_only_filtered_mae": 0.02220695970695971,
+      "absa_only_unfiltered_mae": 0.01693802521008403,
+      "reduction_vs_v5": 0.011275183150183138
+    },
+    {
+      "category": "sensory_experience",
+      "paired_products": 0,
+      "v5_filtered_mae": null,
+      "real_only_filtered_mae": null,
+      "absa_only_unfiltered_mae": null,
+      "reduction_vs_v5": null
+    },
+    {
+      "category": "value",
+      "paired_products": 4,
+      "v5_filtered_mae": 0.12919867910993676,
+      "real_only_filtered_mae": 0.14172049943226855,
+      "absa_only_unfiltered_mae": 0.16620689148579615,
+      "reduction_vs_v5": -0.01252182032233179
+    },
+    {
+      "category": "packaging",
+      "paired_products": 4,
+      "v5_filtered_mae": 0.5339285714285714,
+      "real_only_filtered_mae": 0.5071428571428571,
+      "absa_only_unfiltered_mae": 0.38189484126984125,
+      "reduction_vs_v5": 0.0267857142857143
+    },
+    {
+      "category": "seller_service",
+      "paired_products": 4,
+      "v5_filtered_mae": 0.2694444444444445,
+      "real_only_filtered_mae": 0.28125,
+      "absa_only_unfiltered_mae": 0.21944444444444444,
+      "reduction_vs_v5": -0.011805555555555514
+    },
+    {
+      "category": "accuracy_of_description",
+      "paired_products": 4,
+      "v5_filtered_mae": 0.42500000000000004,
+      "real_only_filtered_mae": 0.4041666666666667,
+      "absa_only_unfiltered_mae": 0.4041666666666667,
+      "reduction_vs_v5": 0.02083333333333337
+    }
+  ],
+  "overall": {
+    "v5_filtered_mae": 0.3215386206794538,
+    "real_only_filtered_mae": 0.28250118237435845,
+    "absa_only_unfiltered_mae": 0.23623338494396856,
+    "relative_mae_reduction_vs_v5": 0.12140824085953993,
+    "aspects_improved_vs_v5": 7,
+    "aspects_worsened_vs_v5": 2
+  },
+  "limitations": [
+    "Only four test products; no significance test performed.",
+    "ABSA weights and unfiltered predictions are unchanged; aggregation differences arise from the quality gate.",
+    "Lower MAE is better; undefined sensory_experience is excluded rather than scored zero."
+  ]
+}
