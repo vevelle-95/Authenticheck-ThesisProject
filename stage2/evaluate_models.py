@@ -15,7 +15,7 @@ from model_metrics import classification_metrics, absa_evaluation_report, aspect
 from stage2.online_inference import OnlineInference, aggregate_products
 
 
-def check_training_provenance(assigned, bundle):
+def check_training_provenance(assigned, bundle, absa_dir=None):
     bundle = Path(bundle)
     training = assigned[assigned.partition.eq("train")]
     validation = assigned[assigned.partition.eq("validation")]
@@ -23,7 +23,7 @@ def check_training_provenance(assigned, bundle):
     for path, authentic_only in (
         (bundle / "dost_roberta" / "training_metadata.json", False),
         (bundle / "xgboost_meta_classifier.metadata.json", False),
-        (bundle / "absa_model" / "training_metadata.json", True),
+        (Path(absa_dir) / "training_metadata.json" if absa_dir else bundle / "absa_model" / "training_metadata.json", True),
     ):
         metadata = json.loads(path.read_text(encoding="utf-8"))
         if not authentic_only:
@@ -65,16 +65,23 @@ def add_aspect_ablation_from_report(report):
     return {**report, 'aspect_filtering_ablation': aspect_filtering_ablation(gold, filtered, unfiltered)}
 
 
-def evaluate_own_models(test, pipe):
+def evaluate_own_models(test, pipe, stage1_rows=None):
     pipe.check_artifacts()
     absa, tokenizer = pipe._load_absa()
     aspect_predictions = absa.predict(test.review_text.tolist(), tokenizer)
     filtered, unfiltered, gold, quality_predictions, text_predictions = [], [], [], [], []
     absa_records = []
     for record, aspects in zip(test.to_dict("records"), aspect_predictions):
-        features, _, _ = pipe.extractor.extract(quality_input_text(record), record["image_urls"], record["star_rating"])
-        verdict, probabilities = pipe.classify(features)
-        text_verdict = int(np.argmax(features[:4]))
+        if stage1_rows is None:
+            features, _, _ = pipe.extractor.extract(quality_input_text(record), record["image_urls"], record["star_rating"])
+            verdict, probabilities = pipe.classify(features)
+            text_verdict = int(np.argmax(features[:4]))
+        else:
+            saved = stage1_rows[record["review_id"]]
+            features = saved["features"]
+            verdict = CLASS_NAMES.index(saved["label"])
+            probabilities = [saved["probabilities"][name] for name in CLASS_NAMES]
+            text_verdict = CLASS_NAMES.index(saved["roberta_prediction"])
         quality_predictions.append(verdict)
         text_predictions.append(text_verdict)
         common = {
@@ -110,7 +117,8 @@ def evaluate_own_models(test, pipe):
                     for polarity in sentiment_indices(values, absa.sentiment_threshold)],
             })
     absa_report = absa_evaluation_report(absa_records, aspect_threshold=absa.threshold,
-                                          sentiment_threshold=absa.sentiment_threshold)
+                                          sentiment_threshold=absa.sentiment_threshold,
+                                          aspect_thresholds=absa.aspect_thresholds)
     absa_products = {row["product_id"]: row for row in absa_report["per_product_metrics"]}
     by_id = {row["id"]: index for index, row in enumerate(filtered)}
     per_product = []
@@ -172,6 +180,8 @@ def main():
     parser.add_argument("--augmentations", help="Approved training-only augmentation CSV; use the same file throughout the experiment")
     parser.add_argument("--allow-unreviewed-augmentations", action="store_true", help="Experimental run: include pending drafts without marking them approved")
     parser.add_argument("--bundle", default=str(DEFAULT_BUNDLE))
+    parser.add_argument("--absa-dir", help="Use a separately calibrated ABSA checkpoint with this Stage 1 bundle")
+    parser.add_argument("--reuse-stage1-report", help="Reuse frozen Stage 1 test predictions from a matching report")
     parser.add_argument("--output", default="results/own_model_test.json")
     args = parser.parse_args()
     output = Path(args.output)
@@ -185,10 +195,30 @@ def main():
         return
     assigned = load_experiment(args.data, args.splits, args.augmentations, require_annotations=True,
                                allow_unreviewed=args.allow_unreviewed_augmentations)
-    check_training_provenance(assigned, args.bundle)
+    check_training_provenance(assigned, args.bundle, args.absa_dir)
     bundle = Path(args.bundle)
-    pipe = OnlineInference(bundle / "dost_roberta", bundle / "xgboost_meta_classifier.json", bundle / "absa_model")
-    result = evaluate_own_models(assigned[assigned.partition.eq("test")], pipe)
+    pipe = OnlineInference(bundle / "dost_roberta", bundle / "xgboost_meta_classifier.json",
+                           args.absa_dir or bundle / "absa_model")
+    test = assigned[assigned.partition.eq("test")]
+    stage1_rows = None
+    if args.reuse_stage1_report:
+        source = json.loads(Path(args.reuse_stage1_report).read_text(encoding="utf-8"))
+        if source.get("partition") != "test" or source.get("dataset_sha256") != fingerprint(assigned):
+            raise ValueError("Frozen Stage 1 report must describe this test dataset and split")
+        rows = source.get("unfiltered_reviews", [])
+        stage1_rows = {row["id"]: row for row in rows}
+        if len(rows) != len(stage1_rows) or set(stage1_rows) != set(test.review_id):
+            raise ValueError("Frozen Stage 1 report must cover each current test review exactly once")
+        for record in test.to_dict("records"):
+            saved = stage1_rows[record["review_id"]]
+            if (saved["product_id"] != record["product_id"] or saved["text"] != record["review_text"]
+                    or saved["ground_truth"] != CLASS_NAMES[record["label"]]
+                    or saved["text_label"] != CLASS_NAMES[record["text_target"]]
+                    or len(saved["features"]) != 6):
+                raise ValueError(f"Frozen Stage 1 row differs from the current dataset: {record['review_id']}")
+    result = evaluate_own_models(test, pipe, stage1_rows)
+    if args.reuse_stage1_report:
+        result["stage1_reused_from"] = str(Path(args.reuse_stage1_report).resolve())
     result["augmentation_usage"] = augmentation_summary(assigned)
     result["dataset_sha256"] = fingerprint(assigned)
     for partition in ("train", "validation"):

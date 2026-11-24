@@ -212,7 +212,7 @@ def _score_absa_records(records):
                 [f"{category}/{polarity}" for category in ASPECTS for polarity in polarities])}
 
 
-def absa_evaluation_report(records, *, aspect_threshold, sentiment_threshold):
+def absa_evaluation_report(records, *, aspect_threshold, sentiment_threshold, aspect_thresholds=None):
     """Identical standalone ABSA scoring for both models, without a quality gate."""
     if len({row["review_id"] for row in records}) != len(records):
         raise ValueError("ABSA evaluation review IDs must be unique")
@@ -228,7 +228,9 @@ def absa_evaluation_report(records, *, aspect_threshold, sentiment_threshold):
             "aspects": list(ASPECTS), "sentiments": [value.lower() for value in POLARITIES],
             "scope": "standalone ABSA on ground-truth Authentic reviews; no predicted quality filter",
             "cohort_sha256": signature, "review_count": len(records), "product_count": len(products),
-            "aspect_threshold": float(aspect_threshold), "sentiment_threshold": float(sentiment_threshold),
+            "aspect_threshold": float(aspect_threshold),
+            "aspect_thresholds": dict(aspect_thresholds or {}),
+            "sentiment_threshold": float(sentiment_threshold),
             "metrics": _score_absa_records(ordered),
             "per_product_metrics": [{"product_id": product, **_score_absa_records(
                 [row for row in ordered if row["product_id"] == product])} for product in products],

@@ -1,0 +1,1233 @@
+{
+  "protocol": "product-aspect-filtered-authenticheck-vs-absa-only-clip-ca-cg-v1",
+  "scope": "mixed held-out test reviews; ground truth aggregates use only human-authentic reviews",
+  "interpretation": "AuthentiCheck predictions are filtered by its saved Stage 1 XGBoost label. CLIP-CA-CG is an ABSA-only baseline and therefore predicts every mixed test review.",
+  "dataset_sha256": "df931934247ae7ce4e7b0598369a23e7824045506b493ec2b052b32b8da59ccf",
+  "review_count": 225,
+  "product_count": 4,
+  "ground_truth_authentic_review_count": 145,
+  "authenticheck_predicted_authentic_review_count": 153,
+  "clip_ca_cg_input_review_count": 225,
+  "clip_ca_cg_image_availability": {
+    "reviews_with_usable_buyer_images": 206,
+    "reviews_without_usable_buyer_images": 19
+  },
+  "filtering_vs_clip_ca_cg": {
+    "aggregation_unit": "mean_distinct_polarities_per_review_then_mean_reviews_per_product_aspect",
+    "score_range": [
+      -1,
+      1
+    ],
+    "exclusion_policy": "Paired MAEs include only product/aspect rows with defined human, AuthentiCheck, and baseline aggregates; undefined scores are null, never zero.",
+    "per_product_aspect": [
+      {
+        "product_id": "prod_04",
+        "category": "product_quality",
+        "ground_truth": 0.0,
+        "authenticheck_filtered": -0.16666666666666666,
+        "clip_ca_cg_all_reviews": 0.4605263157894737,
+        "authenticheck_filtered_absolute_error": 0.16666666666666666,
+        "clip_ca_cg_all_reviews_absolute_error": 0.4605263157894737,
+        "paired_eligible": true,
+        "exclusion_reasons": [],
+        "authenticheck_filtered_improvement": 0.29385964912280704
+      },
+      {
+        "product_id": "prod_04",
+        "category": "functionality",
+        "ground_truth": 0.4,
+        "authenticheck_filtered": null,
+        "clip_ca_cg_all_reviews": 0.75,
+        "authenticheck_filtered_absolute_error": null,
+        "clip_ca_cg_all_reviews_absolute_error": 0.35,
+        "paired_eligible": false,
+        "exclusion_reasons": [
+          "no_authenticheck_filtered_prediction"
+        ],
+        "authenticheck_filtered_improvement": null
+      },
+      {
+        "product_id": "prod_04",
+        "category": "performance",
+        "ground_truth": 0.38,
+        "authenticheck_filtered": 0.35714285714285715,
+        "clip_ca_cg_all_reviews": 0.5666666666666667,
+        "authenticheck_filtered_absolute_error": 0.022857142857142854,
+        "clip_ca_cg_all_reviews_absolute_error": 0.18666666666666665,
+        "paired_eligible": true,
+        "exclusion_reasons": [],
+        "authenticheck_filtered_improvement": 0.1638095238095238
+      },
+      {
+        "product_id": "prod_04",
+        "category": "design",
+        "ground_truth": 0.5,
+        "authenticheck_filtered": 0.375,
+        "clip_ca_cg_all_reviews": 1.0,
+        "authenticheck_filtered_absolute_error": 0.125,
+        "clip_ca_cg_all_reviews_absolute_error": 0.5,
+        "paired_eligible": true,
+        "exclusion_reasons": [],
+        "authenticheck_filtered_improvement": 0.375
+      },
+      {
+        "product_id": "prod_04",
+        "category": "aesthetics",
+        "ground_truth": 0.7142857142857143,
+        "authenticheck_filtered": 1.0,
+        "clip_ca_cg_all_reviews": 1.0,
+        "authenticheck_filtered_absolute_error": 0.2857142857142857,
+        "clip_ca_cg_all_reviews_absolute_error": 0.2857142857142857,
+        "paired_eligible": true,
+        "exclusion_reasons": [],
+        "authenticheck_filtered_improvement": 0.0
+      },
+      {
+        "product_id": "prod_04",
+        "category": "sensory_experience",
+        "ground_truth": 0.6304347826086957,
+        "authenticheck_filtered": 0.425,
+        "clip_ca_cg_all_reviews": 0.4875,
+        "authenticheck_filtered_absolute_error": 0.2054347826086957,
+        "clip_ca_cg_all_reviews_absolute_error": 0.1429347826086957,
+        "paired_eligible": true,
+        "exclusion_reasons": [],
+        "authenticheck_filtered_improvement": -0.0625
+      },
+      {
+        "product_id": "prod_04",
+        "category": "value",
+        "ground_truth": 0.5714285714285714,
+        "authenticheck_filtered": 1.0,
+        "clip_ca_cg_all_reviews": 1.0,
+        "authenticheck_filtered_absolute_error": 0.4285714285714286,
+        "clip_ca_cg_all_reviews_absolute_error": 0.4285714285714286,
+        "paired_eligible": true,
+        "exclusion_reasons": [],
+        "authenticheck_filtered_improvement": 0.0
+      },
+      {
+        "product_id": "prod_04",
+        "category": "packaging",
+        "ground_truth": 0.07142857142857142,
+        "authenticheck_filtered": -0.0625,
+        "clip_ca_cg_all_reviews": 0.023809523809523808,
+        "authenticheck_filtered_absolute_error": 0.13392857142857142,
+        "clip_ca_cg_all_reviews_absolute_error": 0.047619047619047616,
+        "paired_eligible": true,
+        "exclusion_reasons": [],
+        "authenticheck_filtered_improvement": -0.08630952380952381
+      },
+      {
+        "product_id": "prod_04",
+        "category": "seller_service",
+        "ground_truth": -0.6,
+        "authenticheck_filtered": -0.2857142857142857,
+        "clip_ca_cg_all_reviews": 0.0,
+        "authenticheck_filtered_absolute_error": 0.3142857142857143,
+        "clip_ca_cg_all_reviews_absolute_error": 0.6,
+        "paired_eligible": true,
+        "exclusion_reasons": [],
+        "authenticheck_filtered_improvement": 0.2857142857142857
+      },
+      {
+        "product_id": "prod_04",
+        "category": "accuracy_of_description",
+        "ground_truth": -0.7142857142857143,
+        "authenticheck_filtered": -1.0,
+        "clip_ca_cg_all_reviews": -0.8333333333333334,
+        "authenticheck_filtered_absolute_error": 0.2857142857142857,
+        "clip_ca_cg_all_reviews_absolute_error": 0.11904761904761907,
+        "paired_eligible": true,
+        "exclusion_reasons": [],
+        "authenticheck_filtered_improvement": -0.16666666666666663
+      },
+      {
+        "product_id": "prod_07",
+        "category": "product_quality",
+        "ground_truth": -0.29411764705882354,
+        "authenticheck_filtered": 0.3194444444444444,
+        "clip_ca_cg_all_reviews": 0.3220338983050847,
+        "authenticheck_filtered_absolute_error": 0.613562091503268,
+        "clip_ca_cg_all_reviews_absolute_error": 0.6161515453639083,
+        "paired_eligible": true,
+        "exclusion_reasons": [],
+        "authenticheck_filtered_improvement": 0.002589453860640245
+      },
+      {
+        "product_id": "prod_07",
+        "category": "functionality",
+        "ground_truth": -0.1388888888888889,
+        "authenticheck_filtered": 0.20588235294117646,
+        "clip_ca_cg_all_reviews": 0.3584905660377358,
+        "authenticheck_filtered_absolute_error": 0.34477124183006536,
+        "clip_ca_cg_all_reviews_absolute_error": 0.4973794549266247,
+        "paired_eligible": true,
+        "exclusion_reasons": [],
+        "authenticheck_filtered_improvement": 0.15260821309655936
+      },
+      {
+        "product_id": "prod_07",
+        "category": "performance",
+        "ground_truth": 0.10810810810810811,
+        "authenticheck_filtered": -0.05263157894736842,
+        "clip_ca_cg_all_reviews": 0.23214285714285715,
+        "authenticheck_filtered_absolute_error": 0.16073968705547653,
+        "clip_ca_cg_all_reviews_absolute_error": 0.12403474903474904,
+        "paired_eligible": true,
+        "exclusion_reasons": [],
+        "authenticheck_filtered_improvement": -0.036704938020727496
+      },
+      {
+        "product_id": "prod_07",
+        "category": "design",
+        "ground_truth": 0.5714285714285714,
+        "authenticheck_filtered": 0.5,
+        "clip_ca_cg_all_reviews": 1.0,
+        "authenticheck_filtered_absolute_error": 0.0714285714285714,
+        "clip_ca_cg_all_reviews_absolute_error": 0.4285714285714286,
+        "paired_eligible": true,
+        "exclusion_reasons": [],
+        "authenticheck_filtered_improvement": 0.3571428571428572
+      },
+      {
+        "product_id": "prod_07",
+        "category": "aesthetics",
+        "ground_truth": 1.0,
+        "authenticheck_filtered": 1.0,
+        "clip_ca_cg_all_reviews": 0.75,
+        "authenticheck_filtered_absolute_error": 0.0,
+        "clip_ca_cg_all_reviews_absolute_error": 0.25,
+        "paired_eligible": true,
+        "exclusion_reasons": [],
+        "authenticheck_filtered_improvement": 0.25
+      },
+      {
+        "product_id": "prod_07",
+        "category": "sensory_experience",
+        "ground_truth": null,
+        "authenticheck_filtered": null,
+        "clip_ca_cg_all_reviews": 1.0,
+        "authenticheck_filtered_absolute_error": null,
+        "clip_ca_cg_all_reviews_absolute_error": null,
+        "paired_eligible": false,
+        "exclusion_reasons": [
+          "no_ground_truth",
+          "no_authenticheck_filtered_prediction"
+        ],
+        "authenticheck_filtered_improvement": null
+      },
+      {
+        "product_id": "prod_07",
+        "category": "value",
+        "ground_truth": 1.0,
+        "authenticheck_filtered": 1.0,
+        "clip_ca_cg_all_reviews": 1.0,
+        "authenticheck_filtered_absolute_error": 0.0,
+        "clip_ca_cg_all_reviews_absolute_error": 0.0,
+        "paired_eligible": true,
+        "exclusion_reasons": [],
+        "authenticheck_filtered_improvement": 0.0
+      },
+      {
+        "product_id": "prod_07",
+        "category": "packaging",
+        "ground_truth": -0.8333333333333334,
+        "authenticheck_filtered": -0.625,
+        "clip_ca_cg_all_reviews": -0.21428571428571427,
+        "authenticheck_filtered_absolute_error": 0.20833333333333337,
+        "clip_ca_cg_all_reviews_absolute_error": 0.6190476190476191,
+        "paired_eligible": true,
+        "exclusion_reasons": [],
+        "authenticheck_filtered_improvement": 0.4107142857142857
+      },
+      {
+        "product_id": "prod_07",
+        "category": "seller_service",
+        "ground_truth": 0.7142857142857143,
+        "authenticheck_filtered": 1.0,
+        "clip_ca_cg_all_reviews": 0.6153846153846154,
+        "authenticheck_filtered_absolute_error": 0.2857142857142857,
+        "clip_ca_cg_all_reviews_absolute_error": 0.09890109890109888,
+        "paired_eligible": true,
+        "exclusion_reasons": [],
+        "authenticheck_filtered_improvement": -0.18681318681318682
+      },
+      {
+        "product_id": "prod_07",
+        "category": "accuracy_of_description",
+        "ground_truth": -1.0,
+        "authenticheck_filtered": -1.0,
+        "clip_ca_cg_all_reviews": -0.5,
+        "authenticheck_filtered_absolute_error": 0.0,
+        "clip_ca_cg_all_reviews_absolute_error": 0.5,
+        "paired_eligible": true,
+        "exclusion_reasons": [],
+        "authenticheck_filtered_improvement": 0.5
+      },
+      {
+        "product_id": "prod_09",
+        "category": "product_quality",
+        "ground_truth": 0.5454545454545454,
+        "authenticheck_filtered": 0.3448275862068966,
+        "clip_ca_cg_all_reviews": 0.32608695652173914,
+        "authenticheck_filtered_absolute_error": 0.20062695924764884,
+        "clip_ca_cg_all_reviews_absolute_error": 0.21936758893280628,
+        "paired_eligible": true,
+        "exclusion_reasons": [],
+        "authenticheck_filtered_improvement": 0.01874062968515744
+      },
+      {
+        "product_id": "prod_09",
+        "category": "functionality",
+        "ground_truth": 0.296875,
+        "authenticheck_filtered": 0.2826086956521739,
+        "clip_ca_cg_all_reviews": 0.20930232558139536,
+        "authenticheck_filtered_absolute_error": 0.014266304347826109,
+        "clip_ca_cg_all_reviews_absolute_error": 0.08757267441860464,
+        "paired_eligible": true,
+        "exclusion_reasons": [],
+        "authenticheck_filtered_improvement": 0.07330637007077853
+      },
+      {
+        "product_id": "prod_09",
+        "category": "performance",
+        "ground_truth": 0.5384615384615384,
+        "authenticheck_filtered": 0.2,
+        "clip_ca_cg_all_reviews": 0.15384615384615385,
+        "authenticheck_filtered_absolute_error": 0.3384615384615384,
+        "clip_ca_cg_all_reviews_absolute_error": 0.3846153846153846,
+        "paired_eligible": true,
+        "exclusion_reasons": [],
+        "authenticheck_filtered_improvement": 0.046153846153846156
+      },
+      {
+        "product_id": "prod_09",
+        "category": "design",
+        "ground_truth": 0.05,
+        "authenticheck_filtered": 0.3125,
+        "clip_ca_cg_all_reviews": 0.38095238095238093,
+        "authenticheck_filtered_absolute_error": 0.2625,
+        "clip_ca_cg_all_reviews_absolute_error": 0.33095238095238094,
+        "paired_eligible": true,
+        "exclusion_reasons": [],
+        "authenticheck_filtered_improvement": 0.06845238095238093
+      },
+      {
+        "product_id": "prod_09",
+        "category": "aesthetics",
+        "ground_truth": 0.7857142857142857,
+        "authenticheck_filtered": 1.0,
+        "clip_ca_cg_all_reviews": 0.8157894736842105,
+        "authenticheck_filtered_absolute_error": 0.2142857142857143,
+        "clip_ca_cg_all_reviews_absolute_error": 0.03007518796992481,
+        "paired_eligible": true,
+        "exclusion_reasons": [],
+        "authenticheck_filtered_improvement": -0.1842105263157895
+      },
+      {
+        "product_id": "prod_09",
+        "category": "sensory_experience",
+        "ground_truth": null,
+        "authenticheck_filtered": null,
+        "clip_ca_cg_all_reviews": null,
+        "authenticheck_filtered_absolute_error": null,
+        "clip_ca_cg_all_reviews_absolute_error": null,
+        "paired_eligible": false,
+        "exclusion_reasons": [
+          "no_ground_truth",
+          "no_authenticheck_filtered_prediction",
+          "no_clip_ca_cg_all_reviews_prediction"
+        ],
+        "authenticheck_filtered_improvement": null
+      },
+      {
+        "product_id": "prod_09",
+        "category": "value",
+        "ground_truth": 0.23076923076923078,
+        "authenticheck_filtered": 0.1111111111111111,
+        "clip_ca_cg_all_reviews": 0.625,
+        "authenticheck_filtered_absolute_error": 0.11965811965811968,
+        "clip_ca_cg_all_reviews_absolute_error": 0.3942307692307692,
+        "paired_eligible": true,
+        "exclusion_reasons": [],
+        "authenticheck_filtered_improvement": 0.27457264957264954
+      },
+      {
+        "product_id": "prod_09",
+        "category": "packaging",
+        "ground_truth": 0.3333333333333333,
+        "authenticheck_filtered": 0.0,
+        "clip_ca_cg_all_reviews": -0.25,
+        "authenticheck_filtered_absolute_error": 0.3333333333333333,
+        "clip_ca_cg_all_reviews_absolute_error": 0.5833333333333333,
+        "paired_eligible": true,
+        "exclusion_reasons": [],
+        "authenticheck_filtered_improvement": 0.24999999999999994
+      },
+      {
+        "product_id": "prod_09",
+        "category": "seller_service",
+        "ground_truth": -0.625,
+        "authenticheck_filtered": 0.0,
+        "clip_ca_cg_all_reviews": 0.0,
+        "authenticheck_filtered_absolute_error": 0.625,
+        "clip_ca_cg_all_reviews_absolute_error": 0.625,
+        "paired_eligible": true,
+        "exclusion_reasons": [],
+        "authenticheck_filtered_improvement": 0.0
+      },
+      {
+        "product_id": "prod_09",
+        "category": "accuracy_of_description",
+        "ground_truth": -0.42857142857142855,
+        "authenticheck_filtered": -1.0,
+        "clip_ca_cg_all_reviews": -0.7142857142857143,
+        "authenticheck_filtered_absolute_error": 0.5714285714285714,
+        "clip_ca_cg_all_reviews_absolute_error": 0.28571428571428575,
+        "paired_eligible": true,
+        "exclusion_reasons": [],
+        "authenticheck_filtered_improvement": -0.28571428571428564
+      },
+      {
+        "product_id": "prod_37",
+        "category": "product_quality",
+        "ground_truth": 0.5,
+        "authenticheck_filtered": 0.2,
+        "clip_ca_cg_all_reviews": 0.03125,
+        "authenticheck_filtered_absolute_error": 0.3,
+        "clip_ca_cg_all_reviews_absolute_error": 0.46875,
+        "paired_eligible": true,
+        "exclusion_reasons": [],
+        "authenticheck_filtered_improvement": 0.16875
+      },
+      {
+        "product_id": "prod_37",
+        "category": "functionality",
+        "ground_truth": -0.6,
+        "authenticheck_filtered": 0.1875,
+        "clip_ca_cg_all_reviews": -0.26666666666666666,
+        "authenticheck_filtered_absolute_error": 0.7875,
+        "clip_ca_cg_all_reviews_absolute_error": 0.3333333333333333,
+        "paired_eligible": true,
+        "exclusion_reasons": [],
+        "authenticheck_filtered_improvement": -0.45416666666666666
+      },
+      {
+        "product_id": "prod_37",
+        "category": "performance",
+        "ground_truth": -0.2,
+        "authenticheck_filtered": 0.07692307692307693,
+        "clip_ca_cg_all_reviews": 0.125,
+        "authenticheck_filtered_absolute_error": 0.27692307692307694,
+        "clip_ca_cg_all_reviews_absolute_error": 0.325,
+        "paired_eligible": true,
+        "exclusion_reasons": [],
+        "authenticheck_filtered_improvement": 0.04807692307692307
+      },
+      {
+        "product_id": "prod_37",
+        "category": "design",
+        "ground_truth": 0.0,
+        "authenticheck_filtered": -0.07142857142857142,
+        "clip_ca_cg_all_reviews": 0.5882352941176471,
+        "authenticheck_filtered_absolute_error": 0.07142857142857142,
+        "clip_ca_cg_all_reviews_absolute_error": 0.5882352941176471,
+        "paired_eligible": true,
+        "exclusion_reasons": [],
+        "authenticheck_filtered_improvement": 0.5168067226890757
+      },
+      {
+        "product_id": "prod_37",
+        "category": "aesthetics",
+        "ground_truth": 1.0,
+        "authenticheck_filtered": 1.0,
+        "clip_ca_cg_all_reviews": 0.9642857142857143,
+        "authenticheck_filtered_absolute_error": 0.0,
+        "clip_ca_cg_all_reviews_absolute_error": 0.0357142857142857,
+        "paired_eligible": true,
+        "exclusion_reasons": [],
+        "authenticheck_filtered_improvement": 0.0357142857142857
+      },
+      {
+        "product_id": "prod_37",
+        "category": "sensory_experience",
+        "ground_truth": null,
+        "authenticheck_filtered": null,
+        "clip_ca_cg_all_reviews": -1.0,
+        "authenticheck_filtered_absolute_error": null,
+        "clip_ca_cg_all_reviews_absolute_error": null,
+        "paired_eligible": false,
+        "exclusion_reasons": [
+          "no_ground_truth",
+          "no_authenticheck_filtered_prediction"
+        ],
+        "authenticheck_filtered_improvement": null
+      },
+      {
+        "product_id": "prod_37",
+        "category": "value",
+        "ground_truth": 0.5,
+        "authenticheck_filtered": 0.14285714285714285,
+        "clip_ca_cg_all_reviews": 0.5,
+        "authenticheck_filtered_absolute_error": 0.35714285714285715,
+        "clip_ca_cg_all_reviews_absolute_error": 0.0,
+        "paired_eligible": true,
+        "exclusion_reasons": [],
+        "authenticheck_filtered_improvement": -0.35714285714285715
+      },
+      {
+        "product_id": "prod_37",
+        "category": "packaging",
+        "ground_truth": 0.5,
+        "authenticheck_filtered": 0.0,
+        "clip_ca_cg_all_reviews": -0.8,
+        "authenticheck_filtered_absolute_error": 0.5,
+        "clip_ca_cg_all_reviews_absolute_error": 1.3,
+        "paired_eligible": true,
+        "exclusion_reasons": [],
+        "authenticheck_filtered_improvement": 0.8
+      },
+      {
+        "product_id": "prod_37",
+        "category": "seller_service",
+        "ground_truth": null,
+        "authenticheck_filtered": 1.0,
+        "clip_ca_cg_all_reviews": -1.0,
+        "authenticheck_filtered_absolute_error": null,
+        "clip_ca_cg_all_reviews_absolute_error": null,
+        "paired_eligible": false,
+        "exclusion_reasons": [
+          "no_ground_truth"
+        ],
+        "authenticheck_filtered_improvement": null
+      },
+      {
+        "product_id": "prod_37",
+        "category": "accuracy_of_description",
+        "ground_truth": -1.0,
+        "authenticheck_filtered": -1.0,
+        "clip_ca_cg_all_reviews": -1.0,
+        "authenticheck_filtered_absolute_error": 0.0,
+        "clip_ca_cg_all_reviews_absolute_error": 0.0,
+        "paired_eligible": true,
+        "exclusion_reasons": [],
+        "authenticheck_filtered_improvement": 0.0
+      }
+    ],
+    "by_aspect": [
+      {
+        "category": "product_quality",
+        "product_count": 4,
+        "ground_truth_product_count": 4,
+        "paired_product_count": 4,
+        "authenticheck_filtered_mae": 0.32021392935439585,
+        "clip_ca_cg_all_reviews_mae": 0.44119886252154705,
+        "authenticheck_filtered_improvement": 0.12098493316715118
+      },
+      {
+        "category": "functionality",
+        "product_count": 4,
+        "ground_truth_product_count": 4,
+        "paired_product_count": 3,
+        "authenticheck_filtered_mae": 0.3821791820592972,
+        "clip_ca_cg_all_reviews_mae": 0.30609515422618755,
+        "authenticheck_filtered_improvement": -0.0760840278331096
+      },
+      {
+        "category": "performance",
+        "product_count": 4,
+        "ground_truth_product_count": 4,
+        "paired_product_count": 4,
+        "authenticheck_filtered_mae": 0.19974536132430867,
+        "clip_ca_cg_all_reviews_mae": 0.25507920007920004,
+        "authenticheck_filtered_improvement": 0.05533383875489138
+      },
+      {
+        "category": "design",
+        "product_count": 4,
+        "ground_truth_product_count": 4,
+        "paired_product_count": 4,
+        "authenticheck_filtered_mae": 0.13258928571428572,
+        "clip_ca_cg_all_reviews_mae": 0.46193977591036417,
+        "authenticheck_filtered_improvement": 0.3293504901960784
+      },
+      {
+        "category": "aesthetics",
+        "product_count": 4,
+        "ground_truth_product_count": 4,
+        "paired_product_count": 4,
+        "authenticheck_filtered_mae": 0.125,
+        "clip_ca_cg_all_reviews_mae": 0.15037593984962405,
+        "authenticheck_filtered_improvement": 0.025375939849624052
+      },
+      {
+        "category": "sensory_experience",
+        "product_count": 4,
+        "ground_truth_product_count": 1,
+        "paired_product_count": 1,
+        "authenticheck_filtered_mae": 0.2054347826086957,
+        "clip_ca_cg_all_reviews_mae": 0.1429347826086957,
+        "authenticheck_filtered_improvement": -0.0625
+      },
+      {
+        "category": "value",
+        "product_count": 4,
+        "ground_truth_product_count": 4,
+        "paired_product_count": 4,
+        "authenticheck_filtered_mae": 0.22634310134310137,
+        "clip_ca_cg_all_reviews_mae": 0.20570054945054944,
+        "authenticheck_filtered_improvement": -0.020642551892551902
+      },
+      {
+        "category": "packaging",
+        "product_count": 4,
+        "ground_truth_product_count": 4,
+        "paired_product_count": 4,
+        "authenticheck_filtered_mae": 0.29389880952380953,
+        "clip_ca_cg_all_reviews_mae": 0.6375,
+        "authenticheck_filtered_improvement": 0.3436011904761905
+      },
+      {
+        "category": "seller_service",
+        "product_count": 4,
+        "ground_truth_product_count": 3,
+        "paired_product_count": 3,
+        "authenticheck_filtered_mae": 0.4083333333333334,
+        "clip_ca_cg_all_reviews_mae": 0.4413003663003663,
+        "authenticheck_filtered_improvement": 0.03296703296703296
+      },
+      {
+        "category": "accuracy_of_description",
+        "product_count": 4,
+        "ground_truth_product_count": 4,
+        "paired_product_count": 4,
+        "authenticheck_filtered_mae": 0.21428571428571427,
+        "clip_ca_cg_all_reviews_mae": 0.22619047619047622,
+        "authenticheck_filtered_improvement": 0.011904761904761932
+      }
+    ],
+    "overall": {
+      "product_count": 4,
+      "product_aspect_count": 40,
+      "paired_product_aspect_count": 35,
+      "authenticheck_filtered_mae": 0.24643648957054423,
+      "clip_ca_cg_all_reviews_mae": 0.3399160160055829,
+      "authenticheck_filtered_improvement": 0.09347952643503865,
+      "macro_mae_across_evaluable_aspects": {
+        "authenticheck_filtered": 0.2508023499546942,
+        "clip_ca_cg_all_reviews": 0.3268315107137011,
+        "authenticheck_filtered_improvement": 0.0760291607590069
+      }
+    }
+  },
+  "absa_only_vs_clip_ca_cg": {
+    "aggregation_unit": "mean_distinct_polarities_per_review_then_mean_reviews_per_product_aspect",
+    "score_range": [
+      -1,
+      1
+    ],
+    "exclusion_policy": "Paired MAEs include only product/aspect rows with defined human, AuthentiCheck, and baseline aggregates; undefined scores are null, never zero.",
+    "per_product_aspect": [
+      {
+        "product_id": "prod_04",
+        "category": "product_quality",
+        "ground_truth": 0.0,
+        "authenticheck_absa_only": -0.16666666666666666,
+        "clip_ca_cg_absa_only": 0.4605263157894737,
+        "authenticheck_absa_only_absolute_error": 0.16666666666666666,
+        "clip_ca_cg_absa_only_absolute_error": 0.4605263157894737,
+        "paired_eligible": true,
+        "exclusion_reasons": [],
+        "authenticheck_absa_only_improvement": 0.29385964912280704
+      },
+      {
+        "product_id": "prod_04",
+        "category": "functionality",
+        "ground_truth": 0.4,
+        "authenticheck_absa_only": null,
+        "clip_ca_cg_absa_only": 0.75,
+        "authenticheck_absa_only_absolute_error": null,
+        "clip_ca_cg_absa_only_absolute_error": 0.35,
+        "paired_eligible": false,
+        "exclusion_reasons": [
+          "no_authenticheck_absa_only_prediction"
+        ],
+        "authenticheck_absa_only_improvement": null
+      },
+      {
+        "product_id": "prod_04",
+        "category": "performance",
+        "ground_truth": 0.38,
+        "authenticheck_absa_only": 0.4883720930232558,
+        "clip_ca_cg_absa_only": 0.5666666666666667,
+        "authenticheck_absa_only_absolute_error": 0.10837209302325579,
+        "clip_ca_cg_absa_only_absolute_error": 0.18666666666666665,
+        "paired_eligible": true,
+        "exclusion_reasons": [],
+        "authenticheck_absa_only_improvement": 0.07829457364341086
+      },
+      {
+        "product_id": "prod_04",
+        "category": "design",
+        "ground_truth": 0.5,
+        "authenticheck_absa_only": 0.6875,
+        "clip_ca_cg_absa_only": 1.0,
+        "authenticheck_absa_only_absolute_error": 0.1875,
+        "clip_ca_cg_absa_only_absolute_error": 0.5,
+        "paired_eligible": true,
+        "exclusion_reasons": [],
+        "authenticheck_absa_only_improvement": 0.3125
+      },
+      {
+        "product_id": "prod_04",
+        "category": "aesthetics",
+        "ground_truth": 0.7142857142857143,
+        "authenticheck_absa_only": 1.0,
+        "clip_ca_cg_absa_only": 1.0,
+        "authenticheck_absa_only_absolute_error": 0.2857142857142857,
+        "clip_ca_cg_absa_only_absolute_error": 0.2857142857142857,
+        "paired_eligible": true,
+        "exclusion_reasons": [],
+        "authenticheck_absa_only_improvement": 0.0
+      },
+      {
+        "product_id": "prod_04",
+        "category": "sensory_experience",
+        "ground_truth": 0.6304347826086957,
+        "authenticheck_absa_only": 0.4827586206896552,
+        "clip_ca_cg_absa_only": 0.4875,
+        "authenticheck_absa_only_absolute_error": 0.14767616191904048,
+        "clip_ca_cg_absa_only_absolute_error": 0.1429347826086957,
+        "paired_eligible": true,
+        "exclusion_reasons": [],
+        "authenticheck_absa_only_improvement": -0.004741379310344795
+      },
+      {
+        "product_id": "prod_04",
+        "category": "value",
+        "ground_truth": 0.5714285714285714,
+        "authenticheck_absa_only": 1.0,
+        "clip_ca_cg_absa_only": 1.0,
+        "authenticheck_absa_only_absolute_error": 0.4285714285714286,
+        "clip_ca_cg_absa_only_absolute_error": 0.4285714285714286,
+        "paired_eligible": true,
+        "exclusion_reasons": [],
+        "authenticheck_absa_only_improvement": 0.0
+      },
+      {
+        "product_id": "prod_04",
+        "category": "packaging",
+        "ground_truth": 0.07142857142857142,
+        "authenticheck_absa_only": 0.025,
+        "clip_ca_cg_absa_only": 0.023809523809523808,
+        "authenticheck_absa_only_absolute_error": 0.04642857142857142,
+        "clip_ca_cg_absa_only_absolute_error": 0.047619047619047616,
+        "paired_eligible": true,
+        "exclusion_reasons": [],
+        "authenticheck_absa_only_improvement": 0.0011904761904761932
+      },
+      {
+        "product_id": "prod_04",
+        "category": "seller_service",
+        "ground_truth": -0.6,
+        "authenticheck_absa_only": -0.2222222222222222,
+        "clip_ca_cg_absa_only": 0.0,
+        "authenticheck_absa_only_absolute_error": 0.37777777777777777,
+        "clip_ca_cg_absa_only_absolute_error": 0.6,
+        "paired_eligible": true,
+        "exclusion_reasons": [],
+        "authenticheck_absa_only_improvement": 0.2222222222222222
+      },
+      {
+        "product_id": "prod_04",
+        "category": "accuracy_of_description",
+        "ground_truth": -0.7142857142857143,
+        "authenticheck_absa_only": -1.0,
+        "clip_ca_cg_absa_only": -0.8333333333333334,
+        "authenticheck_absa_only_absolute_error": 0.2857142857142857,
+        "clip_ca_cg_absa_only_absolute_error": 0.11904761904761907,
+        "paired_eligible": true,
+        "exclusion_reasons": [],
+        "authenticheck_absa_only_improvement": -0.16666666666666663
+      },
+      {
+        "product_id": "prod_07",
+        "category": "product_quality",
+        "ground_truth": -0.29411764705882354,
+        "authenticheck_absa_only": 0.2692307692307692,
+        "clip_ca_cg_absa_only": 0.3220338983050847,
+        "authenticheck_absa_only_absolute_error": 0.5633484162895928,
+        "clip_ca_cg_absa_only_absolute_error": 0.6161515453639083,
+        "paired_eligible": true,
+        "exclusion_reasons": [],
+        "authenticheck_absa_only_improvement": 0.0528031290743155
+      },
+      {
+        "product_id": "prod_07",
+        "category": "functionality",
+        "ground_truth": -0.1388888888888889,
+        "authenticheck_absa_only": 0.17346938775510204,
+        "clip_ca_cg_absa_only": 0.3584905660377358,
+        "authenticheck_absa_only_absolute_error": 0.31235827664399096,
+        "clip_ca_cg_absa_only_absolute_error": 0.4973794549266247,
+        "paired_eligible": true,
+        "exclusion_reasons": [],
+        "authenticheck_absa_only_improvement": 0.18502117828263376
+      },
+      {
+        "product_id": "prod_07",
+        "category": "performance",
+        "ground_truth": 0.10810810810810811,
+        "authenticheck_absa_only": -0.08333333333333333,
+        "clip_ca_cg_absa_only": 0.23214285714285715,
+        "authenticheck_absa_only_absolute_error": 0.19144144144144143,
+        "clip_ca_cg_absa_only_absolute_error": 0.12403474903474904,
+        "paired_eligible": true,
+        "exclusion_reasons": [],
+        "authenticheck_absa_only_improvement": -0.06740669240669239
+      },
+      {
+        "product_id": "prod_07",
+        "category": "design",
+        "ground_truth": 0.5714285714285714,
+        "authenticheck_absa_only": 0.35714285714285715,
+        "clip_ca_cg_absa_only": 1.0,
+        "authenticheck_absa_only_absolute_error": 0.21428571428571425,
+        "clip_ca_cg_absa_only_absolute_error": 0.4285714285714286,
+        "paired_eligible": true,
+        "exclusion_reasons": [],
+        "authenticheck_absa_only_improvement": 0.21428571428571436
+      },
+      {
+        "product_id": "prod_07",
+        "category": "aesthetics",
+        "ground_truth": 1.0,
+        "authenticheck_absa_only": 1.0,
+        "clip_ca_cg_absa_only": 0.75,
+        "authenticheck_absa_only_absolute_error": 0.0,
+        "clip_ca_cg_absa_only_absolute_error": 0.25,
+        "paired_eligible": true,
+        "exclusion_reasons": [],
+        "authenticheck_absa_only_improvement": 0.25
+      },
+      {
+        "product_id": "prod_07",
+        "category": "sensory_experience",
+        "ground_truth": null,
+        "authenticheck_absa_only": null,
+        "clip_ca_cg_absa_only": 1.0,
+        "authenticheck_absa_only_absolute_error": null,
+        "clip_ca_cg_absa_only_absolute_error": null,
+        "paired_eligible": false,
+        "exclusion_reasons": [
+          "no_ground_truth",
+          "no_authenticheck_absa_only_prediction"
+        ],
+        "authenticheck_absa_only_improvement": null
+      },
+      {
+        "product_id": "prod_07",
+        "category": "value",
+        "ground_truth": 1.0,
+        "authenticheck_absa_only": 0.7692307692307693,
+        "clip_ca_cg_absa_only": 1.0,
+        "authenticheck_absa_only_absolute_error": 0.23076923076923073,
+        "clip_ca_cg_absa_only_absolute_error": 0.0,
+        "paired_eligible": true,
+        "exclusion_reasons": [],
+        "authenticheck_absa_only_improvement": -0.23076923076923073
+      },
+      {
+        "product_id": "prod_07",
+        "category": "packaging",
+        "ground_truth": -0.8333333333333334,
+        "authenticheck_absa_only": -0.5,
+        "clip_ca_cg_absa_only": -0.21428571428571427,
+        "authenticheck_absa_only_absolute_error": 0.33333333333333337,
+        "clip_ca_cg_absa_only_absolute_error": 0.6190476190476191,
+        "paired_eligible": true,
+        "exclusion_reasons": [],
+        "authenticheck_absa_only_improvement": 0.2857142857142857
+      },
+      {
+        "product_id": "prod_07",
+        "category": "seller_service",
+        "ground_truth": 0.7142857142857143,
+        "authenticheck_absa_only": 0.5,
+        "clip_ca_cg_absa_only": 0.6153846153846154,
+        "authenticheck_absa_only_absolute_error": 0.2142857142857143,
+        "clip_ca_cg_absa_only_absolute_error": 0.09890109890109888,
+        "paired_eligible": true,
+        "exclusion_reasons": [],
+        "authenticheck_absa_only_improvement": -0.11538461538461542
+      },
+      {
+        "product_id": "prod_07",
+        "category": "accuracy_of_description",
+        "ground_truth": -1.0,
+        "authenticheck_absa_only": -1.0,
+        "clip_ca_cg_absa_only": -0.5,
+        "authenticheck_absa_only_absolute_error": 0.0,
+        "clip_ca_cg_absa_only_absolute_error": 0.5,
+        "paired_eligible": true,
+        "exclusion_reasons": [],
+        "authenticheck_absa_only_improvement": 0.5
+      },
+      {
+        "product_id": "prod_09",
+        "category": "product_quality",
+        "ground_truth": 0.5454545454545454,
+        "authenticheck_absa_only": 0.36585365853658536,
+        "clip_ca_cg_absa_only": 0.32608695652173914,
+        "authenticheck_absa_only_absolute_error": 0.17960088691796006,
+        "clip_ca_cg_absa_only_absolute_error": 0.21936758893280628,
+        "paired_eligible": true,
+        "exclusion_reasons": [],
+        "authenticheck_absa_only_improvement": 0.03976670201484622
+      },
+      {
+        "product_id": "prod_09",
+        "category": "functionality",
+        "ground_truth": 0.296875,
+        "authenticheck_absa_only": 0.2647058823529412,
+        "clip_ca_cg_absa_only": 0.20930232558139536,
+        "authenticheck_absa_only_absolute_error": 0.03216911764705882,
+        "clip_ca_cg_absa_only_absolute_error": 0.08757267441860464,
+        "paired_eligible": true,
+        "exclusion_reasons": [],
+        "authenticheck_absa_only_improvement": 0.05540355677154582
+      },
+      {
+        "product_id": "prod_09",
+        "category": "performance",
+        "ground_truth": 0.5384615384615384,
+        "authenticheck_absa_only": 0.12244897959183673,
+        "clip_ca_cg_absa_only": 0.15384615384615385,
+        "authenticheck_absa_only_absolute_error": 0.4160125588697017,
+        "clip_ca_cg_absa_only_absolute_error": 0.3846153846153846,
+        "paired_eligible": true,
+        "exclusion_reasons": [],
+        "authenticheck_absa_only_improvement": -0.031397174254317095
+      },
+      {
+        "product_id": "prod_09",
+        "category": "design",
+        "ground_truth": 0.05,
+        "authenticheck_absa_only": 0.2222222222222222,
+        "clip_ca_cg_absa_only": 0.38095238095238093,
+        "authenticheck_absa_only_absolute_error": 0.17222222222222222,
+        "clip_ca_cg_absa_only_absolute_error": 0.33095238095238094,
+        "paired_eligible": true,
+        "exclusion_reasons": [],
+        "authenticheck_absa_only_improvement": 0.15873015873015872
+      },
+      {
+        "product_id": "prod_09",
+        "category": "aesthetics",
+        "ground_truth": 0.7857142857142857,
+        "authenticheck_absa_only": 1.0,
+        "clip_ca_cg_absa_only": 0.8157894736842105,
+        "authenticheck_absa_only_absolute_error": 0.2142857142857143,
+        "clip_ca_cg_absa_only_absolute_error": 0.03007518796992481,
+        "paired_eligible": true,
+        "exclusion_reasons": [],
+        "authenticheck_absa_only_improvement": -0.1842105263157895
+      },
+      {
+        "product_id": "prod_09",
+        "category": "sensory_experience",
+        "ground_truth": null,
+        "authenticheck_absa_only": null,
+        "clip_ca_cg_absa_only": null,
+        "authenticheck_absa_only_absolute_error": null,
+        "clip_ca_cg_absa_only_absolute_error": null,
+        "paired_eligible": false,
+        "exclusion_reasons": [
+          "no_ground_truth",
+          "no_authenticheck_absa_only_prediction",
+          "no_clip_ca_cg_absa_only_prediction"
+        ],
+        "authenticheck_absa_only_improvement": null
+      },
+      {
+        "product_id": "prod_09",
+        "category": "value",
+        "ground_truth": 0.23076923076923078,
+        "authenticheck_absa_only": 0.2,
+        "clip_ca_cg_absa_only": 0.625,
+        "authenticheck_absa_only_absolute_error": 0.03076923076923077,
+        "clip_ca_cg_absa_only_absolute_error": 0.3942307692307692,
+        "paired_eligible": true,
+        "exclusion_reasons": [],
+        "authenticheck_absa_only_improvement": 0.36346153846153845
+      },
+      {
+        "product_id": "prod_09",
+        "category": "packaging",
+        "ground_truth": 0.3333333333333333,
+        "authenticheck_absa_only": 0.0,
+        "clip_ca_cg_absa_only": -0.25,
+        "authenticheck_absa_only_absolute_error": 0.3333333333333333,
+        "clip_ca_cg_absa_only_absolute_error": 0.5833333333333333,
+        "paired_eligible": true,
+        "exclusion_reasons": [],
+        "authenticheck_absa_only_improvement": 0.24999999999999994
+      },
+      {
+        "product_id": "prod_09",
+        "category": "seller_service",
+        "ground_truth": -0.625,
+        "authenticheck_absa_only": -0.5,
+        "clip_ca_cg_absa_only": 0.0,
+        "authenticheck_absa_only_absolute_error": 0.125,
+        "clip_ca_cg_absa_only_absolute_error": 0.625,
+        "paired_eligible": true,
+        "exclusion_reasons": [],
+        "authenticheck_absa_only_improvement": 0.5
+      },
+      {
+        "product_id": "prod_09",
+        "category": "accuracy_of_description",
+        "ground_truth": -0.42857142857142855,
+        "authenticheck_absa_only": -0.6,
+        "clip_ca_cg_absa_only": -0.7142857142857143,
+        "authenticheck_absa_only_absolute_error": 0.17142857142857143,
+        "clip_ca_cg_absa_only_absolute_error": 0.28571428571428575,
+        "paired_eligible": true,
+        "exclusion_reasons": [],
+        "authenticheck_absa_only_improvement": 0.11428571428571432
+      },
+      {
+        "product_id": "prod_37",
+        "category": "product_quality",
+        "ground_truth": 0.5,
+        "authenticheck_absa_only": 0.2,
+        "clip_ca_cg_absa_only": 0.03125,
+        "authenticheck_absa_only_absolute_error": 0.3,
+        "clip_ca_cg_absa_only_absolute_error": 0.46875,
+        "paired_eligible": true,
+        "exclusion_reasons": [],
+        "authenticheck_absa_only_improvement": 0.16875
+      },
+      {
+        "product_id": "prod_37",
+        "category": "functionality",
+        "ground_truth": -0.6,
+        "authenticheck_absa_only": 0.05555555555555555,
+        "clip_ca_cg_absa_only": -0.26666666666666666,
+        "authenticheck_absa_only_absolute_error": 0.6555555555555556,
+        "clip_ca_cg_absa_only_absolute_error": 0.3333333333333333,
+        "paired_eligible": true,
+        "exclusion_reasons": [],
+        "authenticheck_absa_only_improvement": -0.32222222222222224
+      },
+      {
+        "product_id": "prod_37",
+        "category": "performance",
+        "ground_truth": -0.2,
+        "authenticheck_absa_only": 0.17647058823529413,
+        "clip_ca_cg_absa_only": 0.125,
+        "authenticheck_absa_only_absolute_error": 0.3764705882352941,
+        "clip_ca_cg_absa_only_absolute_error": 0.325,
+        "paired_eligible": true,
+        "exclusion_reasons": [],
+        "authenticheck_absa_only_improvement": -0.0514705882352941
+      },
+      {
+        "product_id": "prod_37",
+        "category": "design",
+        "ground_truth": 0.0,
+        "authenticheck_absa_only": 0.05,
+        "clip_ca_cg_absa_only": 0.5882352941176471,
+        "authenticheck_absa_only_absolute_error": 0.05,
+        "clip_ca_cg_absa_only_absolute_error": 0.5882352941176471,
+        "paired_eligible": true,
+        "exclusion_reasons": [],
+        "authenticheck_absa_only_improvement": 0.538235294117647
+      },
+      {
+        "product_id": "prod_37",
+        "category": "aesthetics",
+        "ground_truth": 1.0,
+        "authenticheck_absa_only": 1.0,
+        "clip_ca_cg_absa_only": 0.9642857142857143,
+        "authenticheck_absa_only_absolute_error": 0.0,
+        "clip_ca_cg_absa_only_absolute_error": 0.0357142857142857,
+        "paired_eligible": true,
+        "exclusion_reasons": [],
+        "authenticheck_absa_only_improvement": 0.0357142857142857
+      },
+      {
+        "product_id": "prod_37",
+        "category": "sensory_experience",
+        "ground_truth": null,
+        "authenticheck_absa_only": null,
+        "clip_ca_cg_absa_only": -1.0,
+        "authenticheck_absa_only_absolute_error": null,
+        "clip_ca_cg_absa_only_absolute_error": null,
+        "paired_eligible": false,
+        "exclusion_reasons": [
+          "no_ground_truth",
+          "no_authenticheck_absa_only_prediction"
+        ],
+        "authenticheck_absa_only_improvement": null
+      },
+      {
+        "product_id": "prod_37",
+        "category": "value",
+        "ground_truth": 0.5,
+        "authenticheck_absa_only": 0.2727272727272727,
+        "clip_ca_cg_absa_only": 0.5,
+        "authenticheck_absa_only_absolute_error": 0.2272727272727273,
+        "clip_ca_cg_absa_only_absolute_error": 0.0,
+        "paired_eligible": true,
+        "exclusion_reasons": [],
+        "authenticheck_absa_only_improvement": -0.2272727272727273
+      },
+      {
+        "product_id": "prod_37",
+        "category": "packaging",
+        "ground_truth": 0.5,
+        "authenticheck_absa_only": -0.4,
+        "clip_ca_cg_absa_only": -0.8,
+        "authenticheck_absa_only_absolute_error": 0.9,
+        "clip_ca_cg_absa_only_absolute_error": 1.3,
+        "paired_eligible": true,
+        "exclusion_reasons": [],
+        "authenticheck_absa_only_improvement": 0.4
+      },
+      {
+        "product_id": "prod_37",
+        "category": "seller_service",
+        "ground_truth": null,
+        "authenticheck_absa_only": 0.0,
+        "clip_ca_cg_absa_only": -1.0,
+        "authenticheck_absa_only_absolute_error": null,
+        "clip_ca_cg_absa_only_absolute_error": null,
+        "paired_eligible": false,
+        "exclusion_reasons": [
+          "no_ground_truth"
+        ],
+        "authenticheck_absa_only_improvement": null
+      },
+      {
+        "product_id": "prod_37",
+        "category": "accuracy_of_description",
+        "ground_truth": -1.0,
+        "authenticheck_absa_only": -0.45454545454545453,
+        "clip_ca_cg_absa_only": -1.0,
+        "authenticheck_absa_only_absolute_error": 0.5454545454545454,
+        "clip_ca_cg_absa_only_absolute_error": 0.0,
+        "paired_eligible": true,
+        "exclusion_reasons": [],
+        "authenticheck_absa_only_improvement": -0.5454545454545454
+      }
+    ],
+    "by_aspect": [
+      {
+        "category": "product_quality",
+        "product_count": 4,
+        "ground_truth_product_count": 4,
+        "paired_product_count": 4,
+        "authenticheck_absa_only_mae": 0.30240399246855487,
+        "clip_ca_cg_absa_only_mae": 0.44119886252154705,
+        "authenticheck_absa_only_improvement": 0.13879487005299218
+      },
+      {
+        "category": "functionality",
+        "product_count": 4,
+        "ground_truth_product_count": 4,
+        "paired_product_count": 3,
+        "authenticheck_absa_only_mae": 0.33336098328220176,
+        "clip_ca_cg_absa_only_mae": 0.30609515422618755,
+        "authenticheck_absa_only_improvement": -0.027265829056014223
+      },
+      {
+        "category": "performance",
+        "product_count": 4,
+        "ground_truth_product_count": 4,
+        "paired_product_count": 4,
+        "authenticheck_absa_only_mae": 0.27307417039242327,
+        "clip_ca_cg_absa_only_mae": 0.25507920007920004,
+        "authenticheck_absa_only_improvement": -0.017994970313223183
+      },
+      {
+        "category": "design",
+        "product_count": 4,
+        "ground_truth_product_count": 4,
+        "paired_product_count": 4,
+        "authenticheck_absa_only_mae": 0.15600198412698413,
+        "clip_ca_cg_absa_only_mae": 0.46193977591036417,
+        "authenticheck_absa_only_improvement": 0.30593779178338004
+      },
+      {
+        "category": "aesthetics",
+        "product_count": 4,
+        "ground_truth_product_count": 4,
+        "paired_product_count": 4,
+        "authenticheck_absa_only_mae": 0.125,
+        "clip_ca_cg_absa_only_mae": 0.15037593984962405,
+        "authenticheck_absa_only_improvement": 0.025375939849624052
+      },
+      {
+        "category": "sensory_experience",
+        "product_count": 4,
+        "ground_truth_product_count": 1,
+        "paired_product_count": 1,
+        "authenticheck_absa_only_mae": 0.14767616191904048,
+        "clip_ca_cg_absa_only_mae": 0.1429347826086957,
+        "authenticheck_absa_only_improvement": -0.004741379310344795
+      },
+      {
+        "category": "value",
+        "product_count": 4,
+        "ground_truth_product_count": 4,
+        "paired_product_count": 4,
+        "authenticheck_absa_only_mae": 0.22934565434565435,
+        "clip_ca_cg_absa_only_mae": 0.20570054945054944,
+        "authenticheck_absa_only_improvement": -0.023645104895104893
+      },
+      {
+        "category": "packaging",
+        "product_count": 4,
+        "ground_truth_product_count": 4,
+        "paired_product_count": 4,
+        "authenticheck_absa_only_mae": 0.40327380952380953,
+        "clip_ca_cg_absa_only_mae": 0.6375,
+        "authenticheck_absa_only_improvement": 0.23422619047619045
+      },
+      {
+        "category": "seller_service",
+        "product_count": 4,
+        "ground_truth_product_count": 3,
+        "paired_product_count": 3,
+        "authenticheck_absa_only_mae": 0.23902116402116402,
+        "clip_ca_cg_absa_only_mae": 0.4413003663003663,
+        "authenticheck_absa_only_improvement": 0.20227920227920226
+      },
+      {
+        "category": "accuracy_of_description",
+        "product_count": 4,
+        "ground_truth_product_count": 4,
+        "paired_product_count": 4,
+        "authenticheck_absa_only_mae": 0.2506493506493506,
+        "clip_ca_cg_absa_only_mae": 0.22619047619047622,
+        "authenticheck_absa_only_improvement": -0.02445887445887443
+      }
+    ],
+    "overall": {
+      "product_count": 4,
+      "product_aspect_count": 40,
+      "paired_product_aspect_count": 35,
+      "authenticheck_absa_only_mae": 0.2521090985673213,
+      "clip_ca_cg_absa_only_mae": 0.3399160160055829,
+      "authenticheck_absa_only_improvement": 0.0878069174382616,
+      "macro_mae_across_evaluable_aspects": {
+        "authenticheck_absa_only": 0.24598072707291826,
+        "clip_ca_cg_absa_only": 0.3268315107137011,
+        "authenticheck_absa_only_improvement": 0.08085078364078276
+      }
+    }
+  }
+}

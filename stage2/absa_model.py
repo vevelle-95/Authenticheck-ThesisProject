@@ -90,7 +90,8 @@ def tokenize_sentiment(tokenizer, texts, categories, max_length):
 
 class ABSAHeadModel(nn.Module):
     def __init__(self, encoder_name_or_dir=BASE_MODEL, dropout=0.1, *, encoder=None,
-                 threshold=0.5, sentiment_threshold=0.5, max_length=ABSA_MAX_LENGTH):
+                 threshold=0.5, sentiment_threshold=0.5, max_length=ABSA_MAX_LENGTH,
+                 aspect_thresholds=None):
         super().__init__()
         if not 0 < threshold < 1:
             raise ValueError("Aspect threshold must lie strictly between 0 and 1")
@@ -104,9 +105,19 @@ class ABSAHeadModel(nn.Module):
         self.aspect_head = nn.Linear(self.hidden_size, len(ASPECTS))
         self.sentiment_head = nn.Linear(self.hidden_size, len(POLARITIES))
         self.threshold = threshold
+        self.aspect_thresholds = self._validate_aspect_thresholds(aspect_thresholds or {})
         self.sentiment_threshold = sentiment_threshold
         self.max_length = max_length
         self.tokenizer_dir = None
+
+    @staticmethod
+    def _validate_aspect_thresholds(thresholds):
+        if not isinstance(thresholds, dict) or set(thresholds) - set(ASPECTS):
+            raise ValueError("Aspect thresholds must be a mapping of known categories")
+        if any(not isinstance(value, (int, float)) or not 0 < value < 1
+               for value in thresholds.values()):
+            raise ValueError("Each aspect threshold must lie strictly between 0 and 1")
+        return {category: float(thresholds[category]) for category in ASPECTS if category in thresholds}
 
     def _pooled(self, input_ids, attention_mask):
         return self.dropout(self.encoder(input_ids=input_ids, attention_mask=attention_mask).last_hidden_state[:, 0])
@@ -162,9 +173,12 @@ class ABSAHeadModel(nn.Module):
         self.eval()
         if isinstance(texts, str):
             texts = [texts]
+        override = threshold is not None
         threshold = self.threshold if threshold is None else threshold
         if not 0 < threshold < 1:
             raise ValueError("Aspect threshold must lie strictly between 0 and 1")
+        thresholds = ({category: threshold for category in ASPECTS} if override
+                      else {category: self.aspect_thresholds.get(category, threshold) for category in ASPECTS})
         results = []
         for start in range(0, len(texts), batch_size):
             batch = texts[start:start + batch_size]
@@ -173,7 +187,7 @@ class ABSAHeadModel(nn.Module):
             rows = [[] for _ in batch]
             for row, scores in enumerate(detection):
                 for index, category in enumerate(ASPECTS):
-                    if float(scores[index]) >= threshold:
+                    if float(scores[index]) >= thresholds[category]:
                         candidates.append((row, category, float(scores[index])))
             segments, offsets = {}, {}
             cursor = 0
@@ -192,7 +206,7 @@ class ABSAHeadModel(nn.Module):
             for (row, category, _), aspect_index in zip(candidates, aspect_indices):
                 scores = segment_scores[offsets[row]:offsets[row] + len(segments[row]), aspect_index]
                 ranked = sorted(range(len(segments[row])), key=lambda index: float(scores[index]), reverse=True)
-                accepted = [index for index in ranked if float(scores[index]) >= threshold] or ranked[:1]
+                accepted = [index for index in ranked if float(scores[index]) >= thresholds[category]] or ranked[:1]
                 accepted_rows.append(accepted)
                 evidence_texts.extend(segments[row][index] for index in accepted)
                 evidence_categories.extend([category] * len(accepted))
@@ -234,7 +248,8 @@ class ABSAHeadModel(nn.Module):
             "sentiment_target_policy": SENTIMENT_TARGET_POLICY,
             "aspects": list(ASPECTS), "polarities": list(POLARITIES), "encoder": self.encoder_name,
             "hidden_size": self.hidden_size, "dropout": self.dropout_rate,
-            "threshold": self.threshold, "sentiment_threshold": self.sentiment_threshold, "max_length": self.max_length,
+            "threshold": self.threshold, "aspect_thresholds": self.aspect_thresholds,
+            "sentiment_threshold": self.sentiment_threshold, "max_length": self.max_length,
         }
         (save_dir / "absa_config.json").write_text(json.dumps(config, indent=2), encoding="utf-8")
 
@@ -252,7 +267,8 @@ class ABSAHeadModel(nn.Module):
             raise ValueError("ABSA sentiment target policy mismatch; retrain with mixed-polarity support")
         config = AutoConfig.from_pretrained(model_dir / "encoder", local_files_only=True)
         model = cls(saved["encoder"], saved["dropout"], encoder=AutoModel.from_config(config),
-                    threshold=saved["threshold"], sentiment_threshold=saved["sentiment_threshold"], max_length=saved["max_length"])
+                    threshold=saved["threshold"], sentiment_threshold=saved["sentiment_threshold"],
+                    max_length=saved["max_length"], aspect_thresholds=saved.get("aspect_thresholds", {}))
         model.load_state_dict(torch.load(model_dir / "model.pt", map_location="cpu", weights_only=True))
         model.tokenizer_dir = model_dir / "tokenizer"
         return model

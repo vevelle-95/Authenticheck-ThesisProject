@@ -22,7 +22,8 @@ from stage1.generate_oof_features import generate_oof
 from stage1.train_roberta import predict_probabilities, tokenize_reviews
 from stage1.features import FeatureExtractor
 from stage2.absa_model import ABSAHeadModel, split_evidence_segments, tokenize_sentiment
-from stage2.fine_tune_absa import batch_forward, build_targets, detection_metrics, select_threshold
+from stage2.fine_tune_absa import (batch_forward, build_targets, detection_metrics,
+                                  select_aspect_thresholds, select_threshold)
 from stage2.online_inference import OnlineInference, aggregate_products, build_summary
 from stage2.train_xgboost import validate_features
 
@@ -637,6 +638,29 @@ class RobertaResumeTests(unittest.TestCase):
 
 
 class AbsaTests(unittest.TestCase):
+    def test_calibrated_aspect_thresholds_and_diagnostic_override(self):
+        model = ABSAHeadModel(encoder=FakeEncoder(), dropout=0, threshold=0.5,
+                              aspect_thresholds={"seller_service": 0.8})
+        model.aspect_head.weight.data.zero_()
+        model.aspect_head.bias.data.fill_(0.4)
+        regular = {item["category"] for item in model.predict(["review"], FakeTokenizer())[0]}
+        self.assertNotIn("seller_service", regular)
+        self.assertIn("product_quality", regular)
+        overridden = {item["category"] for item in model.predict(
+            ["review"], FakeTokenizer(), threshold=0.5)[0]}
+        self.assertIn("seller_service", overridden)
+
+    def test_sparse_aspects_keep_the_shared_validation_threshold(self):
+        targets = np.zeros((40, len(ASPECTS)))
+        probabilities = np.full_like(targets, 0.1)
+        targets[:20, ASPECTS.index("functionality")] = 1
+        probabilities[:20, ASPECTS.index("functionality")] = 0.8
+        probabilities[20:, ASPECTS.index("functionality")] = 0.6
+        targets[:3, ASPECTS.index("seller_service")] = 1
+        selected = select_aspect_thresholds(targets, probabilities, np.ones_like(targets), 0.5)
+        self.assertGreater(selected["functionality"], 0.6)
+        self.assertNotIn("seller_service", selected)
+
     def test_all_ten_outputs_are_available_without_product_metadata(self):
         model = ABSAHeadModel(encoder=FakeEncoder(), dropout=0)
         model.aspect_head.weight.data.zero_()
