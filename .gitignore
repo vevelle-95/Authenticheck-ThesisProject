@@ -68,6 +68,7 @@ pnpm-debug.log*
 !/data/samples/**
 !/data/test_reviews.csv
 !/data/splits_dataset.json
+!/data/splits_reviewed_real_v2.json
 !/data/augmented_reviews.csv
 /datasets/
 /scraped/

@@ -1,0 +1,19 @@
+{
+  "input_version": "product-context-six-features-v5-text-target",
+  "training_sha256": "c1c3ae8ecc6f21fe843494b331d904834c08f5edaae4828a4343cb13ea2c24e9",
+  "target_column": "text_label",
+  "quality_weighting": "uniform",
+  "source_weight_summary": null,
+  "validation_sha256": "5759bd884490350905d9c20c8bd645f6bf0a03414cd39a4f9c9a6adacb9724c3",
+  "epochs": 10,
+  "batch_size": 2,
+  "max_length": 128,
+  "quality_text_policy": "review-first-bounded-context-v1",
+  "seed": 42,
+  "base_model": "dost-asti/RoBERTa-tl-cased",
+  "low_memory_training": false,
+  "fp16": false,
+  "device": "cuda:0",
+  "torch_version": "2.11.0+cu128",
+  "resume_from_checkpoint": null
+}
