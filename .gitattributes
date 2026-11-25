@@ -16,3 +16,4 @@ models/retrain_real_v2/*.json -text
 models/retrain_real_v2/**/*.json -text
 models/retrain_real_v2/absa_model/model.pt filter=lfs diff=lfs merge=lfs -text
 models/retrain_real_v2/dost_roberta/model.safetensors filter=lfs diff=lfs merge=lfs -text
+models/retrain_real_v3/** filter=lfs diff=lfs merge=lfs -text
